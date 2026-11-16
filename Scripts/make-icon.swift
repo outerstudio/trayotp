@@ -18,25 +18,10 @@ func drawIcon(pixels: Int) -> NSBitmapImageRep {
     let ctx = NSGraphicsContext.current!.cgContext
     ctx.scaleBy(x: CGFloat(pixels) / 1024, y: CGFloat(pixels) / 1024)
 
-    // macOS icon grid: 824 pt rounded square centred on the 1024 canvas, with a soft drop shadow.
+    // macOS icon grid: 824 pt rounded square centred on the 1024 canvas. Flat: no shadow, no backdrop.
     let tile = NSRect(x: 100, y: 100, width: 824, height: 824)
     let tilePath = NSBezierPath(roundedRect: tile, xRadius: 185, yRadius: 185)
-    NSGraphicsContext.saveGraphicsState()
-    let shadow = NSShadow()
-    shadow.shadowColor = NSColor(white: 0, alpha: 0.35)
-    shadow.shadowBlurRadius = 24
-    shadow.shadowOffset = NSSize(width: 0, height: -10)
-    shadow.set()
-    NSColor(white: 0.1, alpha: 1).setFill()
-    tilePath.fill()
-    NSGraphicsContext.restoreGraphicsState()
-    NSGradient(starting: NSColor(red: 0.20, green: 0.20, blue: 0.23, alpha: 1),
-               ending: NSColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1))!
-        .draw(in: tilePath, angle: -90)
-
-    // Orange disc.
-    let disc = NSBezierPath(ovalIn: NSRect(x: 512 - 290, y: 512 - 290, width: 580, height: 580))
-    NSGradient(starting: accentTop, ending: accentBottom)!.draw(in: disc, angle: -90)
+    NSGradient(starting: accentTop, ending: accentBottom)!.draw(in: tilePath, angle: -90)
 
     // White lock: shackle + body.
     NSColor.white.set()
@@ -52,7 +37,7 @@ func drawIcon(pixels: Int) -> NSBitmapImageRep {
     let body = NSBezierPath(roundedRect: NSRect(x: 362, y: 330, width: 300, height: 240), xRadius: 44, yRadius: 44)
     body.fill()
 
-    // Keyhole in the disc colour.
+    // Keyhole in the tile colour.
     accentBottom.setFill()
     NSBezierPath(ovalIn: NSRect(x: 512 - 30, y: 448, width: 60, height: 60)).fill()
     NSBezierPath(roundedRect: NSRect(x: 512 - 14, y: 392, width: 28, height: 80), xRadius: 14, yRadius: 14).fill()
