@@ -1,0 +1,9 @@
+.build/
+build/
+.swiftpm/
+*.xcodeproj/
+.DS_Store
+# Never commit real backups.
+*.2fas
+# GPL-licensed test exports, downloaded by Scripts/fetch-test-fixtures.sh.
+ThirdPartyFixtures/

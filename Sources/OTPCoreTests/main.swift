@@ -1,0 +1,401 @@
+import Foundation
+import OTPCore
+
+// Minimal test runner: XCTest is not available with Command Line Tools only.
+// Run with: swift run OTPCoreTests
+
+var failures = 0
+var passes = 0
+
+func check(_ condition: @autoclosure () throws -> Bool, _ message: String, line: Int = #line) {
+    do {
+        if try condition() { passes += 1; return }
+        print("✗ line \(line): \(message)")
+    } catch {
+        print("✗ line \(line): \(message) — threw \(error)")
+    }
+    failures += 1
+}
+
+func equal<T: Equatable>(_ a: @autoclosure () throws -> T, _ b: T, _ message: String, line: Int = #line) {
+    do {
+        let v = try a()
+        if v == b { passes += 1; return }
+        print("✗ line \(line): \(message) — got \(v), expected \(b)")
+    } catch {
+        print("✗ line \(line): \(message) — threw \(error)")
+    }
+    failures += 1
+}
+
+/// Real exports from other apps, used to check compatibility. They come from GPL-licensed projects,
+/// so they are not part of this repo: `Scripts/fetch-test-fixtures.sh` downloads them into
+/// ThirdPartyFixtures/ (git-ignored). Tests that need them are skipped when they're missing.
+var skippedSuites: [String] = []
+
+func fixture(_ name: String) -> Data? {
+    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    return try? Data(contentsOf: root.appendingPathComponent("ThirdPartyFixtures/\(name)"))
+}
+
+// MARK: Base32
+
+equal(Base32.decode("MZXW6YTBOI"), Data("foobar".utf8), "decode foobar")
+equal(Base32.decode("mzxw 6ytb-oi======"), Data("foobar".utf8), "lenient decode")
+equal(Base32.encode(Data("foobar".utf8)), "MZXW6YTBOI", "encode foobar")
+check(Base32.decode("not base32!") == nil, "invalid chars rejected")
+
+// MARK: RFC 6238 test vectors (Appendix B)
+
+let seeds: [OTPAlgorithm: String] = [
+    .sha1: "12345678901234567890",
+    .sha256: "12345678901234567890123456789012",
+    .sha512: "1234567890123456789012345678901234567890123456789012345678901234",
+]
+let vectors: [(Double, OTPAlgorithm, String)] = [
+    (59, .sha1, "94287082"), (59, .sha256, "46119246"), (59, .sha512, "90693936"),
+    (1111111109, .sha1, "07081804"), (1111111109, .sha256, "68084774"), (1111111109, .sha512, "25091201"),
+    (1234567890, .sha1, "89005924"), (1234567890, .sha256, "91819424"), (1234567890, .sha512, "93441116"),
+    (20000000000, .sha1, "65353130"), (20000000000, .sha256, "77737706"), (20000000000, .sha512, "47863826"),
+]
+for (time, alg, expected) in vectors {
+    let token = Token(name: "t", secret: Base32.encode(Data(seeds[alg]!.utf8)), algorithm: alg, digits: 8)
+    equal(token.code(at: Date(timeIntervalSince1970: time)), expected, "TOTP \(alg) @\(Int(time))")
+}
+
+// MARK: RFC 4226 HOTP vectors
+
+let hotpExpected = ["755224", "287082", "359152", "969429", "338314"]
+for (counter, expected) in hotpExpected.enumerated() {
+    let token = Token(name: "h", secret: Base32.encode(Data("12345678901234567890".utf8)), kind: .hotp, counter: UInt64(counter))
+    equal(token.code(), expected, "HOTP counter \(counter)")
+}
+
+// MARK: Helpers
+
+equal("123456".otpGrouped, "123 456", "group 6")
+equal("12345678".otpGrouped, "1234 5678", "group 8")
+let t30 = Token(name: "x", secret: "JBSWY3DPEHPK3PXP")
+equal(t30.secondsRemaining(at: Date(timeIntervalSince1970: 61)), 29, "seconds remaining")
+
+// MARK: otpauth://
+
+do {
+    let t = try OTPAuthURI.parse("otpauth://totp/ACME%20Co:john@example.com?secret=HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ&issuer=ACME%20Co&algorithm=SHA256&digits=8&period=60")
+    equal(t.name, "ACME Co", "uri name")
+    equal(t.account, "john@example.com", "uri account")
+    equal(t.algorithm, .sha256, "uri algorithm")
+    equal(t.digits, 8, "uri digits")
+    equal(t.period, 60, "uri period")
+
+    let h = try OTPAuthURI.parse("otpauth://hotp/Foo?secret=JBSWY3DPEHPK3PXP&counter=7")
+    equal(h.kind, .hotp, "hotp kind")
+    equal(h.counter, 7, "hotp counter")
+
+    let back = try OTPAuthURI.parse(OTPAuthURI.make(t))
+    equal(back.secret, t.secret, "uri round trip secret")
+    equal(back.account, t.account, "uri round trip account")
+} catch {
+    check(false, "otpauth parsing threw \(error)")
+}
+equal(Result { try OTPAuthURI.parse("otpauth://totp/x?issuer=y") }.inputError, .missingSecret, "missing secret")
+equal(Result { try TokenInput.parse("jbsw y3dp ehpk 3pxp", fallbackName: "Raw") }.value?.secret, "JBSWY3DPEHPK3PXP", "raw secret")
+
+// MARK: 2FAS
+
+if let sampleEncrypted = fixture("encrypted_test.2fas") {
+    // A real export from the 2FAS Android app (password "example.com").
+    check(TwoFAS.isEncrypted(sampleEncrypted), "fixture is encrypted")
+    equal(Result { try TwoFAS.decode(sampleEncrypted) }.twoFASError, .passwordRequired, "password required")
+    equal(Result { try TwoFAS.decode(sampleEncrypted, password: "wrong") }.twoFASError, .wrongPassword, "wrong password")
+    equal(try TwoFAS.decryptReference(sampleEncrypted, password: "example.com"), TwoFAS.referencePlaintext,
+          "reference constant matches a real 2FAS export")
+
+    do {
+        let backup = try TwoFAS.decode(sampleEncrypted, password: "example.com")
+        check(!backup.tokens.isEmpty, "decrypted tokens")
+        check(backup.tokens.allSatisfy(\.isValid), "all tokens valid")
+        print("  fixture tokens: \(backup.tokens.map(\.name).joined(separator: ", "))")
+
+        // Plain round trip keeps every field.
+        let plain = try TwoFAS.encode(backup)
+        let again = try TwoFAS.decode(plain)
+        equal(again.tokens.map(\.secret), backup.tokens.map(\.secret), "plain round trip secrets")
+        equal(again.tokens.map(\.name), backup.tokens.map(\.name), "plain round trip names")
+        equal(again.tokens.map { $0.extra?["icon"] }, backup.tokens.map { $0.extra?["icon"] }, "icons preserved")
+        equal(again.groups, backup.groups, "groups preserved")
+
+        // Encrypted round trip.
+        let enc = try TwoFAS.encode(backup, password: "hunter2")
+        check(TwoFAS.isEncrypted(enc), "export is encrypted")
+        equal(try TwoFAS.decryptReference(enc, password: "hunter2"), TwoFAS.referencePlaintext, "export reference")
+        equal(try TwoFAS.decode(enc, password: "hunter2").tokens.map(\.secret), backup.tokens.map(\.secret), "encrypted round trip")
+        equal(Result { try TwoFAS.decode(enc, password: "nope") }.twoFASError, .wrongPassword, "export wrong password")
+
+        // Integers stay integers in exported JSON.
+        let json = String(decoding: plain, as: UTF8.self)
+        check(json.contains("\"schemaVersion\":4"), "schemaVersion is an integer")
+    } catch {
+        check(false, "2FAS fixture threw \(error)")
+    }
+} else {
+    skippedSuites.append("2FAS real export")
+}
+
+// New token without 2FAS metadata exports required fields.
+do {
+    let fresh = try TwoFAS.encode(.init(tokens: [Token(name: "GitHub", account: "me", secret: "JBSWY3DPEHPK3PXP")]))
+    let root = try JSONDecoder().decode(JSONValue.self, from: fresh)
+    let s = root["services"]?.array?.first
+    check(s?["updatedAt"]?.int != nil, "fresh: updatedAt")
+    equal(s?["order"]?["position"]?.int, 0, "fresh: order")
+    equal(s?["otp"]?["tokenType"]?.string, "TOTP", "fresh: tokenType")
+}
+
+// MARK: Icons
+
+do {
+    // Vaults saved before icons existed still decode.
+    let old = try JSONEncoder().encode(Token(name: "Old", secret: "JBSWY3DPEHPK3PXP"))
+    var dict = try JSONSerialization.jsonObject(with: old) as! [String: Any]
+    dict.removeValue(forKey: "icon")
+    let decoded = try JSONDecoder().decode(Token.self, from: JSONSerialization.data(withJSONObject: dict))
+    check(decoded.icon == nil, "token without icon field decodes")
+
+    // Custom icons are not written into 2FAS backups.
+    let png = Data(repeating: 0xAB, count: 64)
+    let withIcon = Token(name: "Iconic", secret: "JBSWY3DPEHPK3PXP", icon: png)
+    let exported = try TwoFAS.encode(.init(tokens: [withIcon]))
+    check(!String(decoding: exported, as: UTF8.self).contains(png.base64EncodedString()), "icon data not exported to 2FAS")
+    equal(try JSONDecoder().decode(Token.self, from: JSONEncoder().encode(withIcon)).icon, png, "icon persists in vault encoding")
+}
+
+// MARK: Aegis icon pack
+
+do {
+    let manifest = """
+    {"uuid":"u","name":"Test Pack","version":3,"icons":[
+      {"name":"Google","filename":"icons/Google.svg","category":null,"issuer":["Google"]},
+      {"name":"Google Cloud","filename":"icons/GoogleCloud.svg","issuer":["Google Cloud"]},
+      {"name":"GitHub","filename":"icons/GitHub.svg","category":"Dev","issuer":["GitHub","github.com"]},
+      {"filename":"icons/EA.svg","issuer":["EA"]},
+      {"name":"Mail","filename":"icons/Mail.svg","issuer":["Mail"]},
+      {"name":"NoIssuer","filename":"icons/x.svg"}
+    ]}
+    """
+    let pack = try IconPack.decode(Data(manifest.utf8))
+    equal(pack.icons.count, 6, "pack decodes (null category, missing issuer)")
+    equal(pack.bestMatch(name: "github", issuer: nil)?.name, "GitHub", "exact match, case-insensitive")
+    equal(pack.bestMatch(name: "Work", issuer: "GitHub.com")?.name, "GitHub", "issuer domain match")
+    equal(pack.bestMatch(name: "Google Workspace", issuer: nil)?.name, "Google", "partial match")
+    equal(pack.bestMatch(name: "Google Cloud Console", issuer: nil)?.name, "Google Cloud", "longest partial wins")
+    check(pack.bestMatch(name: "Seattle", issuer: nil) == nil, "short keys (EA) don't partial-match")
+    equal(pack.bestMatch(name: "EA", issuer: nil)?.filename, "icons/EA.svg", "short keys still match exactly")
+    equal(pack.search("goo").map(\.displayName), ["Google", "Google Cloud"], "search by prefix")
+    equal(pack.search("").count, 6, "empty search lists all")
+    equal(pack.bestMatch(name: "accounts.google.com", issuer: nil)?.name, "Google", "match a later word")
+    check(pack.bestMatch(name: "Gmail", issuer: nil) == nil, "no match inside a word (Gmail ≠ Mail)")
+}
+
+// MARK: SVG path normalization
+
+equal(SVGPathFixer.normalize(path: "M1 2a10 10 0 00-7.88 3.7"), "M 1 2 a 10 10 0 0 0 -7.88 3.7", "compact arc flags split")
+equal(SVGPathFixer.normalize(path: "a.2612.2612 0 11.316.416"), "a .2612 .2612 0 1 1 .316 .416", "flags touching a decimal")
+equal(SVGPathFixer.normalize(path: "M0,0L1e-3-2.5z"), "M 0 0 L 1e-3 -2.5 z", "exponents and signs")
+equal(SVGPathFixer.normalize(path: "a1 1 0 0 1 2 2 1 1 0 102 2"), "a 1 1 0 0 1 2 2 1 1 0 1 0 2 2", "repeated arc arguments")
+equal(SVGPathFixer.normalize(path: "M1 2 Q #"), "M1 2 Q #", "unparseable input unchanged")
+check(SVGPathFixer.normalize(svg: #"<svg><path d="M0 0a1 1 0 011 1" fill="white"/></svg>"#)
+        == #"<svg><path d="M 0 0 a 1 1 0 0 1 1 1" fill="white"/></svg>"#, "normalizes d attributes in a document")
+
+// MARK: Favicon
+
+equal(Favicon.guessDomain(name: "Plurk", issuer: "Plurk"), "plurk.com", "guess from name")
+equal(Favicon.guessDomain(name: "Work", issuer: "GitHub.com"), "github.com", "issuer that is a domain")
+equal(Favicon.guessDomain(name: "Air Canada", issuer: nil), "aircanada.com", "multi-word guess")
+equal(Favicon.normalizeDomain("https://www.plurk.com/login?x=1"), "www.plurk.com", "strip scheme and path")
+equal(Favicon.normalizeDomain("  GitHub.com/ "), "github.com", "trim and lowercase")
+check(Favicon.normalizeDomain("not a domain") == nil, "spaces rejected")
+check(Favicon.normalizeDomain("localhost") == nil, "needs a dot")
+check(Favicon.normalizeDomain("evil.com/../x?y") == "evil.com", "only the host is used")
+check(Favicon.normalizeDomain("a..com") == nil, "empty label rejected")
+equal(Favicon.urls(for: "plurk.com").map(\.absoluteString),
+      ["https://icons.duckduckgo.com/ip3/plurk.com.ico", "https://icons.duckduckgo.com/ip3/www.plurk.com.ico"], "www fallback")
+equal(Favicon.urls(for: "www.google.com").last?.absoluteString, "https://icons.duckduckgo.com/ip3/google.com.ico", "www removed")
+
+// MARK: Groups
+
+do {
+    let work = TokenGroup(id: "g-work", name: "Work", isExpanded: false)
+    let a = Token(name: "GitHub", secret: "JBSWY3DPEHPK3PXP", groupId: work.id)
+    let b = Token(name: "Plurk", secret: "JBSWY3DPEHPK3PXQ")
+    let data = try TwoFAS.encode(.init(tokens: [a, b], groups: [work]))
+    let root = try JSONDecoder().decode(JSONValue.self, from: data)
+    let g = root["groups"]?.array?.first
+    equal(g?["name"]?.string, "Work", "group exported")
+    equal(g?["isExpanded"]?.bool, false, "group expanded state exported")
+    check(g?["updatedAt"]?.int != nil, "group updatedAt exported")
+    let services = root["services"]?.array ?? []
+    equal(services.first?["groupId"]?.string, "g-work", "token groupId exported")
+    check(services.last?["groupId"] == .null, "ungrouped token exports null groupId")
+    check(services.allSatisfy { s in ["badge", "icon", "serviceTypeID"].allSatisfy { s[$0] != nil } },
+          "required nullable 2FAS keys always present")
+
+    let back = try TwoFAS.decode(data)
+    equal(back.groups, [work], "groups round trip")
+    equal(back.tokens.map(\.groupId), ["g-work", nil], "token groups round trip")
+
+    // A token pointing at an undefined group becomes ungrouped.
+    var orphan = try JSONDecoder().decode(JSONValue.self, from: data)
+    orphan["groups"] = .array([])
+    let fixed = try TwoFAS.decode(JSONEncoder().encode(orphan))
+    check(fixed.tokens.allSatisfy { $0.groupId == nil }, "orphan groupId dropped")
+}
+
+// MARK: scrypt (RFC 7914 test vectors)
+
+equal(CryptoUtil_scryptHex("", "", 16, 1, 1),
+      "77d6576238657b203b19ca42c18a0497f16b4844e3074ae8dfdffa3fede21442fcd0069ded0948f8326a753a0fc81f17e8d3e0fb2e0d3628cf35e20c38d18906", "scrypt vector 1")
+equal(CryptoUtil_scryptHex("password", "NaCl", 1024, 8, 16),
+      "fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640", "scrypt vector 2")
+
+// MARK: Aegis / Ente imports (fixtures from Aegis's own importer tests)
+
+if let plain = fixture("aegis_plain.json"), let encrypted = fixture("aegis_encrypted.json"),
+   let ente = fixture("ente_auth.txt") {
+  do {
+    equal(Importer.detect(plain), .aegis, "detect Aegis plain")
+    equal(Importer.detect(encrypted), .aegis, "detect Aegis encrypted")
+    equal(Importer.detect(ente), .ente, "detect Ente")
+    check(Importer.needsPassword(encrypted) && !Importer.needsPassword(plain), "Aegis needsPassword")
+
+    let (_, a) = try Importer.decode(plain)
+    print("  Aegis plain: \(a.tokens.count) tokens, skipped \(a.skipped)")
+    check(!a.tokens.isEmpty && a.tokens.allSatisfy(\.isValid), "Aegis plain tokens valid")
+    equal(Result { try Importer.decode(encrypted) }.twoFASError, .passwordRequired, "Aegis needs password")
+    equal(Result { try Importer.decode(encrypted, password: "wrong") }.twoFASError, .wrongPassword, "Aegis wrong password")
+    let (_, ae) = try Importer.decode(encrypted, password: "test")
+    equal(ae.tokens.map(\.secret), a.tokens.map(\.secret), "Aegis encrypted == plain")
+
+    let (_, e) = try Importer.decode(ente)
+    print("  Ente: \(e.tokens.count) tokens, skipped \(e.skipped)")
+    let key = { (t: Token) in "\(t.issuer ?? "")|\(t.account ?? "")|\(t.secret)|\(t.kind)|\(t.algorithm)|\(t.digits)|\(t.period)|\(t.counter)" }
+    equal(Set(e.tokens.map(key)), Set(a.tokens.map(key)), "Ente and Aegis fixtures import the same tokens")
+    check(e.tokens.contains { $0.issuer == "Air Canada" }, "'+' decoded as space")
+    check(e.tokens.contains { $0.kind == .steam && $0.digits == 5 }, "Steam via otpauth://steam")
+  } catch {
+    check(false, "Aegis/Ente fixtures threw \(error)")
+  }
+} else {
+    skippedSuites.append("Aegis/Ente real exports")
+}
+
+do {
+    // Aegis v3 groups and Ente tags become groups; trashed Ente codes are skipped.
+    let v3 = """
+    {"version":1,"header":{"slots":null,"params":null},"db":{"version":3,
+     "entries":[{"type":"totp","uuid":"e1","name":"me","issuer":"GitHub","info":{"secret":"JBSWY3DPEHPK3PXP","algo":"SHA1","digits":6,"period":30},"groups":["g1"]},
+                {"type":"yandex","uuid":"e2","name":"me","issuer":"Yandex","info":{"secret":"JBSWY3DPEHPK3PXP","algo":"SHA256","digits":8,"period":30,"pin":"1234"}}],
+     "groups":[{"uuid":"g1","name":"Work"}]}}
+    """
+    let (_, b) = try Importer.decode(Data(v3.utf8))
+    equal(b.groups.map(\.name), ["Work"], "Aegis v3 groups")
+    equal(b.tokens.first?.groupId, "g1", "Aegis entry group")
+    equal(b.skipped.count, 1, "Yandex skipped")
+
+    let tags = #"otpauth://totp/X:a?secret=JBSWY3DPEHPK3PXP&issuer=X&codeDisplay=%7B%22trashed%22%3Afalse%2C%22tags%22%3A%5B%22Work%22%5D%7D"#
+        + "\n" + #"otpauth://totp/Y:b?secret=JBSWY3DPEHPK3PXP&issuer=Y&codeDisplay=%7B%22trashed%22%3Atrue%7D"#
+    let (_, t) = try Importer.decode(Data(tags.utf8))
+    equal(t.tokens.map(\.name), ["X"], "trashed Ente code skipped")
+    equal(t.groups.map(\.name), ["Work"], "Ente tag becomes group")
+    equal(t.tokens.first?.groupId, t.groups.first?.id, "Ente token in tag group")
+
+    let enc = #"{"version":1,"kdfParams":{"memLimit":1,"opsLimit":1,"salt":"x"},"encryptedData":"x","encryptionNonce":"x"}"#
+    check({ if case .unsupported = Result(catching: { try Importer.decode(Data(enc.utf8)) }).twoFASError { return true }; return false }(),
+          "encrypted Ente explains it is unsupported")
+    equal(try OTPAuthURI.parse("otpauth://totp/A?secret=JBSWY3DPEHPK3PXP&issuer=C%2B%2B+Club").issuer, "C++ Club", "%2B stays a plus")
+} catch {
+    check(false, "group/tag imports threw \(error)")
+}
+
+// MARK: Export to Aegis / Ente (round trip through our importers)
+
+do {
+    let work = TokenGroup(id: "2fas-group-1", name: "Work & Play")   // not a UUID, like 2FAS ids
+    let tokens = [
+        Token(name: "GitHub", issuer: "GitHub", account: "me@x.com", secret: "JBSWY3DPEHPK3PXP", groupId: work.id),
+        Token(name: "C++ Club", issuer: "C++ Club", account: "a b", secret: "JBSWY3DPEHPK3PXQ", algorithm: .sha256, digits: 8, period: 60),
+        Token(name: "Bank", issuer: "Bank", account: "x", secret: "JBSWY3DPEHPK3PXR", kind: .hotp, counter: 42),
+        Token(name: "Steam", issuer: "Steam", account: "gamer", secret: "JBSWY3DPEHPK3PXS", kind: .steam, icon: Data([1, 2, 3])),
+    ]
+    let backup = TwoFAS.Backup(tokens: tokens, groups: [work])
+    let key = { (t: Token) in "\(t.issuer ?? "")|\(t.account ?? "")|\(t.secret)|\(t.kind)|\(t.algorithm)|\(t.digits)|\(t.period)|\(t.counter)" }
+    let groupName = { (b: TwoFAS.Backup, t: Token) in b.groups.first { $0.id == t.groupId }?.name }
+
+    for format in [BackupFormat.twoFAS, .aegis, .ente] {
+        let (detected, back) = try Importer.decode(Exporter.encode(backup, as: format))
+        equal(detected, format, "\(format.rawValue) export detected")
+        equal(back.tokens.map(key), tokens.map(key), "\(format.rawValue) export round trip")
+        equal(back.tokens.map { groupName(back, $0) }, ["Work & Play", nil, nil, nil], "\(format.rawValue) groups round trip")
+    }
+
+    let twoFASEnc = try Exporter.encode(backup, as: .twoFAS, password: "hunter2")
+    equal(Importer.detect(twoFASEnc), .twoFAS, "detect 2FAS")
+    equal(try TwoFAS.decryptReference(twoFASEnc, password: "hunter2"), TwoFAS.referencePlaintext, "2FAS export reference")
+    equal(try Importer.decode(twoFASEnc, password: "hunter2").1.tokens.map(key), tokens.map(key), "2FAS encrypted round trip")
+    equal(Result { try Importer.decode(twoFASEnc, password: "nope") }.twoFASError, .wrongPassword, "2FAS export wrong password")
+
+    let aegisPlain = try Exporter.encode(backup, as: .aegis)
+    let aegisRoot = try JSONDecoder().decode(JSONValue.self, from: aegisPlain)
+    let groupUUID = aegisRoot["db"]?["groups"]?.array?.first?["uuid"]?.string ?? ""
+    check(UUID(uuidString: groupUUID) != nil, "Aegis group ids are UUIDs")
+    equal(try Importer.decode(aegisPlain).1.tokens.last?.icon, Data([1, 2, 3]), "Aegis export keeps icons")
+
+    let aegisEnc = try Exporter.encode(backup, as: .aegis, password: "hunter2")
+    check(Importer.needsPassword(aegisEnc), "Aegis encrypted export needs a password")
+    equal(try Importer.decode(aegisEnc, password: "hunter2").1.tokens.map(key), tokens.map(key), "Aegis encrypted round trip")
+    equal(Result { try Importer.decode(aegisEnc, password: "nope") }.twoFASError, .wrongPassword, "Aegis export wrong password")
+
+    let ente = String(decoding: try Exporter.encode(backup, as: .ente), as: UTF8.self)
+    check(ente.contains("otpauth://steam/"), "Ente writes Steam as otpauth://steam")
+    check(ente.contains("C%2B%2B"), "plus signs are percent-encoded")
+} catch {
+    check(false, "export round trips threw \(error)")
+}
+
+// MARK: Master password
+
+do {
+    let key = Data((0..<32).map { UInt8($0) })
+    let blob = try MasterPassword.wrap(key, password: "correct horse", n: 1 << 10)
+    check(MasterPassword.isWrapped(blob), "wrapped blob recognized")
+    check(!MasterPassword.isWrapped(key), "raw 32-byte key is not wrapped")
+    equal(try MasterPassword.unwrap(blob, password: "correct horse"), key, "unwrap with right password")
+    equal(Result { try MasterPassword.unwrap(blob, password: "wrong") }.masterError, .wrongPassword, "wrong master password")
+    check(try MasterPassword.wrap(key, password: "x", n: 1 << 10) != MasterPassword.wrap(key, password: "x", n: 1 << 10), "fresh salt each time")
+    check(!String(decoding: blob, as: UTF8.self).contains(key.base64EncodedString()), "key not stored in the clear")
+
+    let started = Date()
+    let strong = try MasterPassword.wrap(key, password: "p")
+    _ = try MasterPassword.unwrap(strong, password: "p")
+    print(String(format: "  default master-password scrypt: %.2fs per wrap+unwrap", Date().timeIntervalSince(started)))
+}
+
+extension Result where Failure == Error {
+    var masterError: MasterPassword.Error? { if case .failure(let e) = self { return e as? MasterPassword.Error }; return nil }
+}
+
+// MARK: Done
+
+extension Result where Failure == Error {
+    var value: Success? { try? get() }
+    var twoFASError: TwoFAS.Error? { if case .failure(let e) = self { return e as? TwoFAS.Error }; return nil }
+}
+extension Result where Failure == Error {
+    var inputError: TokenInputError? { if case .failure(let e) = self { return e as? TokenInputError }; return nil }
+}
+
+if !skippedSuites.isEmpty {
+    print("  skipped (run Scripts/fetch-test-fixtures.sh): \(skippedSuites.joined(separator: ", "))")
+}
+print(failures == 0 ? "✓ \(passes) checks passed" : "\(failures) failed, \(passes) passed")
+exit(failures == 0 ? 0 : 1)
