@@ -25,13 +25,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/panel.png" width="328" alt="The TrayOTP panel: a search field, tokens with service icons and countdown rings, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
+  <img src="docs/screenshots/panel.png" width="328" alt="The TrayOTP panel: a search field, tokens with service icons and next codes, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
 </p>
 
 ## Features
 
 - **Lives in the menu bar.** Click the tray icon, click a code, it's copied. No Dock icon, no window to manage.
-- **Fast to use.** Type to search, ↑/↓ to select, ↩ to copy. A countdown ring shows when each code changes.
+- **Fast to use.** Type to search, ↑/↓ to select, Enter (↩) to copy. A fill behind each row shows when the code changes, with the next code beside it.
 - **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
 - **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
 - **Move in or out freely.** Import from 2FAS, Aegis (plain or encrypted) and Ente Auth. Export to all three.
@@ -96,9 +96,9 @@ Apps you build yourself open without any warning.
 ### Copying codes
 
 - **Click a code** to copy it. A "Copied" message confirms it.
-- **Keyboard:** the search field is focused when the panel opens. Type to filter, use **↑/↓** to select and **↩** to copy.
-- The ring on the right counts down to the next code. The code turns red in its last 5 seconds;
-  right-click → **Copy Next Code** to get the upcoming one instead.
+- **Keyboard:** the search field is focused when the panel opens. Type to filter, use **↑/↓** to select, **Enter** (↩) to copy and **→** to copy the next code.
+- The upcoming code is shown on the right of each row, and a translucent fill behind the row shows the time left on
+  the current one. Click the upcoming code (or right-click → **Copy Next Code**) to copy it instead.
 - For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
 - Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 

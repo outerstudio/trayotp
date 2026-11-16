@@ -158,6 +158,11 @@ struct TokenListView: View {
                                     TokenRow(token: token, isSelected: focus == .list && index == selection)
                                         .id(token.id)
                                         .onTapGesture { state.copy(token) }
+                                        // Any click, including on the next code, selects the row like ↑/↓.
+                                        .simultaneousGesture(TapGesture().onEnded {
+                                            selection = index
+                                            focus = .list
+                                        })
                                         .contextMenu { rowMenu(token) }
                                         .modifier(TokenDrag(token: token, enabled: canDrag))
                                     if token.id != section.visible.last?.id {
@@ -178,6 +183,7 @@ struct TokenListView: View {
                         return .handled
                     }
                     .onKeyPress(.return) { copySelected(); return .handled }
+                    .onKeyPress(.rightArrow) { copySelected(next: true) }
                     .onChange(of: selection) {
                         if items.indices.contains(selection) { proxy.scrollTo(items[selection].id) }
                     }
@@ -264,6 +270,14 @@ struct TokenListView: View {
         let items = filtered
         guard items.indices.contains(selection) else { return }
         state.copy(items[selection])
+    }
+
+    /// → copies the selected token's next code (HOTP tokens have none).
+    private func copySelected(next: Bool) -> KeyPress.Result {
+        let items = filtered
+        guard items.indices.contains(selection), items[selection].kind != .hotp else { return .ignored }
+        state.copy(items[selection], next: true)
+        return .handled
     }
 }
 
@@ -442,7 +456,7 @@ struct GroupHeader: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 12)
         .frame(height: Theme.groupHeaderHeight)
-        .background(targeted ? Theme.accent.opacity(0.25) : Color.white.opacity(0.03))
+        .background { Rectangle().fill(targeted ? Theme.accent.opacity(0.25) : Color.white.opacity(0.03)) }
         .contentShape(Rectangle())
         .dropDestination(for: String.self) { items, _ in
             guard canDrag, let first = items.first, let item = DragItem(first) else { return false }

@@ -17,6 +17,8 @@ final class AppState {
     var screen: Screen = .list
     var lockMessage: String?
     var toast: String?
+    /// The token whose next code was just copied, so its row can flash the next code.
+    private(set) var copiedNext: Token.ID?
     let icons = IconPackStore()
 
     /// Require Touch ID / password before codes are shown.
@@ -49,6 +51,7 @@ final class AppState {
     @ObservationIgnored private var nextAutoPrompt = Date.distantPast
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var toastTask: Task<Void, Never>?
+    @ObservationIgnored private var copiedNextTask: Task<Void, Never>?
 
     private enum Keys {
         static let requireAuth = "requireAuth"
@@ -271,7 +274,18 @@ final class AppState {
         guard let code = token.code(at: date) else { return }
         Clipboard.copy(code)
         touch()
-        showToast(next ? "Next code copied" : "Copied \(token.name)")
+        showToast(next ? "Copied next \(token.name)" : "Copied \(token.name)")
+        if next { flashNext(token.id) }
+    }
+
+    private func flashNext(_ id: Token.ID) {
+        copiedNext = id
+        copiedNextTask?.cancel()
+        copiedNextTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(0.8))
+            guard !Task.isCancelled else { return }
+            self?.copiedNext = nil
+        }
     }
 
     func add(_ token: Token) {

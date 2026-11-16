@@ -31,11 +31,9 @@ struct TokenRow: View {
                 // Only the code and the ring tick. Ticking the whole row would rebuild its
                 // context menu every second and close open submenus.
                 TimelineView(.periodic(from: .now, by: 1)) { context in
-                    let remaining = token.secondsRemaining(at: context.date)
                     Text(token.code(at: context.date)?.otpGrouped ?? "Invalid secret")
                         .font(.system(size: 24, weight: .regular).monospacedDigit())
-                        .foregroundStyle(token.kind != .hotp && remaining <= 5 ? Color.red.opacity(0.9) : .primary)
-                        .contentTransition(.numericText())
+                                                .contentTransition(.numericText())
                 }
             }
 
@@ -47,10 +45,8 @@ struct TokenRow: View {
                     .foregroundStyle(.secondary)
                     .help("Counter-based code. Right-click → Next code.")
             } else {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    CountdownRing(remaining: token.secondsRemaining(at: context.date), period: token.period)
-                }
-                .frame(width: 26, height: 26)
+                // The upcoming code, like Ente Auth.
+                NextCode(token: token, color: color)
             }
         }
         .padding(.horizontal, 12)
@@ -59,8 +55,60 @@ struct TokenRow: View {
             // Colored accent bar like the 2FAS list.
             Rectangle().fill(color).frame(width: 3)
         }
-        .background(isSelected ? Theme.selection : .clear)
+        .background {
+            if token.kind != .hotp {
+                // Time left on the current code, as a translucent fill behind the whole row.
+                // Computed from the clock on every frame (no implicit animation), so every row
+                // shows the same fraction and a row scrolling into view doesn't animate in.
+                TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+                    let period = Double(max(token.period, 1))
+                    let fraction = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
+                    Rectangle().fill(color.opacity(0.18))
+                        .scaleEffect(x: fraction, anchor: .leading)
+                }
+            }
+        }
+        // An explicit Rectangle: a bare color background takes the Card's rounded container shape.
+        .background { if isSelected { Rectangle().fill(Theme.selection) } }
         .contentShape(Rectangle())
+    }
+}
+
+/// The upcoming code on the right of a TOTP row. Clicking it copies the next code instead of the
+/// current one; it highlights on hover and flashes when copied (also by → in the list).
+@MainActor
+struct NextCode: View {
+    @Environment(AppState.self) private var state
+    let token: Token
+    let color: Color
+    @State private var hovering = false
+
+    var body: some View {
+        let copied = state.copiedNext == token.id
+
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let next = context.date.addingTimeInterval(Double(token.period))
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(copied ? "copied" : "next")
+                    .font(.system(size: 10, weight: copied ? .semibold : .regular))
+                Text(token.code(at: next)?.otpGrouped ?? "")
+                    .font(.system(size: 13).monospacedDigit())
+            }
+            .foregroundStyle(copied ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background {
+            RoundedRectangle(cornerRadius: 7)
+                .fill(copied ? color.opacity(0.45) : Color.white.opacity(hovering ? 0.1 : 0))
+        }
+        .scaleEffect(copied ? 1.08 : 1)
+        .animation(.spring(response: 0.25, dampingFraction: 0.55), value: copied)
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .onTapGesture { state.copy(token, next: true) }
+        .help("Click or press → to copy the next code")
     }
 }
 
@@ -92,25 +140,5 @@ struct ServiceAvatar: View {
         let words = name.split { !$0.isLetter && !$0.isNumber }
         if words.count >= 2 { return String(words[0].prefix(1) + words[1].prefix(1)).uppercased() }
         return String(name.prefix(2)).uppercased()
-    }
-}
-
-struct CountdownRing: View {
-    let remaining: Int
-    let period: Int
-
-    var body: some View {
-        let warn = remaining <= 5
-        ZStack {
-            Circle().stroke(Color.white.opacity(0.15), lineWidth: 2)
-            Circle()
-                .trim(from: 0, to: CGFloat(remaining) / CGFloat(max(period, 1)))
-                .stroke(warn ? Color.red : Color.white.opacity(0.85),
-                        style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            Text("\(remaining)")
-                .font(.system(size: 10, weight: .medium).monospacedDigit())
-                .foregroundStyle(warn ? Color.red : .secondary)
-        }
     }
 }
