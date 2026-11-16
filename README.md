@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/panel.png" width="328" alt="The TrayOTP panel: a search field, tokens with service icons and next codes, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
+  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel: a search field, tokens with service icons and next codes, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
 </p>
 
 ## Features
@@ -184,7 +184,7 @@ All in the **⋯** menu:
 Click **Lock** at the bottom of the panel to lock right away.
 
 <p align="center">
-  <img src="docs/screenshots/lock-screen.png" width="334" alt="The locked panel: &quot;TrayOTP is locked&quot; with Unlock with Touch ID and Quit buttons">
+  <img src="docs/screenshots/lock-screen.png" width="340" alt="The locked panel: &quot;TrayOTP is locked&quot; with Unlock with Touch ID and Quit buttons">
 </p>
 
 ## Security
