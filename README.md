@@ -191,10 +191,9 @@ Click **Lock** at the bottom of the panel to lock right away.
 
 ### How your secrets are stored
 
-- Tokens live in `~/Library/Application Support/TrayOTP/vault.bin`, encrypted with **AES-256-GCM**. Only your
+- Tokens live in your mac. Only your
   user account can read the file.
 - The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
-  Without the key, `vault.bin` can't be brute-forced.
 - With **Require Unlock** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
   tokens are dropped from memory when it locks again.
 - **Exporting** and **deleting a token** always ask for Touch ID again, even while TrayOTP is unlocked.
@@ -314,4 +313,4 @@ respective owners, used only to identify each service.
 
 ## License
 
-[MIT](LICENSE) © 2026 Gary Yeap
+[MIT](LICENSE) © 2026 outerstudio.com
