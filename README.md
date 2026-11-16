@@ -71,7 +71,7 @@ shasum -a 256 -c TrayOTP-vX.Y.Z.zip.sha256
 
 ### Build from source
 
-You only need Apple's **Command Line Tools** (about 3 GB), not Xcode:
+You only need Apple's **Command Line Tools**:
 
 ```sh
 xcode-select --install                                 # skip if already installed
@@ -243,7 +243,7 @@ Use the password set when the backup was exported from 2FAS, Aegis or TrayOTP, n
 
 ## Development
 
-Requires macOS 14 and the Command Line Tools; no Xcode.
+Requires macOS 14 and the Command Line Tools.
 
 ```sh
 make test      # fetch third-party test exports, then run the test suite (optimized build)
