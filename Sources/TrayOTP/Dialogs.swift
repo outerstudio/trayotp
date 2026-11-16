@@ -120,6 +120,28 @@ enum Dialogs {
         return alert.runModal() == .alertFirstButtonReturn ? field.stringValue : nil
     }
 
+    /// Records a key combination. Returns nil on Cancel; `.some(nil)` means "Clear".
+    static func shortcut(current: Shortcut?) -> Shortcut?? {
+        prepare()
+        let alert = NSAlert()
+        alert.messageText = "Global Shortcut"
+        alert.informativeText = "Press the keys that open TrayOTP from anywhere. Include ⌘, ⌃ or ⌥."
+        alert.addButton(withTitle: "Set")
+        alert.addButton(withTitle: "Cancel")
+        if current != nil { alert.addButton(withTitle: "Clear") }
+        let set = alert.buttons[0]
+        let recorder = ShortcutRecorder(current: current) { set.isEnabled = true }
+        set.isEnabled = current != nil
+        alert.accessoryView = recorder
+        alert.layout()
+        alert.window.initialFirstResponder = recorder
+        switch alert.runModal() {
+        case .alertFirstButtonReturn: return .some(recorder.shortcut)
+        case .alertThirdButtonReturn: return .some(nil)
+        default: return nil
+        }
+    }
+
     static func confirm(title: String, message: String, button: String) -> Bool {
         prepare()
         let alert = NSAlert()

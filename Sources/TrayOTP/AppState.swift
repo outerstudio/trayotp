@@ -38,6 +38,9 @@ final class AppState {
         didSet { UserDefaults.standard.set(ungroupedExpanded, forKey: Keys.ungroupedExpanded) }
     }
 
+    /// System-wide hotkey that opens the panel. nil = none.
+    private(set) var shortcut: Shortcut?
+
     /// The vault key is wrapped with a master password; unlocking needs it instead of Touch ID.
     private(set) var hasMasterPassword: Bool {
         didSet { UserDefaults.standard.set(hasMasterPassword, forKey: Keys.masterPassword) }
@@ -69,6 +72,8 @@ final class AppState {
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
+        shortcut = Shortcut.load()
+        if !GlobalHotKey.shared.register(shortcut) { shortcut = nil }
         observeSystemLock()
         updater.checkIfDue()
     }
@@ -250,6 +255,18 @@ final class AppState {
             }
             info = "Enter a whole number of minutes from 1 to 1440 (24 hours)."
         }
+    }
+
+    func editShortcut() {
+        guard let choice = Dialogs.shortcut(current: shortcut) else { return }
+        guard GlobalHotKey.shared.register(choice) else {
+            GlobalHotKey.shared.register(shortcut)
+            Dialogs.info(title: "Shortcut unavailable",
+                         message: "\(choice?.display ?? "That shortcut") is already used by macOS or another app. Try a different one.")
+            return
+        }
+        shortcut = choice
+        Shortcut.save(choice)
     }
 
     private func touch() { lastActive = Date() }

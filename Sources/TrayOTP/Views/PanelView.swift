@@ -29,6 +29,9 @@ struct PanelView: View {
         .frame(width: Theme.panelWidth)
         .environment(\.colorScheme, .dark)
         .background(WindowFocusObserver { state.panelDidOpen() })
+        .onExitCommand {
+            if state.screen == .list { GlobalHotKey.togglePanel() } else { state.screen = .list }
+        }
         .overlay(alignment: .bottom) {
             if let toast = state.toast {
                 Text(toast)
@@ -345,6 +348,9 @@ struct SettingsMenu: View {
                 Button("Custom…") { afterMenu { state.setCustomGrace() } }
             }
             .disabled(!state.needsUnlock)
+            Button(state.shortcut.map { "Global Shortcut: \($0.display)…" } ?? "Set Global Shortcut…") {
+                afterMenu { state.editShortcut() }
+            }
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
             Divider()
