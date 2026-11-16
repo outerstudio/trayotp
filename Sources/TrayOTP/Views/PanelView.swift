@@ -347,10 +347,25 @@ struct SettingsMenu: View {
             .disabled(!state.needsUnlock)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
+            Divider()
+            if let release = state.updater.available {
+                Button("Update to \(release.version?.description ?? release.tag)…") {
+                    afterMenu { Task { await state.updater.offerAvailable() } }
+                }
+            }
+            Button("Check for Updates…") { afterMenu { Task { await state.updater.checkInteractively() } } }
+                .disabled(state.updater.isBusy)
+            Toggle("Check Automatically", isOn: Binding(get: { state.updater.checksAutomatically },
+                                                           set: { state.updater.checksAutomatically = $0 }))
         } label: {
             Image(systemName: "ellipsis")
                 .frame(width: 30, height: 30)
                 .background(Color.white.opacity(0.07), in: Circle())
+                .overlay(alignment: .topTrailing) {
+                    if state.updater.available != nil {
+                        Circle().fill(Color.accentColor).frame(width: 8, height: 8)
+                    }
+                }
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)

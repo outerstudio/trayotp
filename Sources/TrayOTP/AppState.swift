@@ -20,6 +20,7 @@ final class AppState {
     /// The token whose next code was just copied, so its row can flash the next code.
     private(set) var copiedNext: Token.ID?
     let icons = IconPackStore()
+    let updater = Updater()
 
     /// Require Touch ID / password before codes are shown.
     var requireAuth: Bool {
@@ -69,6 +70,7 @@ final class AppState {
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
         observeSystemLock()
+        updater.checkIfDue()
     }
 
     // MARK: Lock

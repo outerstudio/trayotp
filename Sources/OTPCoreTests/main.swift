@@ -394,6 +394,27 @@ extension Result where Failure == Error {
     var inputError: TokenInputError? { if case .failure(let e) = self { return e as? TokenInputError }; return nil }
 }
 
+// MARK: Updates
+
+check(AppVersion("v0.10.0")! > AppVersion("0.9.3")!, "versions compare numerically, not as text")
+check(AppVersion("1.0")! == AppVersion("v1.0.0")!, "missing components count as zero")
+check(AppVersion("0.2.0-beta.1")! == AppVersion("0.2.0")!, "pre-release suffix is ignored")
+check(AppVersion("0.1.0")! < AppVersion("0.1.1")!, "patch bump is newer")
+check(AppVersion("") == nil && AppVersion("latest") == nil && AppVersion("1..2") == nil, "junk is rejected")
+
+let releaseJSON = Data("""
+{"tag_name":"v0.2.0","html_url":"https://github.com/outerstudio/trayotp/releases/tag/v0.2.0","body":"Notes",
+ "assets":[{"name":"TrayOTP-v0.2.0.zip.sha256","browser_download_url":"https://example.com/a.sha256"},
+           {"name":"TrayOTP-v0.2.0.zip","browser_download_url":"https://example.com/a.zip"}]}
+""".utf8)
+let release = try? JSONDecoder().decode(Release.self, from: releaseJSON)
+equal(release?.version?.description, "0.2.0", "release version")
+equal(release?.zip?.name, "TrayOTP-v0.2.0.zip", "zip asset")
+equal(release?.checksum?.name, "TrayOTP-v0.2.0.zip.sha256", "checksum asset")
+let digest = String(repeating: "ab", count: 32)
+equal(Release.parseChecksum("\(digest.uppercased())  TrayOTP-v0.2.0.zip\n"), digest, "checksum line parsed")
+check(Release.parseChecksum("not a hash") == nil, "bad checksum rejected")
+
 if !skippedSuites.isEmpty {
     print("  skipped (run Scripts/fetch-test-fixtures.sh): \(skippedSuites.joined(separator: ", "))")
 }
