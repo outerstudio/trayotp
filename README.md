@@ -5,13 +5,28 @@
 <h1 align="center">TrayOTP</h1>
 
 <p align="center">
-  Your two-factor codes, one click away in the macOS menu bar.<br>
-  Imports from and exports to <b>2FAS</b>, <b>Aegis</b> and <b>Ente Auth</b>.
+  <b>Your two-factor codes, one click away in the macOS menu bar.</b><br>
+  Imports from and exports to 2FAS, Aegis and Ente Auth. Encrypted, offline, open source.
 </p>
 
-<!-- SCREENSHOT: docs/screenshots/panel.png
-     The open tray panel with ~5 tokens (icons from an icon pack, one group header visible,
-     one code in its last 5 seconds so it shows red). Crop to the menu bar icon + panel. -->
+<p align="center">
+  <a href="https://github.com/outerstudio/trayotp/releases/latest"><img src="https://img.shields.io/github/v/release/outerstudio/trayotp?label=download" alt="Latest release"></a>
+  <a href="https://github.com/outerstudio/trayotp/actions/workflows/ci.yml"><img src="https://github.com/outerstudio/trayotp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14 or later">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#using-trayotp">Using TrayOTP</a> ·
+  <a href="#security">Security</a> ·
+  <a href="#troubleshooting">Troubleshooting</a>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/panel.png" width="328" alt="The TrayOTP panel: a search field, tokens with service icons and countdown rings, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
+</p>
 
 ## Features
 
@@ -23,6 +38,7 @@
 - **Groups.** Collapsible sections, drag and drop to sort and move tokens, kept in 2FAS, Aegis and Ente exports.
 - **Service icons.** Use any [Aegis icon pack](#service-icons), pick icons by hand, use your own images, or fetch a site's favicon.
 - **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
+- **Secure.** Tokens are encrypted with AES-256-GCM, with the key kept in your login keychain. See [Security](#security).
 - **Private.** Everything stays on your Mac. No account, no sync, no analytics.
 - **Small and native.** Swift and SwiftUI, a few MB. Requires macOS 14 Sonoma or later; runs on Apple silicon and Intel.
 
@@ -30,8 +46,7 @@
 
 ### Download
 
-1. Download `TrayOTP-vX.Y.Z.zip` from the [latest release](../../releases/latest).
-   <!-- TODO: replace with the full GitHub URL once the repo is public, e.g. https://github.com/OWNER/trayotp/releases/latest -->
+1. Download `TrayOTP-vX.Y.Z.zip` from the [latest release](https://github.com/outerstudio/trayotp/releases/latest).
 2. Unzip it and move **TrayOTP.app** to your **Applications** folder.
 3. Open it. The first time, macOS will say it can't verify the app (see below).
 
@@ -59,10 +74,10 @@ shasum -a 256 -c TrayOTP-vX.Y.Z.zip.sha256
 You only need Apple's **Command Line Tools** (about 3 GB), not Xcode:
 
 ```sh
-xcode-select --install                            # skip if already installed
-git clone https://github.com/OWNER/trayotp.git    # TODO: real repo URL
+xcode-select --install                                 # skip if already installed
+git clone https://github.com/outerstudio/trayotp.git
 cd trayotp
-make release                                      # builds build/TrayOTP.app
+make release                                           # builds build/TrayOTP.app
 cp -R build/TrayOTP.app /Applications/
 ```
 
@@ -77,9 +92,6 @@ Apps you build yourself open without any warning.
 3. Click any code to copy it.
 
 ## Using TrayOTP
-
-<!-- SCREENSHOT: docs/screenshots/panel-annotated.png
-     The panel with callouts: search field, ⋯ menu, a group header, countdown ring, Add / Lock / Quit buttons. -->
 
 ### Copying codes
 
@@ -102,9 +114,6 @@ Click **Add** at the bottom of the panel, then paste one of:
 
 A live preview shows the code before you save it, so you can compare it with the website.
 
-<!-- SCREENSHOT: docs/screenshots/add-token.png
-     The Add Token screen with an otpauth link pasted and the live preview row showing a code. -->
-
 ### Groups
 
 - **Create a group:** **⋯ → New Group…**, or right-click a token → **Move to Group → New Group…**.
@@ -113,9 +122,6 @@ A live preview shows the code before you save it, so you can compare it with the
   Drag a group header onto another one to reorder groups.
 - **Collapse:** click a group header (Ungrouped too). Search always finds tokens in collapsed groups.
 - **Rename, move or delete a group:** right-click its header. Deleting a group keeps its tokens; they move to Ungrouped.
-
-<!-- SCREENSHOT: docs/screenshots/groups.png
-     Two groups, one collapsed, plus a token being dragged with the orange drop outline visible. -->
 
 ### Service icons
 
@@ -142,9 +148,6 @@ To set many at once, **⋯ → Import Icons from Folder…** matches image file 
 
 > **Privacy note:** **Fetch Icon from Website…** downloads the favicon through DuckDuckGo's icon service, so
 > DuckDuckGo sees that domain. It only happens when you choose it, never automatically.
-
-<!-- SCREENSHOT: docs/screenshots/icon-picker.png
-     The "Icon for …" picker grid with a search term entered. -->
 
 ### Import and export
 
@@ -180,8 +183,9 @@ All in the **⋯** menu:
 
 Click **Lock** at the bottom of the panel to lock right away.
 
-<!-- SCREENSHOT: docs/screenshots/lock-screen.png
-     The locked panel ("TrayOTP is locked"), ideally the master-password variant with the password field. -->
+<p align="center">
+  <img src="docs/screenshots/lock-screen.png" width="334" alt="The locked panel: &quot;TrayOTP is locked&quot; with Unlock with Touch ID and Quit buttons">
+</p>
 
 ## Security
 
@@ -218,8 +222,8 @@ Setting, changing or removing the master password switches to a new vault key, s
 - Builds use the hardened runtime, which blocks other processes from injecting code into TrayOTP or attaching a
   debugger to it.
 
-Found a security problem? Please report it privately (see the repository's **Security** tab) rather than in a public issue.
-<!-- TODO: enable private vulnerability reporting on GitHub, or add a SECURITY.md with a contact address. -->
+Found a security problem? Please report it privately through the repository's
+[Security tab](https://github.com/outerstudio/trayotp/security) rather than in a public issue.
 
 ## Troubleshooting
 
