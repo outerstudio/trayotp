@@ -48,6 +48,7 @@ enum VaultError: Error, LocalizedError {
 }
 
 struct VaultStore {
+    // Keychain label for the vault key, independent of the bundle ID. Changing it orphans existing vaults.
     static let service = "com.trayotp.vault"
     static let account = "vault-key"
 

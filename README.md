@@ -1,86 +1,313 @@
-# TrayOTP
+<p align="center">
+  <img src="Support/AppIcon-1024.png" width="128" alt="TrayOTP icon">
+</p>
 
-A macOS menu bar authenticator. Click the tray icon to see your one-time codes, click a code to copy it.
-Imports and exports 2FAS backups (`.2fas`) and Aegis vaults (`.json`), plain or password-encrypted, and
-Ente Auth plain-text exports (`.txt`). Groups carry over (as Ente tags for Ente); icons carry over to and from Aegis.
+<h1 align="center">TrayOTP</h1>
 
-Requires macOS 14+. Builds with the **Command Line Tools only**, no Xcode needed.
+<p align="center">
+  Your two-factor codes, one click away in the macOS menu bar.<br>
+  Imports from and exports to <b>2FAS</b>, <b>Aegis</b> and <b>Ente Auth</b>.
+</p>
 
-## Develop
+<!-- SCREENSHOT: docs/screenshots/panel.png
+     The open tray panel with ~5 tokens (icons from an icon pack, one group header visible,
+     one code in its last 5 seconds so it shows red). Crop to the menu bar icon + panel. -->
+
+## Features
+
+- **Lives in the menu bar.** Click the tray icon, click a code, it's copied. No Dock icon, no window to manage.
+- **Fast to use.** Type to search, ↑/↓ to select, ↩ to copy. A countdown ring shows when each code changes.
+- **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
+- **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
+- **Move in or out freely.** Import from 2FAS, Aegis (plain or encrypted) and Ente Auth. Export to all three.
+- **Groups.** Collapsible sections, drag and drop to sort and move tokens, kept in 2FAS, Aegis and Ente exports.
+- **Service icons.** Use any [Aegis icon pack](#service-icons), pick icons by hand, use your own images, or fetch a site's favicon.
+- **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
+- **Private.** Everything stays on your Mac. No account, no sync, no analytics.
+- **Small and native.** Swift and SwiftUI, a few MB. Requires macOS 14 Sonoma or later; runs on Apple silicon and Intel.
+
+## Install
+
+### Download
+
+1. Download `TrayOTP-vX.Y.Z.zip` from the [latest release](../../releases/latest).
+   <!-- TODO: replace with the full GitHub URL once the repo is public, e.g. https://github.com/OWNER/trayotp/releases/latest -->
+2. Unzip it and move **TrayOTP.app** to your **Applications** folder.
+3. Open it. The first time, macOS will say it can't verify the app (see below).
+
+**Why the warning?** TrayOTP is open source and isn't signed with a paid Apple Developer certificate, so
+macOS can't check who made it. To open it anyway:
+
+- **macOS 15 Sequoia and later:** open the app once, close the warning, then go to
+  **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to TrayOTP.
+- **macOS 14 Sonoma:** right-click **TrayOTP.app** → **Open** → **Open**.
+
+You only need to do this once per version. If you'd rather not trust a downloaded build,
+[build it yourself](#build-from-source) in about a minute.
+
+<!-- SCREENSHOT: docs/screenshots/open-anyway.png
+     System Settings → Privacy & Security with the "Open Anyway" button for TrayOTP highlighted. -->
+
+**Checking the download (optional):** each release includes a `.sha256` file. In Terminal:
 
 ```sh
-make test   # swift run -c release OTPCoreTests: RFC vectors, otpauth://, 2FAS/Aegis/Ente imports
-make run    # build TrayOTP.app (ad-hoc signed), quit the old one, launch
-make release
+shasum -a 256 -c TrayOTP-vX.Y.Z.zip.sha256
 ```
 
-`XCTest` ships only with Xcode, so tests are a small executable (`Sources/OTPCoreTests/main.swift`).
+### Build from source
 
-## Layout
+You only need Apple's **Command Line Tools** (about 3 GB), not Xcode:
 
-```
-Sources/OTPCore/       pure logic, no UI
-  OTP.swift            HOTP / TOTP / Steam codes (CryptoKit)
-  Base32.swift         lenient Base32
-  OTPAuthURI.swift     otpauth:// parse + build, raw secret input
-  TwoFAS.swift         2FAS backup import/export (PBKDF2-SHA256 + AES-256-GCM)
-Sources/TrayOTP/       SwiftUI MenuBarExtra app
-  AppState.swift       lock state, tokens, import/export
-  VaultStore.swift     AES-GCM vault file + key in the Keychain
-  Views/               panel, rows, countdown ring, lock and add screens
-Scripts/bundle.sh      swift build → TrayOTP.app → codesign
+```sh
+xcode-select --install                            # skip if already installed
+git clone https://github.com/OWNER/trayotp.git    # TODO: real repo URL
+cd trayotp
+make release                                      # builds build/TrayOTP.app
+cp -R build/TrayOTP.app /Applications/
 ```
 
-## Service icons
+Apps you build yourself open without any warning.
 
-TrayOTP ships no brand logos. It reads [Aegis](https://getaegis.app)-format icon packs instead:
+## Getting started
 
-1. Download `aegis-icons.zip` from [aegis-icons releases](https://github.com/aegis-icons/aegis-icons/releases).
-2. In the tray panel: **⋯ → Install Aegis Icon Pack…** and choose the ZIP.
+1. Click the TrayOTP icon in the menu bar (a lock in a circle) and unlock with Touch ID.
+2. Add your tokens:
+   - **From another app:** **⋯ → Import from 2FAS, Aegis or Ente…** (see [Import and export](#import-and-export)).
+   - **One at a time:** click **Add** and paste the setup link or secret (see [Adding a token](#adding-a-token)).
+3. Click any code to copy it.
 
-Tokens get icons automatically by matching their issuer or name ("Google Workspace" → Google).
-Right-click a token → **Choose Icon from Pack…** to pick one by hand, or **Set Icon from File…** / **Paste Icon**
-for your own image. A chosen icon always wins over the automatic match.
-Any ZIP following the [Aegis icon pack format](https://github.com/beemdevelopment/Aegis/blob/master/docs/iconpacks.md)
-works (`pack.json` + SVG/PNG/JPEG).
+## Using TrayOTP
 
-**Fetch Icon from Website…** (right-click a token) downloads the site's favicon from
-DuckDuckGo's icon service after you confirm the domain. DuckDuckGo sees that domain. Nothing is fetched
-automatically.
+<!-- SCREENSHOT: docs/screenshots/panel-annotated.png
+     The panel with callouts: search field, ⋯ menu, a group header, countdown ring, Add / Lock / Quit buttons. -->
 
-Logos are trademarks of their respective owners, used only to identify each service.
+### Copying codes
 
-## Security model
+- **Click a code** to copy it. A "Copied" message confirms it.
+- **Keyboard:** the search field is focused when the panel opens. Type to filter, use **↑/↓** to select and **↩** to copy.
+- The ring on the right counts down to the next code. The code turns red in its last 5 seconds;
+  right-click → **Copy Next Code** to get the upcoming one instead.
+- For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
+- Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 
-- Tokens are stored in `~/Library/Application Support/TrayOTP/vault.bin`, encrypted with AES-256-GCM.
-  The key is in the Keychain.
-- With **Require Touch ID** on (the default), the vault is only decrypted after Touch ID or the Mac password.
-  It locks again after the "Stay Unlocked" time, on sleep and on screen lock, and decrypted tokens are dropped from memory.
-- **Master password** (optional, ⋯ → Set Master Password…): the vault key in the Keychain is itself encrypted
-  with scrypt(password) (N=2^17, r=8, p=1; ~0.5 s and 128 MB per guess) + AES-256-GCM, so the Keychain item
-  alone can't open the vault. Unlocking then asks for the password instead of Touch ID. Setting, changing or
-  removing it switches to a fresh vault key, so old Keychain copies in backups stop working.
-  Forget it and the tokens are gone: keep an encrypted export.
-- Exporting and deleting a token always ask for Touch ID or the Mac password again, even while unlocked.
-- Copied codes are marked concealed (clipboard managers skip them) and cleared after 30 s.
-- Builds use the hardened runtime (also ad-hoc ones), which blocks code injection and debugger attach.
-- Limitation: without an Apple-issued certificate the app cannot use the data-protection keychain, so the
-  vault key can't be bound to Touch ID at the Keychain level. Touch ID is enforced by the app, and another
-  app asking for the key gets a macOS "wants to use your keychain" prompt. Never choose Always Allow for
-  anything other than TrayOTP.
-- Development builds are ad-hoc signed, so the key goes to the login keychain. macOS may ask
-  "TrayOTP wants to use your keychain" after a rebuild; choose **Always Allow**.
-  Team-signed builds use the data-protection keychain automatically.
+### Adding a token
 
-## Release
+Click **Add** at the bottom of the panel, then paste one of:
 
-Push a tag (`git tag v0.1.0 && git push --tags`). `.github/workflows/release.yml` builds a universal app, and,
-if the signing secrets listed in the workflow are set, signs it with Developer ID and notarizes it.
+| You have | What to do |
+|---|---|
+| An `otpauth://…` setup link | Paste it. Name, account and settings are filled in from the link. |
+| A secret key like `JBSW Y3DP EHPK 3PXP` | Paste it and type a name (e.g. "GitHub"). Spaces and lowercase are fine. |
+| A QR code on screen | Screenshot it to the clipboard (**⌃⇧⌘4**), or right-click the image → **Copy Image**. Then open **Add** (it fills in automatically) or click **Paste Link, Secret or QR Image**. |
 
-## 2FAS format notes
+A live preview shows the code before you save it, so you can compare it with the website.
 
-Encrypted backups store `servicesEncrypted` as `cipher:salt:iv` (Base64). The key is PBKDF2-HMAC-SHA256 with
-10 000 iterations, the cipher is AES-256-GCM with the 16-byte tag at the end of `cipher`, the salt is 256 bytes
-and the IV 12 bytes. `reference` is a fixed string encrypted the same way, used to check the password.
-The test fixture `encrypted_test.2fas` (password `example.com`) comes from
-[elliotwutingfeng/2fas-backup-decryptor](https://github.com/elliotwutingfeng/2fas-backup-decryptor).
+<!-- SCREENSHOT: docs/screenshots/add-token.png
+     The Add Token screen with an otpauth link pasted and the live preview row showing a code. -->
+
+### Groups
+
+- **Create a group:** **⋯ → New Group…**, or right-click a token → **Move to Group → New Group…**.
+- **Move a token:** right-click it → **Move to Group**, or drag it onto a group header.
+- **Reorder:** drag a token onto another one: the top half of the row puts it above, the bottom half below.
+  Drag a group header onto another one to reorder groups.
+- **Collapse:** click a group header (Ungrouped too). Search always finds tokens in collapsed groups.
+- **Rename, move or delete a group:** right-click its header. Deleting a group keeps its tokens; they move to Ungrouped.
+
+<!-- SCREENSHOT: docs/screenshots/groups.png
+     Two groups, one collapsed, plus a token being dragged with the orange drop outline visible. -->
+
+### Service icons
+
+TrayOTP doesn't ship brand logos. Instead it reads icon packs in the
+[Aegis icon pack format](https://github.com/beemdevelopment/Aegis/blob/master/docs/iconpacks.md):
+
+1. Download `aegis-icons.zip` from [aegis-icons releases](https://github.com/aegis-icons/aegis-icons/releases)
+   (or any other Aegis-compatible pack).
+2. **⋯ → Install Aegis Icon Pack…** and choose the ZIP.
+
+Tokens get an icon automatically by matching their issuer or name ("Google Workspace" → Google).
+For anything else, right-click a token:
+
+| Menu item | What it does |
+|---|---|
+| **Choose Icon from Pack…** | Search the installed pack and pick an icon by hand |
+| **Set Icon from File…** | Use an image file (PNG, JPEG, SVG, HEIC, PDF…) |
+| **Paste Icon** | Use an image you copied |
+| **Fetch Icon from Website…** | Download the site's favicon (you confirm the domain first) |
+| **Remove Icon** | Go back to the automatic icon or colored initials |
+
+To set many at once, **⋯ → Import Icons from Folder…** matches image file names to token names
+(`github.png` → GitHub). An icon you chose always wins over the pack's automatic match.
+
+> **Privacy note:** **Fetch Icon from Website…** downloads the favicon through DuckDuckGo's icon service, so
+> DuckDuckGo sees that domain. It only happens when you choose it, never automatically.
+
+<!-- SCREENSHOT: docs/screenshots/icon-picker.png
+     The "Icon for …" picker grid with a search term entered. -->
+
+### Import and export
+
+**Import:** **⋯ → Import from 2FAS, Aegis or Ente…**. TrayOTP detects the format. Tokens you already have are skipped,
+and anything that can't be imported is listed afterwards.
+
+**Export:** **⋯ → Export ▸**, then pick the app. TrayOTP asks for Touch ID first.
+
+| App | Import | Export | Groups | Icons |
+|---|---|---|---|---|
+| **2FAS** (`.2fas`) | Plain or encrypted | Plain or encrypted | ✓ | — |
+| **Aegis** (`.json`) | Plain or encrypted | Plain or encrypted | ✓ | ✓ |
+| **Ente Auth** (`.txt`) | Plain text | Plain text | ✓ (as tags) | — |
+| Any text file of `otpauth://` links | ✓ | — | — | — |
+
+Not supported yet: encrypted Ente Auth exports (export as plain text from Ente instead), Google Authenticator
+"Transfer accounts" QR codes, and Aegis's Yandex and mOTP token types.
+
+> **Unencrypted exports contain all your secrets in plain text.** Delete the file once you've imported it.
+> For a backup you keep, use **Aegis (Encrypted)**: its password protection (scrypt) is much harder to crack
+> than 2FAS's.
+
+### Lock and security settings
+
+All in the **⋯** menu:
+
+| Setting | What it does |
+|---|---|
+| **Require Touch ID** | Ask for Touch ID or your Mac password before showing codes (on by default). |
+| **Stay Unlocked ▸** | How long TrayOTP stays unlocked after you last used it: every time, 1 minute to 1 hour, **Until Mac Sleeps or Locks**, or a custom number of minutes. It always locks when your Mac sleeps or the screen locks. |
+| **Set Master Password…** | Protect the vault with a password of your own, typed instead of Touch ID (see [Security](#security)). |
+| **Launch at Login** | Start TrayOTP when you log in. |
+
+Click **Lock** at the bottom of the panel to lock right away.
+
+<!-- SCREENSHOT: docs/screenshots/lock-screen.png
+     The locked panel ("TrayOTP is locked"), ideally the master-password variant with the password field. -->
+
+## Security
+
+### How your secrets are stored
+
+- Tokens live in `~/Library/Application Support/TrayOTP/vault.bin`, encrypted with **AES-256-GCM**. Only your
+  user account can read the file.
+- The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
+  Without the key, `vault.bin` can't be brute-forced.
+- With **Require Touch ID** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
+  tokens are dropped from memory when it locks again.
+- **Exporting** and **deleting a token** always ask for Touch ID again, even while TrayOTP is unlocked.
+- Nothing leaves your Mac, except a domain you choose to look up with **Fetch Icon from Website…**.
+
+### Optional master password
+
+With **⋯ → Set Master Password…**, the vault key in the Keychain is itself encrypted with a key derived from your
+password (scrypt with N=2¹⁷, r=8, p=1: about 0.5 s and 128 MB per guess). Someone who gets into your keychain
+still has to guess the password. You then unlock with the password instead of Touch ID.
+
+Setting, changing or removing the master password switches to a new vault key, so old copies of the keychain
+(for example in a Time Machine backup) can't open the vault afterwards.
+
+> **If you forget the master password, your tokens cannot be recovered.** Keep an encrypted export somewhere safe.
+
+### Limitations
+
+- TrayOTP isn't signed with an Apple Developer certificate, so macOS doesn't let it bind the vault key to Touch ID
+  inside the Keychain. Touch ID is enforced by the app, and another app asking for the key triggers a macOS
+  **"wants to use your keychain"** prompt. **Only ever choose Always Allow for TrayOTP itself.**
+- Your seeds are only as safe as your Mac. Turn on **FileVault**, **encrypt your Time Machine backups**, and use a strong
+  login password. If both `vault.bin` and your login keychain were stolen, the login password is what stands in
+  the way (plus the master password, if you set one).
+- Builds use the hardened runtime, which blocks other processes from injecting code into TrayOTP or attaching a
+  debugger to it.
+
+Found a security problem? Please report it privately (see the repository's **Security** tab) rather than in a public issue.
+<!-- TODO: enable private vulnerability reporting on GitHub, or add a SECURITY.md with a contact address. -->
+
+## Troubleshooting
+
+**"TrayOTP wants to use your keychain" after an update**
+Each release is signed separately, so macOS asks again after you update. Enter your Mac password and choose
+**Always Allow**. This is expected for TrayOTP; never allow other apps to use the `com.trayotp.vault` item.
+
+**Launchpad shows a blank icon**
+Launchpad only lists apps in `/Applications`. If the icon is still blank after moving the app there, run `killall Dock`.
+
+**A QR code isn't detected**
+Crop the screenshot closer to the code. Google Authenticator "Transfer accounts" codes aren't supported.
+
+**"Wrong backup password"**
+Use the password set when the backup was exported from 2FAS, Aegis or TrayOTP, not your Mac password.
+
+## Development
+
+Requires macOS 14 and the Command Line Tools; no Xcode.
+
+```sh
+make test      # fetch third-party test exports, then run the test suite (optimized build)
+make run       # build build/TrayOTP.app, quit the running copy, launch the new one
+make release   # build only
+make icon      # redraw Support/AppIcon.icns from Scripts/make-icon.swift
+```
+
+`make test` and `make run` build optimized: Aegis vault decryption (scrypt) takes about 40 s in an unoptimized
+build and 0.1 s in an optimized one.
+
+### Project layout
+
+```
+Sources/OTPCore/          pure logic, no UI, fully tested
+  OTP.swift               HOTP / TOTP / Steam codes (CryptoKit)
+  Base32.swift            lenient Base32
+  OTPAuthURI.swift        otpauth:// parsing and building
+  TwoFAS.swift            2FAS import/export (PBKDF2-SHA256 + AES-256-GCM)
+  Aegis.swift             Aegis import/export (scrypt + AES-256-GCM)
+  Ente.swift              Ente Auth and otpauth link lists
+  Importer.swift          format detection; Exporter
+  MasterPassword.swift    scrypt-wrapped vault key
+  IconPack.swift          Aegis icon pack manifest and matching
+  SVGPathFixer.swift      rewrites minified SVG paths that macOS draws wrongly
+  CryptoUtil.swift        PBKDF2, hex, scrypt (RFC 7914)
+Sources/TrayOTP/          SwiftUI MenuBarExtra app
+  AppState.swift          lock state, tokens, groups, import/export, settings
+  VaultStore.swift        encrypted vault file + Keychain key, crash-safe key changes
+  IconPackStore.swift     installed icon pack, rendering and caching
+  Views/                  panel, rows, groups, lock, add and icon picker screens
+Sources/OTPCoreTests/     test runner (XCTest needs Xcode, so it's a plain executable)
+Scripts/                  bundle.sh (build .app), make-icon.swift, fetch-test-fixtures.sh
+```
+
+### Tests
+
+The suite covers the RFC 4226 / 6238 / 7914 test vectors, otpauth parsing, and import/export round trips for every
+format. To check compatibility with files the other apps really produce, `Scripts/fetch-test-fixtures.sh` downloads
+real exports from the [2fas-backup-decryptor](https://github.com/elliotwutingfeng/2fas-backup-decryptor) and
+[Aegis](https://github.com/beemdevelopment/Aegis) test suites into `ThirdPartyFixtures/`, pinned by SHA-256.
+They're GPL-licensed, so they aren't committed; without them those checks are skipped.
+
+### Format notes
+
+- **2FAS:** encrypted backups store `servicesEncrypted` as `cipher:salt:iv` (Base64). Key: PBKDF2-HMAC-SHA256,
+  10,000 iterations, 32 bytes; cipher: AES-256-GCM with the 16-byte tag at the end of `cipher`; 256-byte salt,
+  12-byte IV. `reference` is a fixed string encrypted the same way, used to check the password.
+- **Aegis:** a random master key encrypts `db` (AES-256-GCM, hex nonce and tag in `header.params`); each password
+  slot wraps the master key with scrypt(password, N=2¹⁵, r=8, p=1).
+- **Ente Auth:** plain-text exports are `otpauth://` links with a `codeDisplay` JSON parameter (tags, trashed flag).
+
+### Releasing
+
+Push a version tag. GitHub Actions runs the tests, builds a universal app and publishes the release with a checksum:
+
+```sh
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+## Credits
+
+- Backup formats follow the open-source [2FAS](https://github.com/twofas) and [Aegis](https://github.com/beemdevelopment/Aegis) apps.
+- Service icons come from icon packs you install yourself, such as [aegis-icons](https://github.com/aegis-icons/aegis-icons).
+- Favicons are fetched through [DuckDuckGo](https://duckduckgo.com)'s icon service.
+
+TrayOTP is not affiliated with 2FAS, Aegis, Ente or any service whose logo it displays. Logos are trademarks of their
+respective owners, used only to identify each service.
+
+## License
+
+[MIT](LICENSE) © 2026 Gary Yeap

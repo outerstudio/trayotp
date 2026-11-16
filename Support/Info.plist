@@ -7,7 +7,7 @@
     <key>CFBundleDisplayName</key>
     <string>TrayOTP</string>
     <key>CFBundleIdentifier</key>
-    <string>com.trayotp.app</string>
+    <string>com.outerstudio.trayotp</string>
     <key>CFBundleExecutable</key>
     <string>TrayOTP</string>
     <key>CFBundleIconFile</key>

@@ -3,7 +3,7 @@
 #
 #   Scripts/bundle.sh                # debug build, ad-hoc signed
 #   CONFIG=release Scripts/bundle.sh
-#   UNIVERSAL=1 CONFIG=release SIGN_IDENTITY="Developer ID Application: ..." Scripts/bundle.sh
+#   UNIVERSAL=1 CONFIG=release Scripts/bundle.sh   # arm64 + x86_64
 #
 # UNIVERSAL=1 (arm64 + x86_64) needs full Xcode, so it is meant for CI.
 set -euo pipefail
