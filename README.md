@@ -176,7 +176,7 @@ All in the **⋯** menu:
 
 | Setting | What it does |
 |---|---|
-| **Require Touch ID** | Ask for Touch ID or your Mac password before showing codes (on by default). |
+| **Require Unlock** | Ask for Touch ID or your Mac password before showing codes (on by default). |
 | **Stay Unlocked ▸** | How long TrayOTP stays unlocked after you last used it: every time, 1 minute to 1 hour, **Until Mac Sleeps or Locks**, or a custom number of minutes. It always locks when your Mac sleeps or the screen locks. |
 | **Set Master Password…** | Protect the vault with a password of your own, typed instead of Touch ID (see [Security](#security)). |
 | **Launch at Login** | Start TrayOTP when you log in. |
@@ -195,7 +195,7 @@ Click **Lock** at the bottom of the panel to lock right away.
   user account can read the file.
 - The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
   Without the key, `vault.bin` can't be brute-forced.
-- With **Require Touch ID** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
+- With **Require Unlock** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
   tokens are dropped from memory when it locks again.
 - **Exporting** and **deleting a token** always ask for Touch ID again, even while TrayOTP is unlocked.
 - Nothing leaves your Mac, except a domain you choose to look up with **Fetch Icon from Website…**.
