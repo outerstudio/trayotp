@@ -191,8 +191,7 @@ Click **Lock** at the bottom of the panel to lock right away.
 
 ### How your secrets are stored
 
-- Tokens live in your mac. Only your
-  user account can read the file.
+- Tokens are stored encrypted (**AES-256-GCM**) on your Mac, in a file only your user account can read.
 - The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
 - With **Require Unlock** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
   tokens are dropped from memory when it locks again.
@@ -214,9 +213,11 @@ Setting, changing or removing the master password switches to a new vault key, s
 
 - TrayOTP isn't signed with an Apple Developer certificate, so macOS doesn't let it bind the vault key to Touch ID
   inside the Keychain. Touch ID is enforced by the app, and another app asking for the key triggers a macOS
-  **"wants to use your keychain"** prompt. **Only ever choose Always Allow for TrayOTP itself.**
+  **"wants to use your keychain"** prompt. You should only see that prompt right after updating TrayOTP, when you
+  open it. **If it appears at any other time, or names an app other than TrayOTP, click Deny:** something else is
+  trying to read the key that protects your tokens.
 - Your seeds are only as safe as your Mac. Turn on **FileVault**, **encrypt your Time Machine backups**, and use a strong
-  login password. If both `vault.bin` and your login keychain were stolen, the login password is what stands in
+  login password. If both the vault file and your login keychain were stolen, the login password is what stands in
   the way (plus the master password, if you set one).
 - Builds use the hardened runtime, which blocks other processes from injecting code into TrayOTP or attaching a
   debugger to it.
@@ -227,8 +228,9 @@ Found a security problem? Please report it privately through the repository's
 ## Troubleshooting
 
 **"TrayOTP wants to use your keychain" after an update**
-Each release is signed separately, so macOS asks again after you update. Enter your Mac password and choose
-**Always Allow**. This is expected for TrayOTP; never allow other apps to use the `com.trayotp.vault` item.
+macOS asks again after each update because every release is signed separately. Enter your login keychain
+password (normally your Mac password) and choose **Always Allow**. If it appears at any other time, see
+[Limitations](#limitations).
 
 **Launchpad shows a blank icon**
 Launchpad only lists apps in `/Applications`. If the icon is still blank after moving the app there, run `killall Dock`.
