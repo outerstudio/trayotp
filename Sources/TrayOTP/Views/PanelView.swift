@@ -294,7 +294,7 @@ struct SettingsMenu: View {
                 }
             } else {
                 Button("Set Master Password…") { afterMenu { state.setMasterPassword() } }
-                Toggle("Require Touch ID", isOn: $state.requireAuth)
+                Toggle("Require Unlock", isOn: $state.requireAuth)
             }
             Menu("Stay Unlocked: \(AppState.graceLabel(state.graceMinutes))") {
                 // An inline Picker gets native menu checkmarks; a Label's icon isn't drawn in menus.

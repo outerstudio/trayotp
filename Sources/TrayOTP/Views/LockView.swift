@@ -48,7 +48,7 @@ struct LockView: View {
                 Button {
                     Task { await state.unlock() }
                 } label: {
-                    Label(state.authInProgress ? "Waiting…" : "Unlock with Touch ID", systemImage: "touchid")
+                    Label(state.authInProgress ? "Waiting…" : "Unlock", systemImage: "lock.open")
                 }
                 .buttonStyle(PanelButtonStyle())
                 .disabled(state.authInProgress)
