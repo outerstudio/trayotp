@@ -49,7 +49,10 @@ struct TokenListView: View {
     @Environment(AppState.self) private var state
     @State private var search = ""
     @State private var selection = 0
-    @FocusState private var searchFocused: Bool
+    @FocusState private var focus: Focus?
+
+    /// Keyboard focus: the search field, or the token list (arrow keys move the selection).
+    private enum Focus { case search, list }
 
     /// A block of the list: ungrouped tokens (group nil) or one group.
     private struct Section: Identifiable {
@@ -101,7 +104,9 @@ struct TokenListView: View {
             footer
         }
         .padding(14)
-        .onAppear { searchFocused = true }
+        .onAppear { focus = .search }
+        // The window is reused, so onAppear doesn't run again: refocus search on every open.
+        .background(WindowFocusObserver { DispatchQueue.main.async { focus = .search; selection = 0 } })
         .onChange(of: search) { selection = 0 }
     }
 
@@ -111,10 +116,14 @@ struct TokenListView: View {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                 TextField("Search", text: $search)
                     .textFieldStyle(.plain)
-                    .focused($searchFocused)
+                    .focused($focus, equals: .search)
                     .onSubmit { copySelected() }
-                    .onKeyPress(.downArrow) { moveSelection(1); return .handled }
-                    .onKeyPress(.upArrow) { moveSelection(-1); return .handled }
+                    .onKeyPress(.downArrow) {
+                        guard !filtered.isEmpty else { return .ignored }
+                        selection = 0
+                        focus = .list
+                        return .handled
+                    }
             }
             .padding(.horizontal, 10)
             .frame(height: 30)
@@ -146,7 +155,7 @@ struct TokenListView: View {
                                 }
                                 ForEach(section.visible) { token in
                                     let index = items.firstIndex { $0.id == token.id } ?? -1
-                                    TokenRow(token: token, isSelected: index == selection)
+                                    TokenRow(token: token, isSelected: focus == .list && index == selection)
                                         .id(token.id)
                                         .onTapGesture { state.copy(token) }
                                         .contextMenu { rowMenu(token) }
@@ -159,6 +168,16 @@ struct TokenListView: View {
                         }
                     }
                     .frame(height: min(max(height, Theme.groupHeaderHeight), Theme.maxListHeight))
+                    .focusable()
+                    .focusEffectDisabled()
+                    .focused($focus, equals: .list)
+                    .onKeyPress(.downArrow) { moveSelection(1); return .handled }
+                    .onKeyPress(.upArrow) {
+                        // Up from the first token goes back to the search field.
+                        if selection == 0 { focus = .search } else { moveSelection(-1) }
+                        return .handled
+                    }
+                    .onKeyPress(.return) { copySelected(); return .handled }
                     .onChange(of: selection) {
                         if items.indices.contains(selection) { proxy.scrollTo(items[selection].id) }
                     }
