@@ -25,7 +25,7 @@ public enum FreeOTPPlus {
             let label = Token.label(issuer: issuer, account: account)
             let bytes = (e["secret"]?.array ?? []).compactMap(\.int).map { UInt8(truncatingIfNeeded: $0) }
             guard !bytes.isEmpty else {
-                skipped.append("\(label) (empty secret)")
+                skipped.append(String(localized: "\(label) (empty secret)"))
                 continue
             }
             let kind: OTPKind
@@ -33,7 +33,7 @@ public enum FreeOTPPlus {
             case "TOTP": kind = issuer == "Steam" ? .steam : .totp
             case "HOTP": kind = .hotp
             case let other:
-                skipped.append("\(label) (\(other ?? "unknown") is not supported)")
+                skipped.append(String(localized: "\(label) (\(other ?? "unknown") is not supported)"))
                 continue
             }
             let token = Token.imported(

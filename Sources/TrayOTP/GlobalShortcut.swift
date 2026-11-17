@@ -47,7 +47,7 @@ struct Shortcut: Equatable {
                             kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11, kVK_F12].map(UInt32.init)
         // ⌘ alone is what apps use for Copy, Paste, Quit…; taking one would break it everywhere.
         if modifiers & modifierMask == UInt32(cmdKey), !functionKeys.contains(keyCode) {
-            return "\(display) is used by apps (like ⌘C for Copy). Add ⌃, ⌥ or ⇧."
+            return String(localized: "\(display) is used by apps (like ⌘C for Copy). Add ⌃, ⌥ or ⇧.")
         }
         // Enabled shortcuts from System Settings → Keyboard → Keyboard Shortcuts.
         var unmanaged: Unmanaged<CFArray>?
@@ -59,7 +59,7 @@ struct Shortcut: Equatable {
                 && (hotKey[kHISymbolicHotKeyCode] as? Int).map(UInt32.init) == keyCode
                 && (hotKey[kHISymbolicHotKeyModifiers] as? Int).map { UInt32($0) & modifierMask } == modifiers & modifierMask
         }
-        return taken ? "\(display) is a macOS shortcut. Choose another, or turn it off in System Settings → Keyboard → Keyboard Shortcuts." : nil
+        return taken ? String(localized: "\(display) is a macOS shortcut. Choose another, or turn it off in System Settings → Keyboard → Keyboard Shortcuts.") : nil
     }
 
     private static let keyNames: [UInt32: String] = [
@@ -168,7 +168,7 @@ final class ShortcutRecorder: NSView {
     override var acceptsFirstResponder: Bool { true }
 
     private func refresh() {
-        field.stringValue = shortcut?.display ?? "Type a shortcut"
+        field.stringValue = shortcut?.display ?? String(localized: "Type a shortcut")
         field.textColor = shortcut == nil ? .secondaryLabelColor : .labelColor
     }
 

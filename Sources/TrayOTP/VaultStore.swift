@@ -38,11 +38,11 @@ enum VaultError: Error, LocalizedError {
         switch self {
         case .keychain(let status):
             let text = SecCopyErrorMessageString(status, nil) as String? ?? "error \(status)"
-            return "Keychain: \(text)"
+            return String(localized: "Keychain: \(text)")
         case .keyMissing:
-            return "The vault key is missing from the Keychain, so the saved tokens cannot be decrypted."
+            return String(localized: "The vault key is missing from the Keychain, so the saved tokens cannot be decrypted.")
         case .passwordRequired:
-            return "Enter your master password to unlock."
+            return String(localized: "Enter your master password to unlock.")
         }
     }
 }

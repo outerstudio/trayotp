@@ -43,7 +43,7 @@ public enum GoogleAuthenticator {
         base64 = base64.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
         base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
         guard let payload = Data(base64Encoded: base64), let fields = try? Protobuf.fields(payload) else {
-            throw ImportError.unsupported("This Google Authenticator transfer code is damaged. Scan or copy it again.")
+            throw ImportError.unsupported(String(localized: "This Google Authenticator transfer code is damaged. Scan or copy it again."))
         }
 
         var tokens: [Token] = []
@@ -73,7 +73,7 @@ public enum GoogleAuthenticator {
             case 2: algorithm = .sha256
             case 3: algorithm = .sha512
             default:
-                skipped.append("\(label) (MD5 is not supported)")
+                skipped.append(String(localized: "\(label) (MD5 is not supported)"))
                 continue
             }
             let kind: OTPKind
@@ -81,11 +81,11 @@ public enum GoogleAuthenticator {
             case 0, 2: kind = .totp
             case 1: kind = .hotp
             case let other:
-                skipped.append("\(label) (OTP type \(other) is not supported)")
+                skipped.append(String(localized: "\(label) (OTP type \(other) is not supported)"))
                 continue
             }
             guard !secret.isEmpty else {
-                skipped.append("\(label) (empty secret)")
+                skipped.append(String(localized: "\(label) (empty secret)"))
                 continue
             }
             tokens.append(.imported(issuer: issuer, account: name.trimmingCharacters(in: .whitespaces),

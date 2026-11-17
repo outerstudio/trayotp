@@ -13,6 +13,15 @@ public enum BackupFormat: String, Sendable {
     case raivo = "Raivo OTP"
     case passwordCSV = "a password manager CSV"
     case linkList = "otpauth links"
+
+    /// The name shown to the user: the app's name, or a description for the generic formats.
+    public var displayName: String {
+        switch self {
+        case .passwordCSV: return String(localized: "a password manager CSV")
+        case .linkList: return String(localized: "otpauth links")
+        default: return rawValue
+        }
+    }
 }
 
 public enum Exporter {
@@ -23,7 +32,7 @@ public enum Exporter {
         case .ente: return Ente.encode(backup)
         case .bitwarden: return try Bitwarden.encode(backup)
         case .linkList: return Data(backup.tokens.map { OTPAuthURI.make($0) + "\n" }.joined().utf8)
-        default: throw ImportError.unsupported("TrayOTP can't export to \(format.rawValue).")
+        default: throw ImportError.unsupported(String(localized: "TrayOTP can't export to \(format.displayName)."))
         }
     }
 

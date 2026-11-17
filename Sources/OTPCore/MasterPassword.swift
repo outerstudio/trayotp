@@ -12,8 +12,8 @@ public enum MasterPassword {
 
         public var errorDescription: String? {
             switch self {
-            case .wrongPassword: return "Wrong master password."
-            case .invalidData: return "The stored vault key is damaged."
+            case .wrongPassword: return String(localized: "Wrong master password.")
+            case .invalidData: return String(localized: "The stored vault key is damaged.")
             }
         }
     }

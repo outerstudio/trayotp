@@ -79,11 +79,11 @@ public enum AndOTP {
             case "HOTP": kind = .hotp
             case "STEAM": kind = .steam
             case let other:
-                skipped.append("\(label) (\(other ?? "unknown") is not supported)")
+                skipped.append(String(localized: "\(label) (\(other ?? "unknown") is not supported)"))
                 continue
             }
             guard let secret = e["secret"]?.string, Base32.decode(secret).map({ !$0.isEmpty }) == true else {
-                skipped.append("\(label) (invalid secret)")
+                skipped.append(String(localized: "\(label) (invalid secret)"))
                 continue
             }
             tokens.append(.imported(

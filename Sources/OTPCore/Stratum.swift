@@ -80,17 +80,17 @@ public enum Stratum {
             case 2: kind = .totp
             case 4: kind = .steam
             case 3:
-                skipped.append("\(label) (mOTP is not supported)")
+                skipped.append(String(localized: "\(label) (mOTP is not supported)"))
                 continue
             case 5:
-                skipped.append("\(label) (Yandex is not supported)")
+                skipped.append(String(localized: "\(label) (Yandex is not supported)"))
                 continue
             case let other:
-                skipped.append("\(label) (type \(other.map(String.init) ?? "unknown") is not supported)")
+                skipped.append(String(localized: "\(label) (type \(other.map(String.init) ?? "unknown") is not supported)"))
                 continue
             }
             guard let secret = e["Secret"]?.string, Base32.decode(secret).map({ !$0.isEmpty }) == true else {
-                skipped.append("\(label) (invalid secret)")
+                skipped.append(String(localized: "\(label) (invalid secret)"))
                 continue
             }
             let algorithm: OTPAlgorithm = switch e["Algorithm"]?.int {

@@ -154,8 +154,8 @@ struct IconAdjuster: View {
             Text("Background").font(.caption).foregroundStyle(.secondary)
             let columns = Array(repeating: GridItem(.fixed(20), spacing: 8), count: 10)
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                swatch(nil, help: "No background")
-                swatch(rowColor, help: "Row color")
+                swatch(nil, help: String(localized: "No background"))
+                swatch(rowColor, help: String(localized: "Row color"))
                 ForEach(Self.palette, id: \.self) { swatch($0, help: $0.hex) }
             }
             HStack(spacing: 6) {

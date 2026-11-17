@@ -32,7 +32,7 @@ public enum Raivo {
         } catch Zip.Error.wrongPassword {
             throw ImportError.wrongPassword
         } catch Zip.Error.unsupported {
-            throw ImportError.unsupported("This ZIP uses an encryption or compression method TrayOTP can't read. Unzip it with another tool, then import raivo-otp-export.json.")
+            throw ImportError.unsupported(String(localized: "This ZIP uses an encryption or compression method TrayOTP can't read. Unzip it with another tool, then import raivo-otp-export.json."))
         } catch {
             throw ImportError.invalidFile
         }
@@ -52,11 +52,11 @@ public enum Raivo {
             case "TOTP": kind = .totp
             case "HOTP": kind = .hotp
             case let other:
-                skipped.append("\(label) (\(other ?? "unknown") is not supported)")
+                skipped.append(String(localized: "\(label) (\(other ?? "unknown") is not supported)"))
                 continue
             }
             guard let secret = e["secret"]?.string, Base32.decode(secret).map({ !$0.isEmpty }) == true else {
-                skipped.append("\(label) (invalid secret)")
+                skipped.append(String(localized: "\(label) (invalid secret)"))
                 continue
             }
             tokens.append(.imported(

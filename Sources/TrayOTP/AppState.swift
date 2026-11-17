@@ -160,7 +160,7 @@ final class AppState {
         lockMessage = nil
         defer { authInProgress = false }
 
-        let reason = "show your one-time codes"
+        let reason = String(localized: "show your one-time codes")
         let inline = LAContext()
         if !alert, PanelController.shared.isOpen,
            inline.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
@@ -188,10 +188,10 @@ final class AppState {
         switchToAlert = false
 
         let context = LAContext()
-        context.localizedFallbackTitle = "Use Password"
+        context.localizedFallbackTitle = String(localized: "Use Password")
         var error: NSError?
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            lockMessage = error?.localizedDescription ?? "Authentication is not available on this Mac."
+            lockMessage = error?.localizedDescription ?? String(localized: "Authentication is not available on this Mac.")
             return
         }
         // Closing the alert re-focuses the panel; don't prompt again right away.
@@ -258,34 +258,34 @@ final class AppState {
     func setMasterPassword() {
         let changing = hasMasterPassword
         Task {
-            guard await confirmOwner(changing ? "change the master password" : "set a master password") else { return }
+            guard await confirmOwner(changing ? String(localized: "change the master password") : String(localized: "set a master password")) else { return }
             if !changing {
                 guard Dialogs.confirm(
-                    title: "Set a master password?",
-                    message: "TrayOTP will ask for it instead of Touch ID. If you forget it, your tokens cannot be recovered. Export an encrypted backup first.",
-                    button: "Continue")
+                    title: String(localized: "Set a master password?"),
+                    message: String(localized: "TrayOTP will ask for it instead of Touch ID. If you forget it, your tokens cannot be recovered. Export an encrypted backup first."),
+                    button: String(localized: "Continue"))
                 else { return }
             }
-            var info = "At least 8 characters. Not your Mac password: a long passphrase works best."
+            var info = String(localized: "At least 8 characters. Not your Mac password: a long passphrase works best.")
             while true {
-                guard let password = Dialogs.password(title: changing ? "New master password" : "Master password",
+                guard let password = Dialogs.password(title: changing ? String(localized: "New master password") : String(localized: "Master password"),
                                                       message: info, confirm: true)
                 else { return }
                 if password.count >= 8 {
                     await rekey(password: password)
                     return
                 }
-                info = "Too short. Use at least 8 characters."
+                info = String(localized: "Too short. Use at least 8 characters.")
             }
         }
     }
 
     func removeMasterPassword() {
         Task {
-            guard await confirmOwner("remove the master password"),
-                  Dialogs.confirm(title: "Remove the master password?",
-                                  message: "The vault key will be protected by the Keychain and Touch ID only.",
-                                  button: "Remove")
+            guard await confirmOwner(String(localized: "remove the master password")),
+                  Dialogs.confirm(title: String(localized: "Remove the master password?"),
+                                  message: String(localized: "The vault key will be protected by the Keychain and Touch ID only."),
+                                  button: String(localized: "Remove"))
             else { return }
             await rekey(password: nil)
         }
@@ -307,9 +307,9 @@ final class AppState {
             try store.rekey(Vault(tokens: tokens, groups: groups), newKey: newKey, keyItem: item)
             key = newKey
             hasMasterPassword = password != nil
-            showToast(password == nil ? "Master password removed" : "Master password set")
+            showToast(password == nil ? String(localized: "Master password removed") : String(localized: "Master password set"))
         } catch {
-            Dialogs.error(error, title: "Could not change the master password")
+            Dialogs.error(error, title: String(localized: "Could not change the master password"))
         }
     }
 
@@ -319,37 +319,38 @@ final class AppState {
 
     static func graceLabel(_ minutes: Int) -> String {
         switch minutes {
-        case untilSleep: return "Until Mac Sleeps or Locks"
-        case 0: return "Lock Every Time"
-        case 1: return "1 Minute"
-        case 60: return "1 Hour"
-        case let m where m % 60 == 0: return "\(m / 60) Hours"
-        default: return "\(minutes) Minutes"
+        case untilSleep: return String(localized: "Until Mac Sleeps or Locks")
+        case 0: return String(localized: "Lock Every Time")
+        case 1: return String(localized: "1 Minute")
+        case 60: return String(localized: "1 Hour")
+        case let m where m % 60 == 0: return String(localized: "\(m / 60) Hours")
+        default: return String(localized: "\(minutes) Minutes")
         }
     }
 
     func setCustomGrace() {
-        var info = "Minutes to stay unlocked after you last used TrayOTP (1–1440)."
+        var info = String(localized: "Minutes to stay unlocked after you last used TrayOTP (1–1440).")
         let current = graceMinutes > 0 ? String(graceMinutes) : ""
-        while let text = Dialogs.text(title: "Stay Unlocked", message: info, value: current, button: "Set") {
+        while let text = Dialogs.text(title: String(localized: "Stay Unlocked"), message: info, value: current,
+                                         button: String(localized: "Set")) {
             if let minutes = Int(text.trimmingCharacters(in: .whitespaces)), (1...1440).contains(minutes) {
                 graceMinutes = minutes
                 return
             }
-            info = "Enter a whole number of minutes from 1 to 1440 (24 hours)."
+            info = String(localized: "Enter a whole number of minutes from 1 to 1440 (24 hours).")
         }
     }
 
     func editShortcut() {
         guard let choice = Dialogs.shortcut(current: shortcut) else { return }
         if let conflict = choice?.conflict {
-            Dialogs.info(title: "Shortcut unavailable", message: conflict)
+            Dialogs.info(title: String(localized: "Shortcut unavailable"), message: conflict)
             return
         }
         guard GlobalHotKey.shared.register(choice) else {
             GlobalHotKey.shared.register(shortcut)
-            Dialogs.info(title: "Shortcut unavailable",
-                         message: "\(choice?.display ?? "That shortcut") is already used by macOS or another app. Try a different one.")
+            Dialogs.info(title: String(localized: "Shortcut unavailable"),
+                         message: String(localized: "\(choice?.display ?? "") is already used by macOS or another app. Try a different one."))
             return
         }
         shortcut = choice
@@ -360,18 +361,17 @@ final class AppState {
 
     func hideMenuBarIcon() {
         if shortcut == nil {
-            guard Dialogs.confirm(title: "Set a shortcut first",
-                                  message: "Without the menu bar icon, a global shortcut opens TrayOTP.",
-                                  button: "Set Shortcut…")
+            guard Dialogs.confirm(title: String(localized: "Set a shortcut first"),
+                                  message: String(localized: "Without the menu bar icon, a global shortcut opens TrayOTP."),
+                                  button: String(localized: "Set Shortcut…"))
             else { return }
             editShortcut()
             guard shortcut != nil else { return }
         }
         // Explain first, then hide: removing the icon closes its window, and an alert that opens
         // meanwhile doesn't get keyboard focus (Return wouldn't press OK).
-        Dialogs.info(title: "Hiding the menu bar icon",
-                     message: "Press \(shortcut?.display ?? "your shortcut") to open TrayOTP, or open the app again from Finder or Launchpad. "
-                         + "Show Menu Bar Icon in the ⋯ menu brings the icon back.")
+        Dialogs.info(title: String(localized: "Hiding the menu bar icon"),
+                     message: String(localized: "Press \(shortcut?.display ?? "") to open TrayOTP, or open the app again from Finder or Launchpad. Show Menu Bar Icon in the ⋯ menu brings the icon back."))
         showsMenuBarIcon = false
     }
 
@@ -414,7 +414,7 @@ final class AppState {
             PanelController.shared.close()
             return
         }
-        showToast(next ? "Copied next \(token.name)" : "Copied \(token.name)")
+        showToast(next ? String(localized: "Copied next \(token.name)") : String(localized: "Copied \(token.name)"))
         if next { flashNext(token.id) }
     }
 
@@ -434,16 +434,16 @@ final class AppState {
         tokens.append(token)
         persist()
         screen = .list
-        showToast("Added \(token.name)")
+        showToast(String(localized: "Added \(token.name)"))
     }
 
     func delete(_ token: Token) {
-        guard Dialogs.confirm(title: "Delete “\(token.name)”?",
-                              message: "Make sure you can still sign in to this account another way. This cannot be undone.",
-                              button: "Delete")
+        guard Dialogs.confirm(title: String(localized: "Delete “\(token.name)”?"),
+                              message: String(localized: "Make sure you can still sign in to this account another way. This cannot be undone."),
+                              button: String(localized: "Delete"))
         else { return }
         Task {
-            guard await confirmOwner("delete “\(token.name)”") else { return }
+            guard await confirmOwner(String(localized: "delete “\(token.name)”")) else { return }
             tokens.removeAll { $0.id == token.id }
             persist()
         }
@@ -453,11 +453,11 @@ final class AppState {
     /// Used before actions that expose or destroy secrets, so a passer-by at an unlocked Mac can't.
     private func confirmOwner(_ reason: String) async -> Bool {
         let context = LAContext()
-        context.localizedFallbackTitle = "Use Password"
+        context.localizedFallbackTitle = String(localized: "Use Password")
         var error: NSError?
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            Dialogs.info(title: "Can't confirm it's you",
-                         message: error?.localizedDescription ?? "Touch ID and password authentication are not available.")
+            Dialogs.info(title: String(localized: "Can't confirm it's you"),
+                         message: error?.localizedDescription ?? String(localized: "Touch ID and password authentication are not available."))
             return false
         }
         return (try? await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)) ?? false
@@ -473,7 +473,8 @@ final class AppState {
 
     @discardableResult
     func newGroup() -> TokenGroup? {
-        guard let name = Dialogs.text(title: "New Group", message: "Name for the group.", value: "", button: "Create")?
+        guard let name = Dialogs.text(title: String(localized: "New Group"), message: String(localized: "Name for the group."),
+                                     value: "", button: String(localized: "Create"))?
             .trimmingCharacters(in: .whitespaces), !name.isEmpty
         else { return nil }
         let group = TokenGroup(name: name)
@@ -485,10 +486,11 @@ final class AppState {
     /// Edits the service and account names. The secret, and so the code, stays the same.
     func edit(_ token: Token) {
         guard let i = tokens.firstIndex(where: { $0.id == token.id }),
-              let values = Dialogs.fields(title: "Edit “\(token.name)”",
-                                          message: "The code stays the same.",
-                                          fields: [("Service", token.name), ("Account", token.account ?? "")],
-                                          button: "Save")?
+              let values = Dialogs.fields(title: String(localized: "Edit “\(token.name)”"),
+                                          message: String(localized: "The code stays the same."),
+                                          fields: [(String(localized: "Service"), token.name),
+                                                   (String(localized: "Account"), token.account ?? "")],
+                                          button: String(localized: "Save"))?
                 .map({ $0.trimmingCharacters(in: .whitespaces) })
         else { return }
         let (name, account) = (values[0], values[1])
@@ -502,7 +504,8 @@ final class AppState {
 
     func renameGroup(_ group: TokenGroup) {
         guard let i = groups.firstIndex(where: { $0.id == group.id }),
-              let name = Dialogs.text(title: "Rename Group", message: "", value: group.name, button: "Rename")?
+              let name = Dialogs.text(title: String(localized: "Rename Group"), message: "", value: group.name,
+                                      button: String(localized: "Rename"))?
                 .trimmingCharacters(in: .whitespaces), !name.isEmpty
         else { return }
         groups[i].name = name
@@ -513,9 +516,11 @@ final class AppState {
     func deleteGroup(_ group: TokenGroup) {
         let count = tokens.filter { $0.groupId == group.id }.count
         if count > 0 {
-            guard Dialogs.confirm(title: "Delete group “\(group.name)”?",
-                                  message: "Its \(count) token\(count == 1 ? "" : "s") will move to Ungrouped. No tokens are deleted.",
-                                  button: "Delete Group")
+            guard Dialogs.confirm(title: String(localized: "Delete group “\(group.name)”?"),
+                                  message: count == 1
+                                      ? String(localized: "Its token will move to Ungrouped. No tokens are deleted.")
+                                      : String(localized: "Its \(count) tokens will move to Ungrouped. No tokens are deleted."),
+                                  button: String(localized: "Delete Group"))
             else { return }
         }
         groups.removeAll { $0.id == group.id }
@@ -604,14 +609,16 @@ final class AppState {
             if let image = IconImage.load(url), image.size.width > 0 {
                 editIcon(token, image: image)
             } else {
-                Dialogs.info(title: "Can't use this image", message: "“\(url.lastPathComponent)” could not be read as an image.")
+                Dialogs.info(title: String(localized: "Can't use this image"),
+                             message: String(localized: "“\(url.lastPathComponent)” could not be read as an image."))
             }
         }
     }
 
     func pasteIcon(_ token: Token) {
         guard let image = Clipboard.readImage(), image.size.width > 0 else {
-            Dialogs.info(title: "No image on the clipboard", message: "Copy an image first, then choose Paste Icon.")
+            Dialogs.info(title: String(localized: "No image on the clipboard"),
+                         message: String(localized: "Copy an image first, then choose Paste Icon."))
             return
         }
         editIcon(token, image: image)
@@ -645,7 +652,7 @@ final class AppState {
     func useIcon(_ png: Data, for token: Token) {
         setIcon(token, png: png)
         screen = .list
-        showToast("Icon set for \(token.name)")
+        showToast(String(localized: "Icon set for \(token.name)"))
     }
 
     func installIconPack() {
@@ -653,11 +660,11 @@ final class AppState {
         do {
             try icons.install(zip: url)
             let matched = tokens.filter { icons.icon(for: $0) != nil }.count
-            Dialogs.info(title: "Installed \(icons.pack?.name ?? "icon pack")",
-                         message: "\(icons.pack?.icons.count ?? 0) icons. \(matched) of \(tokens.count) tokens matched automatically. "
-                             + "Right-click a token → Choose Icon from Pack… to pick one yourself.")
+            let iconCount = icons.pack?.icons.count ?? 0, tokenCount = tokens.count
+            Dialogs.info(title: String(localized: "Installed \(icons.pack?.name ?? "")"),
+                         message: String(localized: "\(iconCount) icons. \(matched) of \(tokenCount) tokens matched automatically. Right-click a token → Choose Icon from Pack… to pick one yourself."))
         } catch {
-            Dialogs.error(error, title: "Icon pack not installed")
+            Dialogs.error(error, title: String(localized: "Icon pack not installed"))
         }
     }
 
@@ -682,11 +689,11 @@ final class AppState {
 
         let unmatched = tokens.filter { $0.icon == nil }.map(\.name)
         Dialogs.info(
-            title: "Set \(matched) icon\(matched == 1 ? "" : "s")",
+            title: matched == 1 ? String(localized: "Set 1 icon") : String(localized: "Set \(matched) icons"),
             message: byKey.isEmpty
-                ? "No images found. Supported: \(IconImage.fileTypes.joined(separator: ", "))."
-                : unmatched.isEmpty ? "Every token has an icon."
-                : "Still without an icon: \(unmatched.joined(separator: ", ")). Name a file after the token, e.g. “github.png”."
+                ? String(localized: "No images found. Supported: \(IconImage.fileTypes.joined(separator: ", ")).")
+                : unmatched.isEmpty ? String(localized: "Every token has an icon.")
+                : String(localized: "Still without an icon: \(unmatched.joined(separator: ", ")). Name a file after the token, e.g. “github.png”.")
         )
     }
 
@@ -700,7 +707,7 @@ final class AppState {
         do {
             try store.save(Vault(tokens: tokens, groups: groups), key: key)
         } catch {
-            Dialogs.error(error, title: "Could not save")
+            Dialogs.error(error, title: String(localized: "Could not save"))
         }
     }
 
@@ -723,12 +730,12 @@ final class AppState {
             // A photo or screenshot of a QR code, e.g. Google Authenticator's transfer code taken with another phone.
             if let image = NSImage(data: data) {
                 let messages = QRReader.messages(in: image)
-                guard !messages.isEmpty else { throw ImportError.unsupported("No QR code found in “\(url.lastPathComponent)”.") }
+                guard !messages.isEmpty else { throw ImportError.unsupported(String(localized: "No QR code found in “\(url.lastPathComponent)”.")) }
                 data = Data(messages.joined(separator: "\n").utf8)
             }
             importBackup(data, name: "“\(url.lastPathComponent)”")
         } catch {
-            Dialogs.error(error, title: "Import failed")
+            Dialogs.error(error, title: String(localized: "Import failed"))
         }
     }
 
@@ -743,7 +750,7 @@ final class AppState {
                     return
                 }
                 if GoogleAuthenticator.isMigrationLink(text) {
-                    importBackup(Data(text.utf8), name: "the scanned QR code")
+                    importBackup(Data(text.utf8), name: String(localized: "the scanned QR code"))
                     screen = .list
                 } else {
                     scannedInput = text
@@ -751,24 +758,24 @@ final class AppState {
                 }
                 PanelController.shared.reopen()
             } catch {
-                Dialogs.error(error, title: "Can't use the camera")
+                Dialogs.error(error, title: String(localized: "Can't use the camera"))
             }
         }
     }
 
     /// Imports pasted text, e.g. Google Authenticator `otpauth-migration://` links.
     func importText(_ text: String) {
-        importBackup(Data(text.utf8), name: "the pasted link")
+        importBackup(Data(text.utf8), name: String(localized: "the pasted link"))
         screen = .list
     }
 
     private func importBackup(_ data: Data, name: String) {
         do {
-            let app = Importer.detect(data)?.rawValue ?? "the app"
+            let app = Importer.detect(data)?.displayName ?? String(localized: "the app")
             var password: String?
             if Importer.needsPassword(data) {
-                guard let p = Dialogs.password(title: "Backup password",
-                                               message: "Enter the password that was set when \(name) was exported from \(app). This is not your Mac or Keychain password.")
+                guard let p = Dialogs.password(title: String(localized: "Backup password"),
+                                               message: String(localized: "Enter the password that was set when \(name) was exported from \(app). This is not your Mac or Keychain password."))
                 else { return }
                 password = p
             }
@@ -793,24 +800,26 @@ final class AppState {
 
             let duplicates = backup.tokens.count - fresh.count
             var notes: [String] = []
-            if duplicates > 0 { notes.append("\(duplicates) already existed and were skipped.") }
+            if duplicates > 0 { notes.append(String(localized: "\(duplicates) already existed and were skipped.")) }
             if !lookalikes.isEmpty {
-                notes.append("Same name and account as a token you already have, but a different secret. Both are kept; the new one is marked with the time it was added. Delete the old one once the new one works:\n"
+                notes.append(String(localized: "Same name and account as a token you already have, but a different secret. Both are kept; the new one is marked with the time it was added. Delete the old one once the new one works:") + "\n"
                              + lookalikes.map { "• \($0.name)\($0.account.map { ": \($0)" } ?? "")" }.joined(separator: "\n"))
             }
             if !backup.skipped.isEmpty {
-                notes.append("Not imported:\n" + backup.skipped.map { "• \($0)" }.joined(separator: "\n"))
+                notes.append(String(localized: "Not imported:") + "\n" + backup.skipped.map { "• \($0)" }.joined(separator: "\n"))
             }
-            Dialogs.info(title: "Imported \(fresh.count) token\(fresh.count == 1 ? "" : "s") from \(format.rawValue)",
+            let count = fresh.count, source = format.displayName
+            Dialogs.info(title: count == 1 ? String(localized: "Imported 1 token from \(source)")
+                                           : String(localized: "Imported \(count) tokens from \(source)"),
                          message: notes.joined(separator: "\n\n"))
         } catch {
-            Dialogs.error(error, title: "Import failed")
+            Dialogs.error(error, title: String(localized: "Import failed"))
         }
     }
 
     func exportBackup(as format: BackupFormat, encrypted: Bool) {
         Task {
-            guard await confirmOwner("export all your secrets to \(format.rawValue)") else { return }
+            guard await confirmOwner(String(localized: "export all your secrets to \(format.displayName)")) else { return }
             exportConfirmed(as: format, encrypted: encrypted)
         }
     }
@@ -818,27 +827,31 @@ final class AppState {
     /// Shows Google Authenticator transfer QR codes, to scan with its Transfer accounts → Import accounts.
     func exportToGoogle() {
         Task {
-            guard await confirmOwner("show all your secrets as QR codes for Google Authenticator") else { return }
+            guard await confirmOwner(String(localized: "show all your secrets as QR codes for Google Authenticator")) else { return }
             let codes = GoogleAuthenticator.encode(.init(tokens: tokens, groups: groups))
             let left = Exporter.unsupported(tokens, in: .googleAuthenticator)
             if !left.isEmpty {
                 let names = left.map(\.name).joined(separator: ", ")
                 guard !codes.isEmpty else {
-                    Dialogs.info(title: "Nothing to export to Google Authenticator",
-                                 message: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. None of your tokens fit: \(names)")
+                    Dialogs.info(title: String(localized: "Nothing to export to Google Authenticator"),
+                                 message: String(localized: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. None of your tokens fit: \(names)"))
                     return
                 }
-                guard Dialogs.confirm(title: "\(left.count) token\(left.count == 1 ? "" : "s") will be left out",
-                                      message: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. Left out: \(names)",
-                                      button: "Continue")
+                let leftCount = left.count
+                guard Dialogs.confirm(title: leftCount == 1 ? String(localized: "1 token will be left out")
+                                                            : String(localized: "\(leftCount) tokens will be left out"),
+                                      message: String(localized: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. Left out: \(names)"),
+                                      button: String(localized: "Continue"))
                 else { return }
             }
-            let count = tokens.count - left.count
+            let count = tokens.count - left.count, codeCount = codes.count
             QRCodeWindow.show(
-                title: "Export to Google Authenticator",
-                instructions: "In Google Authenticator, open ⋮ → Transfer accounts → Import accounts and scan "
-                    + (codes.count > 1 ? "each QR code in turn (\(count) accounts in \(codes.count) codes)." : "this QR code (\(count) account\(count == 1 ? "" : "s")).")
-                    + " Anyone who sees these codes can copy your accounts.",
+                title: String(localized: "Export to Google Authenticator"),
+                instructions: codeCount > 1
+                    ? String(localized: "In Google Authenticator, open ⋮ → Transfer accounts → Import accounts and scan each QR code in turn (\(count) accounts in \(codeCount) codes). Anyone who sees these codes can copy your accounts.")
+                    : count == 1
+                    ? String(localized: "In Google Authenticator, open ⋮ → Transfer accounts → Import accounts and scan this QR code (1 account). Anyone who sees these codes can copy your accounts.")
+                    : String(localized: "In Google Authenticator, open ⋮ → Transfer accounts → Import accounts and scan this QR code (\(count) accounts). Anyone who sees these codes can copy your accounts."),
                 codes: codes)
         }
     }
@@ -846,15 +859,15 @@ final class AppState {
     private func exportConfirmed(as format: BackupFormat, encrypted: Bool) {
         var password: String?
         if encrypted {
-            guard let p = Dialogs.password(title: "Set a backup password",
-                                           message: "Choose a new password for this backup file. \(format.rawValue) will ask for it when importing. It is not your Mac or Keychain password.",
+            guard let p = Dialogs.password(title: String(localized: "Set a backup password"),
+                                           message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
                                            confirm: true)
             else { return }
             password = p
         } else {
-            guard Dialogs.confirm(title: "Export without encryption?",
-                                  message: "Anyone who gets this file can generate your codes. Delete it once you have imported it into \(format.rawValue).",
-                                  button: "Export")
+            guard Dialogs.confirm(title: String(localized: "Export without encryption?"),
+                                  message: String(localized: "Anyone who gets this file can generate your codes. Delete it once you have imported it into \(format.displayName)."),
+                                  button: String(localized: "Export"))
             else { return }
         }
 
@@ -866,17 +879,19 @@ final class AppState {
         case .bitwarden: ("bitwarden_export_TrayOTP-\(day)", "json")
         default: ("otpauth-links-TrayOTP-\(day)", "txt")
         }
-        guard let url = Dialogs.saveFile(name: "\(name).\(ext)", fileExtension: ext, title: "Export to \(format.rawValue)") else { return }
+        guard let url = Dialogs.saveFile(name: "\(name).\(ext)", fileExtension: ext, title: String(localized: "Export to \(format.displayName)")) else { return }
         do {
             let data = try Exporter.encode(.init(tokens: tokens, groups: groups), as: format, password: password)
             try data.write(to: url, options: .atomic)
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
             let left = Exporter.unsupported(tokens, in: format)
-            let note = left.isEmpty ? "" : "\n\nLeft out (\(format.rawValue) doesn't support counter-based HOTP codes): "
-                + left.map(\.name).joined(separator: ", ")
-            Dialogs.info(title: "Exported \(tokens.count - left.count) tokens to \(format.rawValue)", message: url.path + note)
+            let names = left.map(\.name).joined(separator: ", "), count = tokens.count - left.count
+            let note = left.isEmpty ? "" : "\n\n" + String(localized: "Left out (\(format.displayName) doesn't support counter-based HOTP codes): \(names)")
+            Dialogs.info(title: count == 1 ? String(localized: "Exported 1 token to \(format.displayName)")
+                                           : String(localized: "Exported \(count) tokens to \(format.displayName)"),
+                         message: url.path + note)
         } catch {
-            Dialogs.error(error, title: "Export failed")
+            Dialogs.error(error, title: String(localized: "Export failed"))
         }
     }
 
@@ -916,6 +931,47 @@ final class AppState {
         return true
     }
 
+    // MARK: Language
+
+    /// The translations in Support/Localizations, plus English.
+    static let languages = ["en", "de", "es", "fr", "it", "ja", "ko", "pt-BR", "zh-Hans", "zh-Hant"]
+
+    /// The language chosen in the ⋯ menu, or nil to follow the system (English if it isn't translated).
+    /// Stored as this app's AppleLanguages, which Foundation reads at launch.
+    var language: String? {
+        get {
+            let domain = UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            return (domain?["AppleLanguages"] as? [String])?.first
+        }
+        set {
+            if let newValue {
+                UserDefaults.standard.set([newValue], forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            }
+            if Dialogs.confirm(title: String(localized: "Restart TrayOTP?"),
+                               message: String(localized: "The new language is used after TrayOTP restarts."),
+                               button: String(localized: "Restart Now")) {
+                relaunch()
+            }
+        }
+    }
+
+    /// The language's name in that language, e.g. "Deutsch".
+    static func languageName(_ code: String) -> String {
+        Locale(identifier: code).localizedString(forIdentifier: code) ?? code
+    }
+
+    /// Quits and reopens the app once this process has exited.
+    private func relaunch() {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "while kill -0 \"$1\" 2>/dev/null; do sleep 0.2; done; open \"$2\"", "sh",
+                             String(ProcessInfo.processInfo.processIdentifier), Bundle.main.bundlePath]
+        try? process.run()
+        NSApp.terminate(nil)
+    }
+
     // MARK: Launch at login
 
     var launchAtLogin: Bool {
@@ -924,7 +980,7 @@ final class AppState {
             do {
                 if newValue { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
             } catch {
-                Dialogs.error(error, title: "Launch at login")
+                Dialogs.error(error, title: String(localized: "Launch at login"))
             }
         }
     }

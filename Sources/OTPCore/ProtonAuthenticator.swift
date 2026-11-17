@@ -26,7 +26,7 @@ public enum ProtonAuthenticator {
         if let salt = root["salt"]?.string, let content = root["content"]?.string {
             guard let password, !password.isEmpty else { throw ImportError.passwordRequired }
             guard root["version"]?.int == 1 else {
-                throw ImportError.unsupported("This Proton Authenticator export uses a newer format that TrayOTP can't read yet.")
+                throw ImportError.unsupported(String(localized: "This Proton Authenticator export uses a newer format that TrayOTP can't read yet."))
             }
             guard let salt = Data(base64Encoded: salt), let content = Data(base64Encoded: content) else {
                 throw ImportError.invalidFile

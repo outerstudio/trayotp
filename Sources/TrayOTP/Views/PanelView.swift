@@ -452,7 +452,7 @@ struct SettingsMenu: View {
                 Button("Custom…") { afterMenu { state.setCustomGrace() } }
             }
             .disabled(!state.needsUnlock)
-            Button(state.shortcut.map { "Global Shortcut: \($0.display)…" } ?? "Set Global Shortcut…") {
+            Button(state.shortcut.map { String(localized: "Global Shortcut: \($0.display)…") } ?? String(localized: "Set Global Shortcut…")) {
                 afterMenu { state.editShortcut() }
             }
             Toggle("Show Menu Bar Icon", isOn: Binding(get: { state.showsMenuBarIcon }, set: { show in
@@ -461,6 +461,18 @@ struct SettingsMenu: View {
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
+            Menu("Language") {
+                Picker("Language", selection: Binding(get: { state.language },
+                                                      set: { code in afterMenu { state.language = code } })) {
+                    Text("System Default").tag(String?.none)
+                    Divider()
+                    ForEach(AppState.languages, id: \.self) { code in
+                        Text(verbatim: AppState.languageName(code)).tag(Optional(code))
+                    }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
             Divider()
             Menu("Export") {
                 Section("2FAS") {
@@ -495,6 +507,11 @@ struct SettingsMenu: View {
                 .disabled(state.updater.isBusy)
             Toggle("Check Automatically", isOn: Binding(get: { state.updater.checksAutomatically },
                                                            set: { state.updater.checksAutomatically = $0 }))
+            Divider()
+            // A brand name: the same in every language.
+            Button { NSWorkspace.shared.open(URL(string: "https://buymeacoffee.com/garyyeap")!) } label: {
+                Text(verbatim: "Buy Me a Coffee…")
+            }
         } label: {
             Image(systemName: "ellipsis")
                 .frame(width: 30, height: 30)
@@ -588,7 +605,7 @@ struct GroupHeader: View {
                 .contextMenu { menu(group) }
                 .modifier(DraggableIf(enabled: canDrag, payload: DragItem.group(group.id).payload, title: group.name))
         } else {
-            header(title: "Ungrouped")
+            header(title: String(localized: "Ungrouped"))
                 .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { toggle() } }
                 .contextMenu {
                     Button(expanded ? "Collapse" : "Expand") { toggle() }

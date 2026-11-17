@@ -1,0 +1,3 @@
+/* Info.plist strings. */
+
+"NSCameraUsageDescription" = "TrayOTP 只會在你掃描 QR 碼（例如 Google 驗證器的轉移碼）時使用相機。不會錄製或傳送任何內容。";

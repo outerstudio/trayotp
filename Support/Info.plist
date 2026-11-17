@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
     <key>CFBundleName</key>
     <string>TrayOTP</string>
     <key>CFBundleDisplayName</key>
@@ -23,7 +25,8 @@
     <!-- Menu bar only: no Dock icon, no app menu. -->
     <key>LSUIElement</key>
     <true/>
-    <!-- Shown when the camera is first used: only for "Scan QR Code with Camera…". -->
+    <!-- Shown when the camera is first used: only for "Scan QR Code with Camera…".
+         Translated in Support/Localizations/*.lproj/InfoPlist.strings. -->
     <key>NSCameraUsageDescription</key>
     <string>TrayOTP uses the camera only while you scan a QR code, such as Google Authenticator's transfer code. Nothing is recorded or sent anywhere.</string>
     <key>NSHighResolutionCapable</key>

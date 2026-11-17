@@ -25,7 +25,7 @@ public enum Ente {
     public static func decode(_ data: Data) throws -> TwoFAS.Backup {
         if isEncryptedExport(data) {
             throw ImportError.unsupported(
-                "Encrypted Ente Auth exports aren't supported yet. In Ente Auth, choose Export Codes → Plain text, import that file, then delete it.")
+                String(localized: "Encrypted Ente Auth exports aren't supported yet. In Ente Auth, choose Export Codes → Plain text, import that file, then delete it."))
         }
         let lines = links(in: data)
         guard !lines.isEmpty else { throw ImportError.invalidFile }

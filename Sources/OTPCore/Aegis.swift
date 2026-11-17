@@ -36,7 +36,7 @@ public enum Aegis {
         let slots = header["slots"]?.array ?? []
         let passwordSlots = slots.filter { $0["type"]?.int == 1 }
         guard !passwordSlots.isEmpty else {
-            throw ImportError.unsupported("This Aegis vault has no password slot. Export it again with a password.")
+            throw ImportError.unsupported(String(localized: "This Aegis vault has no password slot. Export it again with a password."))
         }
 
         var masterKey: SymmetricKey?
@@ -184,11 +184,11 @@ public enum Aegis {
             case "hotp": kind = .hotp
             case "steam": kind = .steam
             case let other:
-                skipped.append("\(label.isEmpty ? "Unnamed" : label) (\(other ?? "unknown") is not supported)")
+                skipped.append(String(localized: "\(label.isEmpty ? "Unnamed" : label) (\(other ?? "unknown") is not supported)"))
                 continue
             }
             guard let secret = info?["secret"]?.string, Base32.decode(secret).map({ !$0.isEmpty }) == true else {
-                skipped.append("\(label.isEmpty ? "Unnamed" : label) (invalid secret)")
+                skipped.append(String(localized: "\(label.isEmpty ? "Unnamed" : label) (invalid secret)"))
                 continue
             }
 

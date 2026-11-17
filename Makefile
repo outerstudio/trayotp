@@ -1,4 +1,4 @@
-.PHONY: build test app run release icon clean
+.PHONY: build test strings app run release icon clean
 
 build:
 	swift build
@@ -8,6 +8,11 @@ build:
 test:
 	-Scripts/fetch-test-fixtures.sh
 	swift run -c release OTPCoreTests
+
+# Every translation has every string in Sources/, with the same format arguments.
+strings:
+	plutil -lint -s Support/Localizations/*.lproj/*.strings
+	Scripts/extract-strings.py --check
 
 app:
 	CONFIG=release Scripts/bundle.sh

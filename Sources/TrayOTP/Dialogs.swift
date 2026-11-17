@@ -15,8 +15,8 @@ enum Dialogs {
     static func openFile() -> URL? {
         prepare()
         let panel = NSOpenPanel()
-        panel.title = "Import backup"
-        panel.message = "An export from 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator, Stratum, andOTP, FreeOTP+, Raivo OTP or a password manager (CSV), or a screenshot of a Google Authenticator transfer QR code"
+        panel.title = String(localized: "Import backup")
+        panel.message = String(localized: "An export from 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator, Stratum, andOTP, FreeOTP+, Raivo OTP or a password manager (CSV), or a screenshot of a Google Authenticator transfer QR code")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         // Any file: andOTP and Stratum backups have no standard extension. The format is detected from the content.
@@ -27,7 +27,7 @@ enum Dialogs {
     static func openImage() -> URL? {
         prepare()
         let panel = NSOpenPanel()
-        panel.title = "Choose an icon"
+        panel.title = String(localized: "Choose an icon")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [.image, .pdf]
@@ -37,8 +37,8 @@ enum Dialogs {
     static func openZip() -> URL? {
         prepare()
         let panel = NSOpenPanel()
-        panel.title = "Choose an Aegis icon pack"
-        panel.message = "A .zip with pack.json, e.g. aegis-icons.zip from github.com/aegis-icons/aegis-icons/releases"
+        panel.title = String(localized: "Choose an Aegis icon pack")
+        panel.message = String(localized: "A .zip with pack.json, e.g. aegis-icons.zip from github.com/aegis-icons/aegis-icons/releases")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [.zip]
@@ -48,9 +48,9 @@ enum Dialogs {
     static func openFolder() -> URL? {
         prepare()
         let panel = NSOpenPanel()
-        panel.title = "Choose a folder of icons"
-        panel.message = "Images named after your tokens, e.g. github.png, google.svg"
-        panel.prompt = "Import Icons"
+        panel.title = String(localized: "Choose a folder of icons")
+        panel.message = String(localized: "Images named after your tokens, e.g. github.png, google.svg")
+        panel.prompt = String(localized: "Import Icons")
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
@@ -74,16 +74,16 @@ enum Dialogs {
             let alert = NSAlert()
             alert.messageText = title
             alert.informativeText = info
-            alert.addButton(withTitle: "OK")
-            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: String(localized: "OK"))
+            alert.addButton(withTitle: String(localized: "Cancel"))
 
             // Plain frames: an NSStackView ignores them and collapses the fields to zero width.
             let width: CGFloat = 260, height: CGFloat = 24, gap: CGFloat = 8
             let container = NSView(frame: NSRect(x: 0, y: 0, width: width, height: confirm ? height * 2 + gap : height))
             let first = NSSecureTextField(frame: NSRect(x: 0, y: container.frame.height - height, width: width, height: height))
-            first.placeholderString = confirm ? "New backup password" : "Backup password"
+            first.placeholderString = confirm ? String(localized: "New backup password") : String(localized: "Backup password")
             let second = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: width, height: height))
-            second.placeholderString = "Confirm password"
+            second.placeholderString = String(localized: "Confirm password")
             container.addSubview(first)
             if confirm {
                 container.addSubview(second)
@@ -96,9 +96,9 @@ enum Dialogs {
             guard alert.runModal() == .alertFirstButtonReturn else { return nil }
             let value = first.stringValue
             if value.isEmpty {
-                info = "The password cannot be empty."
+                info = String(localized: "The password cannot be empty.")
             } else if confirm && value != second.stringValue {
-                info = "The passwords do not match."
+                info = String(localized: "The passwords do not match.")
             } else {
                 return value
             }
@@ -112,7 +112,7 @@ enum Dialogs {
         alert.messageText = title
         alert.informativeText = message
         alert.addButton(withTitle: button)
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: String(localized: "Cancel"))
 
         // Plain frames, like `password`: an NSStackView would collapse the fields.
         let width: CGFloat = 260, labelHeight: CGFloat = 16, fieldHeight: CGFloat = 24, gap: CGFloat = 8
@@ -145,7 +145,7 @@ enum Dialogs {
         alert.messageText = title
         alert.informativeText = message
         alert.addButton(withTitle: button)
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: String(localized: "Cancel"))
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
         field.stringValue = value
         alert.accessoryView = field
@@ -158,11 +158,11 @@ enum Dialogs {
     static func shortcut(current: Shortcut?) -> Shortcut?? {
         prepare()
         let alert = NSAlert()
-        alert.messageText = "Global Shortcut"
-        alert.informativeText = "Press the keys that open TrayOTP from anywhere. Include ⌘, ⌃ or ⌥."
-        alert.addButton(withTitle: "Set")
-        alert.addButton(withTitle: "Cancel")
-        if current != nil { alert.addButton(withTitle: "Clear") }
+        alert.messageText = String(localized: "Global Shortcut")
+        alert.informativeText = String(localized: "Press the keys that open TrayOTP from anywhere. Include ⌘, ⌃ or ⌥.")
+        alert.addButton(withTitle: String(localized: "Set"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        if current != nil { alert.addButton(withTitle: String(localized: "Clear")) }
         let set = alert.buttons[0]
         let recorder = ShortcutRecorder(current: current) { set.isEnabled = true }
         set.isEnabled = current != nil
@@ -183,7 +183,7 @@ enum Dialogs {
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.addButton(withTitle: button)
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: String(localized: "Cancel"))
         return alert.runModal() == .alertFirstButtonReturn
     }
 

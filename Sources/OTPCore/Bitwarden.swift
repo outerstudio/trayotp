@@ -18,7 +18,7 @@ public enum Bitwarden {
         guard let root = root(data) else { throw ImportError.invalidFile }
         if root["encrypted"]?.bool == true {
             throw ImportError.unsupported(
-                "Encrypted Bitwarden exports aren't supported. Export again as “.json” (not “.json (Encrypted)”), import that file, then delete it.")
+                String(localized: "Encrypted Bitwarden exports aren't supported. Export again as “.json” (not “.json (Encrypted)”), import that file, then delete it."))
         }
         let folders = (root["folders"]?.array ?? []).compactMap { f -> TokenGroup? in
             guard let id = f["id"]?.string, let name = f["name"]?.string else { return nil }

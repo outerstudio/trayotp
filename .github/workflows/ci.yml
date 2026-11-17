@@ -23,3 +23,6 @@ jobs:
         run: |
           Scripts/fetch-test-fixtures.sh
           swift run -c release OTPCoreTests
+
+      - name: Translations
+        run: make strings

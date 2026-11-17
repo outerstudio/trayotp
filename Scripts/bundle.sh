@@ -29,6 +29,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/TrayOTP" "$APP/Contents/MacOS/TrayOTP"
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD/" Support/Info.plist > "$APP/Contents/Info.plist"
 [[ -f Support/AppIcon.icns ]] && cp Support/AppIcon.icns "$APP/Contents/Resources/" || true
+# Translations: <lang>.lproj folders with Localizable.strings (UI) and InfoPlist.strings (camera prompt).
+cp -R Support/Localizations/*.lproj "$APP/Contents/Resources/"
 
 if [[ "$SIGN_IDENTITY" == "-" ]]; then
   # Ad-hoc signature with hardened runtime: blocks code injection and debugger attach

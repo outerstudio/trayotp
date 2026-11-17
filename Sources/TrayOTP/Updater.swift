@@ -60,10 +60,11 @@ final class Updater {
             if let release = try await check() {
                 await offer(release)
             } else {
-                Dialogs.info(title: "TrayOTP is up to date", message: "You have the latest version (\(currentVersion?.description ?? "unknown")).")
+                Dialogs.info(title: String(localized: "TrayOTP is up to date"),
+                             message: String(localized: "You have the latest version (\(currentVersion?.description ?? "?"))."))
             }
         } catch {
-            Dialogs.error(error, title: "Could not check for updates")
+            Dialogs.error(error, title: String(localized: "Could not check for updates"))
         }
     }
 
@@ -77,7 +78,7 @@ final class Updater {
         let (data, response) = try await URLSession.shared.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         if status == 404 { available = nil; return nil } // no release published yet
-        guard status == 200 else { throw UpdateError("GitHub answered with status \(status).") }
+        guard status == 200 else { throw UpdateError(String(localized: "GitHub answered with status \(status).")) }
         UserDefaults.standard.set(Date(), forKey: Keys.lastCheck)
 
         let release = try JSONDecoder().decode(Release.self, from: data)
@@ -97,17 +98,20 @@ final class Updater {
     }
 
     private func offer(_ release: Release) async {
-        var message = "TrayOTP \(release.version?.description ?? release.tag) is available; you have \(currentVersion?.description ?? "an older version")."
+        var message = String(localized: "TrayOTP \(release.version?.description ?? release.tag) is available; you have \(currentVersion?.description ?? "?").")
         if let notes = release.notes?.trimmingCharacters(in: .whitespacesAndNewlines), !notes.isEmpty {
             message += "\n\n" + String(notes.prefix(600)) + (notes.count > 600 ? "…" : "")
         }
         guard canInstall, release.zip != nil, release.checksum != nil else {
-            if Dialogs.confirm(title: "Update available", message: message, button: "Open Release Page") {
+            if Dialogs.confirm(title: String(localized: "Update available"), message: message, button: String(localized: "Open Release Page")) {
                 NSWorkspace.shared.open(release.pageURL)
             }
             return
         }
-        guard Dialogs.confirm(title: "Update available", message: message + "\n\nTrayOTP will quit and reopen.", button: "Install and Relaunch") else { return }
+        guard Dialogs.confirm(title: String(localized: "Update available"),
+                              message: message + "\n\n" + String(localized: "TrayOTP will quit and reopen."),
+                              button: String(localized: "Install and Relaunch"))
+        else { return }
         isBusy = true
         defer { isBusy = false }
         do {
@@ -115,16 +119,16 @@ final class Updater {
             try launchSwap(staged: staged)
             NSApp.terminate(nil)
         } catch {
-            Dialogs.error(error, title: "Update failed")
+            Dialogs.error(error, title: String(localized: "Update failed"))
         }
     }
 
     /// Downloads, verifies and unpacks the release; returns the new .app inside a fresh temp folder.
     private func download(_ release: Release) async throws -> URL {
-        guard let zip = release.zip, let sum = release.checksum else { throw UpdateError("The release has no app archive.") }
+        guard let zip = release.zip, let sum = release.checksum else { throw UpdateError(String(localized: "The release has no app archive.")) }
         let (sumData, _) = try await URLSession.shared.data(from: sum.url)
         guard let expected = Release.parseChecksum(String(decoding: sumData, as: UTF8.self)) else {
-            throw UpdateError("The release checksum file is malformed.")
+            throw UpdateError(String(localized: "The release checksum file is malformed."))
         }
         let (file, _) = try await URLSession.shared.download(from: zip.url)
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("TrayOTP-update-\(UUID().uuidString)")
@@ -134,7 +138,7 @@ final class Updater {
         let minimum = currentVersion
         return try await Task.detached {
             let hash = SHA256.hash(data: try Data(contentsOf: file)).map { String(format: "%02x", $0) }.joined()
-            guard hash == expected else { throw UpdateError("The download is corrupt (checksum mismatch).") }
+            guard hash == expected else { throw UpdateError(String(localized: "The download is corrupt (checksum mismatch).")) }
 
             let archive = dir.appendingPathComponent("update.zip")
             try FileManager.default.moveItem(at: file, to: archive)
@@ -143,10 +147,10 @@ final class Updater {
 
             let app = out.appendingPathComponent("TrayOTP.app")
             guard let bundle = Bundle(url: app), bundle.bundleIdentifier == bundleID else {
-                throw UpdateError("The archive does not contain TrayOTP.")
+                throw UpdateError(String(localized: "The archive does not contain TrayOTP."))
             }
             let version = AppVersion(bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
-            guard let version, let minimum, version > minimum else { throw UpdateError("The archive is not newer than this version.") }
+            guard let version, let minimum, version > minimum else { throw UpdateError(String(localized: "The archive is not newer than this version.")) }
             try Self.run("/usr/bin/codesign", ["--verify", "--strict", app.path])
             return app
         }.value
@@ -157,7 +161,7 @@ final class Updater {
     private func launchSwap(staged: URL) throws {
         let dest = Bundle.main.bundleURL
         guard FileManager.default.isWritableFile(atPath: dest.deletingLastPathComponent().path) else {
-            throw UpdateError("TrayOTP cannot write to \(dest.deletingLastPathComponent().path). Move it to Applications or download the release manually.")
+            throw UpdateError(String(localized: "TrayOTP cannot write to \(dest.deletingLastPathComponent().path). Move it to Applications or download the release manually."))
         }
         let script = """
         while kill -0 "$1" 2>/dev/null; do sleep 0.2; done
@@ -183,7 +187,7 @@ final class Updater {
         process.waitUntilExit()
         guard process.terminationStatus == 0 else {
             let text = String(decoding: errors.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-            throw UpdateError("\(URL(fileURLWithPath: tool).lastPathComponent) failed: \(text.trimmingCharacters(in: .whitespacesAndNewlines))")
+            throw UpdateError(String(localized: "\(URL(fileURLWithPath: tool).lastPathComponent) failed: \(text.trimmingCharacters(in: .whitespacesAndNewlines))"))
         }
     }
 }

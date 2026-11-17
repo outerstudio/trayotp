@@ -8,9 +8,9 @@ enum IconPackError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unzipFailed: return "The file could not be unzipped."
-        case .missingManifest: return "This ZIP has no pack.json, so it is not an Aegis icon pack."
-        case .noIcons: return "The icon pack contains no usable icons."
+        case .unzipFailed: return String(localized: "The file could not be unzipped.")
+        case .missingManifest: return String(localized: "This ZIP has no pack.json, so it is not an Aegis icon pack.")
+        case .noIcons: return String(localized: "The icon pack contains no usable icons.")
         }
     }
 }

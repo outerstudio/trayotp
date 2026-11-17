@@ -1,0 +1,3 @@
+/* Info.plist strings. */
+
+"NSCameraUsageDescription" = "TrayOTP 仅在你扫描二维码（例如 Google 身份验证器的转移码）时使用摄像头。不会录制或发送任何内容。";

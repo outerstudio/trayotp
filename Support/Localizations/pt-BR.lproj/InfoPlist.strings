@@ -1,0 +1,3 @@
+/* Info.plist strings. */
+
+"NSCameraUsageDescription" = "O TrayOTP usa a câmera apenas enquanto você escaneia um código QR, como o código de transferência do Google Authenticator. Nada é gravado nem enviado.";

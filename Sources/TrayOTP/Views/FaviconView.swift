@@ -100,7 +100,7 @@ struct FaviconView: View {
     private func fetch() {
         guard phase != .fetching else { return }
         guard let normalized = Favicon.normalizeDomain(domain) else {
-            phase = .failed("Enter a domain like “plurk.com”.")
+            phase = .failed(String(localized: "Enter a domain like “plurk.com”."))
             return
         }
         phase = .fetching
@@ -110,7 +110,7 @@ struct FaviconView: View {
                 state.iconDraft = IconDraft(image: image, layout: Self.initialLayout)
                 phase = .idle
             } else {
-                phase = .failed("No icon found for \(normalized). Check the domain, or use Set Icon from File….")
+                phase = .failed(String(localized: "No icon found for \(normalized). Check the domain, or use Set Icon from File…."))
             }
         }
     }

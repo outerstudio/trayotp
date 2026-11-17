@@ -9,11 +9,11 @@ public enum TokenInputError: Error, Equatable, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .empty: return "Nothing to add."
-        case .notOTPAuth: return "Not an otpauth:// link."
-        case .missingSecret: return "The link has no secret."
-        case .invalidSecret: return "The secret is not valid Base32."
-        case .unsupportedType(let t): return "Unsupported OTP type “\(t)”."
+        case .empty: return String(localized: "Nothing to add.")
+        case .notOTPAuth: return String(localized: "Not an otpauth:// link.")
+        case .missingSecret: return String(localized: "The link has no secret.")
+        case .invalidSecret: return String(localized: "The secret is not valid Base32.")
+        case .unsupportedType(let t): return String(localized: "Unsupported OTP type “\(t)”.")
         }
     }
 }

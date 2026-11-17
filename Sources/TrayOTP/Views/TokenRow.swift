@@ -25,7 +25,7 @@ struct TokenRow: View {
                 // Only the code and the ring tick. Ticking the whole row would rebuild its
                 // context menu every second and close open submenus.
                 TimelineView(.periodic(from: .now, by: 1)) { context in
-                    Text(token.code(at: context.date)?.otpGrouped ?? "Invalid secret")
+                    Text(token.code(at: context.date)?.otpGrouped ?? String(localized: "Invalid secret"))
                         .font(.system(size: 24, weight: .regular).monospacedDigit())
                                                 .contentTransition(.numericText())
                 }

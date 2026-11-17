@@ -13,8 +13,8 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
     private let window: NSWindow
     private let imageView = NSImageView()
     private let counter = NSTextField(labelWithString: "")
-    private let previous = NSButton(title: "Previous", target: nil, action: nil)
-    private let next = NSButton(title: "Next", target: nil, action: nil)
+    private let previous = NSButton(title: String(localized: "Previous"), target: nil, action: nil)
+    private let next = NSButton(title: String(localized: "Next"), target: nil, action: nil)
 
     static func show(title: String, instructions: String, codes: [String]) {
         current?.window.close()
@@ -51,7 +51,7 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
         previous.action = #selector(showPrevious)
         next.target = self
         next.action = #selector(showNext)
-        let done = NSButton(title: "Done", target: self, action: #selector(finish))
+        let done = NSButton(title: String(localized: "Done"), target: self, action: #selector(finish))
         done.keyEquivalent = "\u{1b}"
         for (button, x) in [(previous, 20.0), (next, 130.0), (done, 300.0)] {
             button.bezelStyle = .rounded
@@ -67,7 +67,8 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
 
     private func update() {
         imageView.image = Self.qrImage(codes[index])
-        counter.stringValue = codes.count > 1 ? "QR code \(index + 1) of \(codes.count)" : ""
+        let (number, total) = (index + 1, codes.count)
+        counter.stringValue = total > 1 ? String(localized: "QR code \(number) of \(total)") : ""
         previous.isEnabled = index > 0
         next.isEnabled = index < codes.count - 1
         previous.isHidden = codes.count == 1

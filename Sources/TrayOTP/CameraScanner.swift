@@ -13,9 +13,9 @@ final class CameraScanner: NSObject, NSWindowDelegate {
         var errorDescription: String? {
             switch self {
             case .denied:
-                return "TrayOTP isn't allowed to use the camera. Turn it on in System Settings → Privacy & Security → Camera, then try again."
+                return String(localized: "TrayOTP isn't allowed to use the camera. Turn it on in System Settings → Privacy & Security → Camera, then try again.")
             case .noCamera:
-                return "No camera found. Connect one, or use your iPhone as a webcam (Continuity Camera)."
+                return String(localized: "No camera found. Connect one, or use your iPhone as a webcam (Continuity Camera).")
             }
         }
     }
@@ -65,7 +65,7 @@ final class CameraScanner: NSObject, NSWindowDelegate {
         view.wantsLayer = true
         view.layer = preview
 
-        let hint = NSTextField(labelWithString: "Hold the QR code up to the camera, about 20–30 cm away.")
+        let hint = NSTextField(labelWithString: String(localized: "Hold the QR code up to the camera, about 20–30 cm away."))
         hint.font = .systemFont(ofSize: 12, weight: .medium)
         hint.textColor = .white
         hint.backgroundColor = NSColor.black.withAlphaComponent(0.55)
@@ -77,7 +77,7 @@ final class CameraScanner: NSObject, NSWindowDelegate {
 
         let window = NSWindow(contentRect: view.frame, styleMask: [.titled, .closable, .resizable],
                               backing: .buffered, defer: false)
-        window.title = "Scan QR Code"
+        window.title = String(localized: "Scan QR Code")
         window.contentView = view
         window.isReleasedWhenClosed = false
         window.level = .floating
