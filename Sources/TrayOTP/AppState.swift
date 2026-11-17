@@ -271,6 +271,10 @@ final class AppState {
 
     func editShortcut() {
         guard let choice = Dialogs.shortcut(current: shortcut) else { return }
+        if let conflict = choice?.conflict {
+            Dialogs.info(title: "Shortcut unavailable", message: conflict)
+            return
+        }
         guard GlobalHotKey.shared.register(choice) else {
             GlobalHotKey.shared.register(shortcut)
             Dialogs.info(title: "Shortcut unavailable",

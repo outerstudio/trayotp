@@ -39,6 +39,29 @@ struct Shortcut: Equatable {
         return text + label
     }
 
+    /// Why this combination would clash with other shortcuts, or nil if it is free as far as we can tell.
+    /// A hotkey registered over one of these still succeeds, so `RegisterEventHotKey` can't catch them.
+    var conflict: String? {
+        let modifierMask = UInt32(controlKey | optionKey | shiftKey | cmdKey)
+        let functionKeys = [kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6,
+                            kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11, kVK_F12].map(UInt32.init)
+        // ⌘ alone is what apps use for Copy, Paste, Quit…; taking one would break it everywhere.
+        if modifiers & modifierMask == UInt32(cmdKey), !functionKeys.contains(keyCode) {
+            return "\(display) is used by apps (like ⌘C for Copy). Add ⌃, ⌥ or ⇧."
+        }
+        // Enabled shortcuts from System Settings → Keyboard → Keyboard Shortcuts.
+        var unmanaged: Unmanaged<CFArray>?
+        guard CopySymbolicHotKeys(&unmanaged) == noErr,
+              let hotKeys = unmanaged?.takeRetainedValue() as? [[String: Any]]
+        else { return nil }
+        let taken = hotKeys.contains { hotKey in
+            (hotKey[kHISymbolicHotKeyEnabled] as? Bool) == true
+                && (hotKey[kHISymbolicHotKeyCode] as? Int).map(UInt32.init) == keyCode
+                && (hotKey[kHISymbolicHotKeyModifiers] as? Int).map { UInt32($0) & modifierMask } == modifiers & modifierMask
+        }
+        return taken ? "\(display) is a macOS shortcut. Choose another, or turn it off in System Settings → Keyboard → Keyboard Shortcuts." : nil
+    }
+
     private static let keyNames: [UInt32: String] = [
         UInt32(kVK_Space): "Space", UInt32(kVK_Return): "↩", UInt32(kVK_Tab): "⇥",
         UInt32(kVK_Delete): "⌫", UInt32(kVK_ForwardDelete): "⌦", UInt32(kVK_Escape): "⎋",
