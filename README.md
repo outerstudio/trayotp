@@ -5,6 +5,12 @@
 <h1 align="center">TrayOTP</h1>
 
 <p align="center">
+  <b>English</b> · <a href="translations/README.de.md">Deutsch</a> · <a href="translations/README.es.md">Español</a> · <a href="translations/README.fr.md">Français</a> ·
+  <a href="translations/README.it.md">Italiano</a> · <a href="translations/README.ja.md">日本語</a> · <a href="translations/README.ko.md">한국어</a> ·
+  <a href="translations/README.pt-BR.md">Português (Brasil)</a> · <a href="translations/README.zh-Hans.md">简体中文</a> · <a href="translations/README.zh-Hant.md">繁體中文</a>
+</p>
+
+<p align="center">
   <b>Your two-factor codes, one click away in the macOS menu bar.</b><br>
   Imports from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator and more. Encrypted, offline, open source.
 </p>
@@ -14,6 +20,7 @@
   <a href="https://github.com/outerstudio/trayotp/actions/workflows/ci.yml"><img src="https://github.com/outerstudio/trayotp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+  <a href="https://buymeacoffee.com/garyyeap"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee"></a>
 </p>
 
 <p align="center">
@@ -43,6 +50,8 @@
 - **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
 - **Secure.** Tokens are encrypted with AES-256-GCM, with the key kept in your login keychain. See [Security](#security).
 - **Private.** Everything stays on your Mac. No account, no sync, no analytics.
+- **In your language.** English, Deutsch, Español, Français, Italiano, 日本語, 한국어, Português (Brasil), 简体中文 and
+  繁體中文. Follows your Mac's language, or pick one in **⋯ → Language**.
 - **Small and native.** Swift and SwiftUI, a few MB. Requires macOS 14 Sonoma or later; runs on Apple silicon and Intel.
 
 ## Install
@@ -106,6 +115,7 @@ Apps you build yourself open without any warning.
   **↑** from the top row goes back to the search field.
 - For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
 - **Edit a token:** right-click it → **Edit…** to change its service name and account. The code stays the same.
+- **Close After Copying** in the ⋯ menu closes the panel after each copy, so you can paste right away.
 - Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 
 ### Adding a token
@@ -235,12 +245,14 @@ All in the **⋯** menu:
 | **Set Master Password…** | Protect the vault with a password of your own, typed instead of Touch ID (see [Security](#security)). |
 | **Set Global Shortcut…** | Open the panel from any app with a key combination of your choice (needs ⌘, ⌃ or ⌥). |
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
+| **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
 | **Launch at Login** | Start TrayOTP when you log in. |
+| **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |
 
 Click **Lock** at the bottom of the panel to lock right away.
 
 <p align="center">
-  <img src="docs/screenshots/lock-screen.png" width="340" alt="The locked panel: &quot;TrayOTP is locked&quot; with Unlock with Touch ID and Quit buttons">
+  <img src="docs/screenshots/lock-screen.png" width="340" alt="The locked panel: &quot;TrayOTP is locked&quot;, the Touch ID prompt, and Use Password… and Quit buttons">
 </p>
 
 ## Security
@@ -294,7 +306,8 @@ password (normally your Mac password) and choose **Always Allow**. If it appears
 Launchpad only lists apps in `/Applications`. If the icon is still blank after moving the app there, run `killall Dock`.
 
 **A QR code isn't detected**
-Crop the screenshot closer to the code. Google Authenticator "Transfer accounts" codes aren't supported.
+Crop the screenshot closer to the code. For Google Authenticator, use **Add → Scan QR Code with Camera…** (see
+[Import and export](#import-and-export)).
 
 **"Wrong backup password"**
 Use the password set when the backup was exported from the other app (or TrayOTP), not your Mac password.
@@ -311,6 +324,11 @@ Losing your 2FA codes can lock you out of your accounts, so don't let TrayOTP be
 - Export an encrypted backup now and then (**⋯ → Export → Aegis (Encrypted)**) and keep it somewhere safe.
 - After importing, check a few codes before deleting anything from your old app.
 
+## Support
+
+TrayOTP is free. If it saves you time, you can [buy me a coffee](https://buymeacoffee.com/garyyeap) (also in the ⋯
+menu).
+
 ## Development
 
 Requires macOS 14 and the Command Line Tools.
@@ -320,6 +338,7 @@ make test      # fetch third-party test exports, then run the test suite (optimi
 make run       # build build/TrayOTP.app, quit the running copy, launch the new one
 make release   # build only
 make icon      # redraw Support/AppIcon.icns from Scripts/make-icon.swift
+make strings   # check the translations against the strings in Sources/
 ```
 
 `make test` and `make run` build optimized: Aegis vault decryption (scrypt) takes about 40 s in an unoptimized
@@ -351,8 +370,24 @@ Sources/TrayOTP/          SwiftUI MenuBarExtra app
   IconPackStore.swift     installed icon pack, rendering and caching
   Views/                  panel, rows, groups, lock, add and icon picker screens
 Sources/OTPCoreTests/     test runner (XCTest needs Xcode, so it's a plain executable)
-Scripts/                  bundle.sh (build .app), make-icon.swift, fetch-test-fixtures.sh
+Support/Localizations/    <lang>.lproj translations (Localizable.strings, InfoPlist.strings)
+Scripts/                  bundle.sh (build .app), make-icon.swift, fetch-test-fixtures.sh, extract-strings.py
 ```
+
+### Translations
+
+User-facing text is written in English in the code, as SwiftUI literals or `String(localized:)`, and the English text
+is the key in each `Support/Localizations/<lang>.lproj/Localizable.strings`. Without Xcode there is no `genstrings`, so
+`Scripts/extract-strings.py` lists the keys and `make strings` (also run in CI) checks that every translation has
+each one, no leftovers, and the same `%@` / `%lld` arguments.
+
+- **Change or add a string:** edit the code, run `Scripts/extract-strings.py` to see the new key, and add it to every
+  `Localizable.strings`. A number interpolated into a string needs its variable name in `INTS` in the script.
+- **Fix a translation:** edit the value (right of `=`) and run `make strings`.
+- **Add a language:** copy a `.lproj` folder to `Support/Localizations/<code>.lproj`, translate the values (keep the
+  keys), and add the code to `AppState.languages` so it shows in **⋯ → Language**.
+
+The translations were not reviewed by native speakers; corrections are welcome.
 
 ### Tests
 
