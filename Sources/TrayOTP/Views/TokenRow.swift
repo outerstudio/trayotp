@@ -15,18 +15,12 @@ struct TokenRow: View {
             ServiceAvatar(name: token.name, color: color,
                           image: token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token))
 
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 4) {
-                    Text(token.name)
-                        .font(.system(size: 12, weight: .medium))
-                    if let subtitle = token.subtitle {
-                        Text(subtitle)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                .lineLimit(1)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 0) {
+                // Name, code, then account on its own line, so a long account doesn't cut off the name.
+                Text(token.name)
+                    .font(.system(size: 12, weight: .medium))
+                    .lineLimit(1)
+                    .foregroundStyle(.secondary)
 
                 // Only the code and the ring tick. Ticking the whole row would rebuild its
                 // context menu every second and close open submenus.
@@ -34,6 +28,13 @@ struct TokenRow: View {
                     Text(token.code(at: context.date)?.otpGrouped ?? "Invalid secret")
                         .font(.system(size: 24, weight: .regular).monospacedDigit())
                                                 .contentTransition(.numericText())
+                }
+                if let subtitle = token.subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(.tertiary)
                 }
             }
 
