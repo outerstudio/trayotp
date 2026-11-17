@@ -37,6 +37,9 @@ final class PanelController {
     func close() {
         if menuBarWindow != nil { Self.statusButton()?.performClick(nil) }
         floating?.orderOut(nil)
+        // Give the focus back to the previous app. Staying active would leave the panel window key,
+        // so the next open posts no didBecomeKey and skips panelDidOpen (and Lock Every Time).
+        NSApp.hide(nil)
     }
 
     /// Makes the open panel the key window again, e.g. after the Touch ID dialog took the focus.
