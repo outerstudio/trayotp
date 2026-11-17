@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="Das TrayOTP-Fenster: ein Suchfeld, Tokens mit Name, Code, Account und nächstem Code, eine zugeklappte Gruppe DEV sowie die Tasten Hinzufügen, Sperren und Beenden">
+  <img src="../docs/screenshots/panel.png" width="340" alt="Das TrayOTP-Fenster: ein Suchfeld, Tokens mit Name, Code, Account und nächstem Code, eine zugeklappte Gruppe GOOGLE sowie die Tasten Hinzufügen, Sperren und Beenden">
 </p>
 
 > Diese Übersetzung kann hinter der [englischen README](../README.md) zurückliegen. Im Zweifel gilt die englische Fassung.

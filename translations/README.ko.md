@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTP 패널: 검색 필드, 이름·코드·계정·다음 코드가 표시된 토큰, 접힌 DEV 그룹, 추가·잠금·종료 버튼">
+  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTP 패널: 검색 필드, 이름·코드·계정·다음 코드가 표시된 토큰, 접힌 GOOGLE 그룹, 추가·잠금·종료 버튼">
 </p>
 
 > 이 번역은 [영어 README](../README.md)보다 오래되었을 수 있습니다. 내용이 다르면 영어 버전이 우선합니다.

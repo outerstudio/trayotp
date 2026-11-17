@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel: a search field, tokens showing name, code, account and next code, a collapsed DEV group, and Add, Lock and Quit buttons">
+  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel: a search field, tokens showing name, code, account and next code, a collapsed GOOGLE group, and Add, Lock and Quit buttons">
 </p>
 
 ## Features

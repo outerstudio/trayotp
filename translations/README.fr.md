@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="Le panneau TrayOTP : un champ de recherche, des jetons avec nom, code, compte et code suivant, un groupe DEV replié, et les boutons Ajouter, Verrouiller et Quitter">
+  <img src="../docs/screenshots/panel.png" width="340" alt="Le panneau TrayOTP : un champ de recherche, des jetons avec nom, code, compte et code suivant, un groupe GOOGLE replié, et les boutons Ajouter, Verrouiller et Quitter">
 </p>
 
 > Cette traduction peut être en retard sur le [README anglais](../README.md). En cas de doute, la version anglaise fait foi.

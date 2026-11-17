@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTP 面板：搜尋欄位、顯示名稱、驗證碼、帳號和下一個驗證碼的代符、收合的 DEV 群組，以及加入、鎖定和結束按鈕">
+  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTP 面板：搜尋欄位、顯示名稱、驗證碼、帳號和下一個驗證碼的代符、收合的 GOOGLE 群組，以及加入、鎖定和結束按鈕">
 </p>
 
 > 本譯文可能落後於[英文 README](../README.md)。如有出入，以英文版為準。
