@@ -412,6 +412,9 @@ struct SettingsMenu: View {
                 Section("Ente Auth") {
                     Button("Ente Auth (Plain Text)…") { afterMenu { state.exportBackup(as: .ente, encrypted: false) } }
                 }
+                Section("Google Authenticator") {
+                    Button("Google Authenticator (QR Codes)…") { afterMenu { state.exportToGoogle() } }
+                }
                 Section("Bitwarden") {
                     Button("Bitwarden (JSON)…") { afterMenu { state.exportBackup(as: .bitwarden, encrypted: false) } }
                 }

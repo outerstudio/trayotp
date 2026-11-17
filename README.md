@@ -37,7 +37,7 @@
 - **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
 - **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
 - **Move in or out freely.** Import from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
-  Stratum, andOTP, FreeOTP+, Raivo OTP and password manager CSVs. Export to 2FAS, Aegis, Ente Auth and Bitwarden.
+  Stratum, andOTP, FreeOTP+, Raivo OTP and password manager CSVs. Export to 2FAS, Aegis, Ente Auth, Bitwarden and Google Authenticator.
 - **Groups.** Collapsible sections, drag and drop to sort and move tokens, kept in 2FAS, Aegis and Ente exports.
 - **Service icons.** Use any [Aegis icon pack](#service-icons), pick icons by hand, use your own images, or fetch a site's favicon.
 - **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
@@ -176,7 +176,7 @@ the file is encrypted. Anything that can't be imported is listed afterwards.
 | **2FAS** (`.2fas`) | Plain or encrypted | Plain or encrypted | ✓ |
 | **Aegis** (`.json`) | Plain or encrypted | Plain or encrypted | ✓ (and icons) |
 | **Ente Auth** (`.txt`) | Plain text | Plain text | ✓ (as tags) |
-| **Google Authenticator** | "Transfer accounts" QR codes | — | — |
+| **Google Authenticator** | "Transfer accounts" QR codes | QR codes (30 s, 6 or 8 digits) | — |
 | **Bitwarden** and **Bitwarden Authenticator** (`.json`, `.csv`) | Unencrypted | Unencrypted JSON (no HOTP) | ✓ (folders) |
 | **Proton Authenticator** (`.json`) | Plain or encrypted | — | — |
 | **Stratum** / Authenticator Pro | Plain or encrypted | — | ✓ (categories) |
@@ -197,6 +197,11 @@ No built-in camera (Mac mini, Mac Studio, Mac Pro)? A USB webcam works, and so d
 one running Google Authenticator, used as a webcam (Continuity Camera). Or take a photo of the transfer screen
 with another phone, get it onto your Mac (AirDrop, iCloud Photos, email…) and import it with
 **Add → Import from File…**: PNG, JPEG and HEIC all work.
+
+**To Google Authenticator:** **⋯ → Export → Google Authenticator (QR Codes)…** shows the accounts as QR codes,
+10 per code. In Google Authenticator, open **⋮ → Transfer accounts → Import accounts** and scan each one. Google
+only takes 30-second codes with 6 or 8 digits, so other tokens (and Steam) are left out, and you're told which.
+The window hides from screenshots and screen sharing and closes when TrayOTP locks.
 
 **Duplicates:** a token is skipped when you already have one with the same secret and account, so importing the same
 file twice (or overlapping Google QR codes) adds nothing new. A token with the same name and account as one you have but a

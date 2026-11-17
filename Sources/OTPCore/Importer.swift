@@ -34,7 +34,11 @@ public enum Exporter {
 
     /// Tokens the format can't hold, which `encode` leaves out.
     public static func unsupported(_ tokens: [Token], in format: BackupFormat) -> [Token] {
-        format == .bitwarden ? tokens.filter { !Bitwarden.canExport($0) } : []
+        switch format {
+        case .bitwarden: return tokens.filter { !Bitwarden.canExport($0) }
+        case .googleAuthenticator: return tokens.filter { !GoogleAuthenticator.canExport($0) }
+        default: return []
+        }
     }
 }
 

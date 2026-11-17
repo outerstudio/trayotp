@@ -1,6 +1,6 @@
 import Foundation
 
-/// Import of Google Authenticator's "Transfer accounts" QR codes: `otpauth-migration://offline?data=<Base64>`,
+/// Import and export of Google Authenticator's "Transfer accounts" QR codes: `otpauth-migration://offline?data=<Base64>`,
 /// where `data` is a MigrationPayload protobuf. Large exports are split over several QR codes; each one is a
 /// complete link, so they can be imported one at a time or together (one link per line).
 /// Schema: https://github.com/beemdevelopment/Aegis/blob/master/app/src/main/proto/google_auth.proto
@@ -96,7 +96,57 @@ public enum GoogleAuthenticator {
     }
 }
 
-/// Just enough protobuf to read Google's MigrationPayload: varints and length-delimited fields.
+extension GoogleAuthenticator {
+    /// Accounts per QR code, like Google Authenticator's own export. Still easy to scan off a Mac screen.
+    public static let batchSize = 10
+
+    /// Google's payload has no period field and only 6 or 8 digits; Steam isn't supported.
+    public static func canExport(_ token: Token) -> Bool {
+        switch token.kind {
+        case .steam: return false
+        case .hotp: return token.digits == 6 || token.digits == 8
+        case .totp: return (token.digits == 6 || token.digits == 8) && token.period == 30
+        }
+    }
+
+    /// One `otpauth-migration://` link per QR code, for Google Authenticator's Transfer accounts → Import accounts.
+    /// Tokens it can't hold are left out (see `canExport`).
+    public static func encode(_ backup: TwoFAS.Backup) -> [String] {
+        let tokens = backup.tokens.filter(canExport)
+        guard !tokens.isEmpty else { return [] }
+        let batches = stride(from: 0, to: tokens.count, by: batchSize).map { Array(tokens[$0..<min($0 + batchSize, tokens.count)]) }
+        return batches.map { batch in
+            var payload: [UInt8] = []
+            for t in batch {
+                var otp = Protobuf.bytes(1, Array(Base32.decode(t.secret) ?? Data()))
+                otp += Protobuf.bytes(2, Array((t.account ?? t.name).utf8))
+                otp += Protobuf.bytes(3, Array((t.issuer ?? t.name).utf8))
+                let algorithm: UInt64 = switch t.algorithm {
+                case .sha1: 1
+                case .sha256: 2
+                case .sha512: 3
+                }
+                otp += Protobuf.varint(4, algorithm)
+                otp += Protobuf.varint(5, t.digits == 8 ? 2 : 1)
+                otp += Protobuf.varint(6, t.kind == .hotp ? 1 : 2)
+                if t.kind == .hotp { otp += Protobuf.varint(7, t.counter) }
+                payload += Protobuf.bytes(1, otp)
+            }
+            // Each code is a complete export of its own (batch 1 of 1). Google Authenticator rejects
+            // "code 1 of N" codes that it didn't make itself, even when scanned in order.
+            payload += Protobuf.varint(2, 1)
+            payload += Protobuf.varint(3, 1)
+            payload += Protobuf.varint(4, 0)
+            payload += Protobuf.varint(5, UInt64(UInt32.random(in: 1...UInt32(Int32.max))))
+            var allowed = CharacterSet.alphanumerics
+            allowed.insert(charactersIn: "-._~")
+            let data = Data(payload).base64EncodedString().addingPercentEncoding(withAllowedCharacters: allowed) ?? ""
+            return "otpauth-migration://offline?data=\(data)"
+        }
+    }
+}
+
+/// Just enough protobuf to read and write Google's MigrationPayload: varints and length-delimited fields.
 enum Protobuf {
     enum Value {
         case varint(UInt64)
@@ -110,6 +160,25 @@ enum Protobuf {
     }
 
     struct Malformed: Error {}
+
+    static func varint(_ number: Int, _ value: UInt64) -> [UInt8] {
+        encode(UInt64(number << 3)) + encode(value)
+    }
+
+    static func bytes(_ number: Int, _ value: [UInt8]) -> [UInt8] {
+        encode(UInt64(number << 3 | 2)) + encode(UInt64(value.count)) + value
+    }
+
+    private static func encode(_ value: UInt64) -> [UInt8] {
+        var v = value
+        var out: [UInt8] = []
+        repeat {
+            let byte = UInt8(v & 0x7F)
+            v >>= 7
+            out.append(v == 0 ? byte : byte | 0x80)
+        } while v != 0
+        return out
+    }
 
     static func fields(_ data: Data) throws -> [Field] {
         let bytes = [UInt8](data)

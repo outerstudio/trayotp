@@ -147,6 +147,7 @@ final class AppState {
         isLocked = true
         screen = .list
         Clipboard.clearIfOurs()
+        QRCodeWindow.closeAll()
     }
 
     func unlock(password: String) async {
@@ -731,6 +732,34 @@ final class AppState {
         Task {
             guard await confirmOwner("export all your secrets to \(format.rawValue)") else { return }
             exportConfirmed(as: format, encrypted: encrypted)
+        }
+    }
+
+    /// Shows Google Authenticator transfer QR codes, to scan with its Transfer accounts → Import accounts.
+    func exportToGoogle() {
+        Task {
+            guard await confirmOwner("show all your secrets as QR codes for Google Authenticator") else { return }
+            let codes = GoogleAuthenticator.encode(.init(tokens: tokens, groups: groups))
+            let left = Exporter.unsupported(tokens, in: .googleAuthenticator)
+            if !left.isEmpty {
+                let names = left.map(\.name).joined(separator: ", ")
+                guard !codes.isEmpty else {
+                    Dialogs.info(title: "Nothing to export to Google Authenticator",
+                                 message: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. None of your tokens fit: \(names)")
+                    return
+                }
+                guard Dialogs.confirm(title: "\(left.count) token\(left.count == 1 ? "" : "s") will be left out",
+                                      message: "Google Authenticator only takes 30-second codes with 6 or 8 digits, and no Steam codes. Left out: \(names)",
+                                      button: "Continue")
+                else { return }
+            }
+            let count = tokens.count - left.count
+            QRCodeWindow.show(
+                title: "Export to Google Authenticator",
+                instructions: "In Google Authenticator, open ⋮ → Transfer accounts → Import accounts and scan "
+                    + (codes.count > 1 ? "each QR code in turn (\(count) accounts in \(codes.count) codes)." : "this QR code (\(count) account\(count == 1 ? "" : "s")).")
+                    + " Anyone who sees these codes can copy your accounts.",
+                codes: codes)
         }
     }
 

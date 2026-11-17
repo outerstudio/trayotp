@@ -359,6 +359,18 @@ do {
     equal(linkFormat, .linkList, "otpauth link export detected")
     equal(links.tokens.map(key), tokens.map(key), "otpauth link export round trip")
 
+    // Google: QR code links, read back by our importer. Steam and 60 s tokens can't go.
+    let google = GoogleAuthenticator.encode(backup)
+    equal(google.count, 1, "Google export: one QR code for a few tokens")
+    let googleBack = try Importer.decode(Data(google.joined(separator: "\n").utf8)).1
+    let googleKey = { (t: Token) in "\(t.issuer ?? "")|\(t.account ?? "")|\(t.secret)|\(t.kind)|\(t.algorithm)|\(t.digits)|\(t.counter)" }
+    equal(googleBack.tokens.map(googleKey), tokens.filter(GoogleAuthenticator.canExport).map(googleKey), "Google export round trip")
+    equal(Exporter.unsupported(tokens, in: .googleAuthenticator).map(\.name), ["C++ Club", "Steam"], "Google leaves out 60 s and Steam")
+    let many = TwoFAS.Backup(tokens: (0..<23).map { Token(name: "S\($0)", secret: "JBSWY3DPEHPK3PXP") })
+    let batches = GoogleAuthenticator.encode(many)
+    equal(batches.count, 3, "Google export in batches of 10")
+    equal(try batches.map { try Importer.decode(Data($0.utf8)).1.tokens.count }, [10, 10, 3], "each batch imports on its own")
+
     let (bwFormat, bw) = try Importer.decode(Exporter.encode(backup, as: .bitwarden))
     equal(bwFormat, .bitwarden, "Bitwarden export detected")
     equal(bw.tokens.map(key), tokens.filter { $0.kind != .hotp }.map(key), "Bitwarden export round trip (no HOTP)")
