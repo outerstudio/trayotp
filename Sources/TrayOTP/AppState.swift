@@ -60,6 +60,11 @@ final class AppState {
         }
     }
 
+    /// Close the panel after a code is copied, giving the focus back to the previous app to paste it.
+    var closesAfterCopy: Bool {
+        didSet { UserDefaults.standard.set(closesAfterCopy, forKey: Keys.closesAfterCopy) }
+    }
+
     /// The vault key is wrapped with a master password; unlocking needs it instead of Touch ID.
     private(set) var hasMasterPassword: Bool {
         didSet { UserDefaults.standard.set(hasMasterPassword, forKey: Keys.masterPassword) }
@@ -86,6 +91,7 @@ final class AppState {
         static let masterPassword = "masterPassword"
         static let ungroupedExpanded = "ungroupedExpanded"
         static let showsMenuBarIcon = "showsMenuBarIcon"
+        static let closesAfterCopy = "closesAfterCopy"
     }
 
     init() {
@@ -98,6 +104,7 @@ final class AppState {
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
+        closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
         shortcut = Shortcut.load()
         if !GlobalHotKey.shared.register(shortcut) { shortcut = nil }
         // The shortcut is gone (or taken by another app): don't leave TrayOTP with no way in.
@@ -403,6 +410,10 @@ final class AppState {
         guard let code = token.code(at: date) else { return }
         Clipboard.copy(code)
         touch()
+        if closesAfterCopy {
+            PanelController.shared.close()
+            return
+        }
         showToast(next ? "Copied next \(token.name)" : "Copied \(token.name)")
         if next { flashNext(token.id) }
     }

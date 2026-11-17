@@ -458,6 +458,7 @@ struct SettingsMenu: View {
             Toggle("Show Menu Bar Icon", isOn: Binding(get: { state.showsMenuBarIcon }, set: { show in
                 afterMenu { if show { state.showsMenuBarIcon = true } else { state.hideMenuBarIcon() } }
             }))
+            Toggle("Close After Copying", isOn: $state.closesAfterCopy)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
             Divider()
