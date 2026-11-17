@@ -67,7 +67,8 @@ struct LockView: View {
         Task {
             await state.unlock(password: typed)
             password = ""
-            passwordFocused = true
+            // After a successful unlock this view is gone and the token list takes focus.
+            if state.isLocked { passwordFocused = true }
         }
     }
 }

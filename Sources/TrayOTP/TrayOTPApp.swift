@@ -4,12 +4,15 @@ import SwiftUI
 @main
 struct TrayOTPApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var state = AppState()
+    /// Same defaults key as `AppState.showsMenuBarIcon`, which owns the setting. A Binding built from
+    /// AppState sends SwiftUI into an endless update loop when the panel opens, and a two-way
+    /// binding to this key gets set back to true by MenuBarExtra, so it is read-only here.
+    @AppStorage("showsMenuBarIcon") private var showsMenuBarIcon = true
 
     var body: some Scene {
-        MenuBarExtra {
+        MenuBarExtra(isInserted: .constant(showsMenuBarIcon)) {
             PanelView()
-                .environment(state)
+                .environment(appDelegate.state)
         } label: {
             Image(nsImage: Self.trayIcon)
         }
@@ -27,12 +30,35 @@ struct TrayOTPApp: App {
     }()
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    let state = AppState()
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // No Dock icon, even when run as a bare binary (`swift run TrayOTP`).
         // In the .app bundle LSUIElement does the same.
         NSApp.setActivationPolicy(.accessory)
         NSApp.mainMenu = Self.editMenu()
+        PanelController.shared.state = state
+
+        // Opened by hand (Finder, Launchpad, Spotlight): show the panel. Not when started at login.
+        // The delay lets MenuBarExtra put its status item in place first.
+        if !Self.launchedAsLoginItem {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { PanelController.shared.open() }
+        }
+    }
+
+    /// Opening the app again while it runs, e.g. from Launchpad, shows the panel.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        PanelController.shared.open()
+        return false
+    }
+
+    private static var launchedAsLoginItem: Bool {
+        guard let event = NSAppleEventManager.shared().currentAppleEvent,
+              event.eventID == kAEOpenApplication
+        else { return false }
+        return event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
 
     /// Menu bar apps have no main menu, so ⌘V etc. do nothing in text fields.

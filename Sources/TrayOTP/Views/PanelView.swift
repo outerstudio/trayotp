@@ -30,7 +30,7 @@ struct PanelView: View {
         .environment(\.colorScheme, .dark)
         .background(WindowFocusObserver { state.panelDidOpen() })
         .onExitCommand {
-            if state.screen == .list { GlobalHotKey.togglePanel() } else { state.screen = .list }
+            if state.screen == .list { PanelController.shared.close() } else { state.screen = .list }
         }
         .overlay(alignment: .bottom) {
             if let toast = state.toast {
@@ -52,6 +52,9 @@ struct TokenListView: View {
     @Environment(AppState.self) private var state
     @State private var search = ""
     @State private var selection = 0
+    /// A collapsed section the keyboard selection walked into. Shown open until the selection
+    /// leaves it; unlike a click on the header, this isn't saved.
+    @State private var peeked: String?
     @FocusState private var focus: Focus?
 
     /// Keyboard focus: the search field, or the token list (arrow keys move the selection).
@@ -72,6 +75,13 @@ struct TokenListView: View {
     private var isSearching: Bool { !search.trimmingCharacters(in: .whitespaces).isEmpty }
 
     private var sections: [Section] {
+        var result = savedSections
+        if let peeked, let i = result.firstIndex(where: { $0.id == peeked }) { result[i].expanded = true }
+        return result
+    }
+
+    /// Sections with their saved expanded state.
+    private var savedSections: [Section] {
         let q = search.trimmingCharacters(in: .whitespaces)
         if !q.isEmpty {
             // Searching shows matches from every group, collapsed or not, in one flat list.
@@ -93,8 +103,8 @@ struct TokenListView: View {
         return result
     }
 
-    /// Tokens in display order, for keyboard selection.
-    private var filtered: [Token] { sections.flatMap(\.visible) }
+    /// Tokens in display order, for keyboard selection. Includes collapsed sections: ↑/↓ open them.
+    private var filtered: [Token] { sections.flatMap(\.tokens) }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -107,10 +117,12 @@ struct TokenListView: View {
             footer
         }
         .padding(14)
-        .onAppear { focus = .search }
+        // Delayed: focus set while the view is being inserted (e.g. right after unlocking) is dropped.
+        .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focus = .search } }
         // The window is reused, so onAppear doesn't run again: refocus search on every open.
-        .background(WindowFocusObserver { DispatchQueue.main.async { focus = .search; selection = 0 } })
-        .onChange(of: search) { selection = 0 }
+        .background(WindowFocusObserver { DispatchQueue.main.async { focus = .search; select(0) } })
+        .onChange(of: search) { select(0) }
+        .onChange(of: focus) { if focus != .list { peeked = nil } }
     }
 
     private var header: some View {
@@ -123,7 +135,7 @@ struct TokenListView: View {
                     .onSubmit { copySelected() }
                     .onKeyPress(.downArrow) {
                         guard !filtered.isEmpty else { return .ignored }
-                        selection = 0
+                        select(0)
                         focus = .list
                         return .handled
                     }
@@ -138,10 +150,11 @@ struct TokenListView: View {
 
     private var list: some View {
         let sections = sections
-        let items = sections.flatMap(\.visible)
+        let items = sections.flatMap(\.tokens)
         let headers = sections.filter(\.showsHeader).count
         let canDrag = !isSearching
-        let height = CGFloat(items.count) * Theme.rowHeight + CGFloat(headers) * Theme.groupHeaderHeight
+        let shown = sections.flatMap(\.visible).count
+        let height = CGFloat(shown) * Theme.rowHeight + CGFloat(headers) * Theme.groupHeaderHeight
 
         return Card {
             if items.isEmpty && headers == 0 {
@@ -154,7 +167,8 @@ struct TokenListView: View {
                         LazyVStack(spacing: 0) {
                             ForEach(sections) { section in
                                 if section.showsHeader {
-                                    GroupHeader(group: section.group, count: section.tokens.count, canDrag: canDrag)
+                                    GroupHeader(group: section.group, count: section.tokens.count,
+                                                expanded: section.expanded, canDrag: canDrag) { toggle(section) }
                                 }
                                 ForEach(section.visible) { token in
                                     let index = items.firstIndex { $0.id == token.id } ?? -1
@@ -163,7 +177,7 @@ struct TokenListView: View {
                                         .onTapGesture { state.copy(token) }
                                         // Any click, including on the next code, selects the row like ↑/↓.
                                         .simultaneousGesture(TapGesture().onEnded {
-                                            selection = index
+                                            select(index)
                                             focus = .list
                                         })
                                         .contextMenu { rowMenu(token) }
@@ -266,7 +280,32 @@ struct TokenListView: View {
     private func moveSelection(_ delta: Int) {
         let count = filtered.count
         guard count > 0 else { return }
-        selection = min(max(selection + delta, 0), count - 1)
+        select(min(max(selection + delta, 0), count - 1))
+    }
+
+    /// Selects a token by index in `filtered`, opening its section for now if it is collapsed.
+    private func select(_ index: Int) {
+        selection = index
+        peeked = nil
+        var end = 0
+        for section in savedSections {
+            end += section.tokens.count
+            if index < end {
+                if !section.expanded { peeked = section.id }
+                return
+            }
+        }
+    }
+
+    /// Header click: closes a section the keyboard opened, otherwise flips and saves its state.
+    private func toggle(_ section: Section) {
+        if peeked == section.id {
+            peeked = nil
+        } else if let group = section.group {
+            state.toggleExpanded(group)
+        } else {
+            state.toggleUngrouped()
+        }
     }
 
     private func copySelected() {
@@ -351,6 +390,9 @@ struct SettingsMenu: View {
             Button(state.shortcut.map { "Global Shortcut: \($0.display)…" } ?? "Set Global Shortcut…") {
                 afterMenu { state.editShortcut() }
             }
+            Toggle("Show Menu Bar Icon", isOn: Binding(get: { state.showsMenuBarIcon }, set: { show in
+                afterMenu { if show { state.showsMenuBarIcon = true } else { state.hideMenuBarIcon() } }
+            }))
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
             Divider()
@@ -443,25 +485,28 @@ struct GroupHeader: View {
     @Environment(AppState.self) private var state
     let group: TokenGroup?
     let count: Int
+    /// As shown, which may differ from the saved state while the keyboard selection is inside.
+    let expanded: Bool
     let canDrag: Bool
+    let toggle: () -> Void
     @State private var targeted = false
 
     var body: some View {
         if let group {
-            header(title: group.name, expanded: group.isExpanded)
-                .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { state.toggleExpanded(group) } }
+            header(title: group.name)
+                .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { toggle() } }
                 .contextMenu { menu(group) }
                 .modifier(DraggableIf(enabled: canDrag, payload: DragItem.group(group.id).payload, title: group.name))
         } else {
-            header(title: "Ungrouped", expanded: state.ungroupedExpanded)
-                .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { state.toggleUngrouped() } }
+            header(title: "Ungrouped")
+                .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { toggle() } }
                 .contextMenu {
-                    Button(state.ungroupedExpanded ? "Collapse" : "Expand") { state.toggleUngrouped() }
+                    Button(expanded ? "Collapse" : "Expand") { toggle() }
                 }
         }
     }
 
-    private func header(title: String, expanded: Bool) -> some View {
+    private func header(title: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "chevron.right")
                 .font(.system(size: 9, weight: .bold))
@@ -495,7 +540,7 @@ struct GroupHeader: View {
     @ViewBuilder
     private func menu(_ group: TokenGroup) -> some View {
         let index = state.groups.firstIndex { $0.id == group.id } ?? 0
-        Button(group.isExpanded ? "Collapse" : "Expand") { state.toggleExpanded(group) }
+        Button(expanded ? "Collapse" : "Expand") { toggle() }
         Button("Rename…") { afterMenu { state.renameGroup(group) } }
         Divider()
         Button("Move Up") { state.moveGroup(group, by: -1) }.disabled(index == 0)

@@ -112,29 +112,10 @@ final class GlobalHotKey {
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
             DispatchQueue.main.async { MainActor.assumeIsolated {
-                NSApp.activate(ignoringOtherApps: true)
-                GlobalHotKey.togglePanel()
+                PanelController.shared.toggle()
             } }
             return noErr
         }, 1, &spec, nil, nil)
-    }
-
-    /// The MenuBarExtra panel has no public open/close API, so click its status item button.
-    static func togglePanel() {
-        for window in NSApp.windows where String(describing: type(of: window)).contains("StatusBarWindow") {
-            if let button = window.contentView.flatMap(Self.statusButton) {
-                button.performClick(nil)
-                return
-            }
-        }
-    }
-
-    private static func statusButton(in view: NSView) -> NSStatusBarButton? {
-        if let button = view as? NSStatusBarButton { return button }
-        for sub in view.subviews {
-            if let found = statusButton(in: sub) { return found }
-        }
-        return nil
     }
 }
 

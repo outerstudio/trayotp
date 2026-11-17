@@ -41,6 +41,11 @@ final class AppState {
     /// System-wide hotkey that opens the panel. nil = none.
     private(set) var shortcut: Shortcut?
 
+    /// Off: no tray icon; the global shortcut (or opening the app again) shows a floating panel.
+    var showsMenuBarIcon: Bool {
+        didSet { UserDefaults.standard.set(showsMenuBarIcon, forKey: Keys.showsMenuBarIcon) }
+    }
+
     /// The vault key is wrapped with a master password; unlocking needs it instead of Touch ID.
     private(set) var hasMasterPassword: Bool {
         didSet { UserDefaults.standard.set(hasMasterPassword, forKey: Keys.masterPassword) }
@@ -62,18 +67,23 @@ final class AppState {
         static let graceMinutes = "graceMinutes"
         static let masterPassword = "masterPassword"
         static let ungroupedExpanded = "ungroupedExpanded"
+        static let showsMenuBarIcon = "showsMenuBarIcon"
     }
 
     init() {
         let defaults = UserDefaults.standard
-        defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true])
+        defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
+                                     Keys.showsMenuBarIcon: true])
         ungroupedExpanded = defaults.bool(forKey: Keys.ungroupedExpanded)
         requireAuth = defaults.bool(forKey: Keys.requireAuth)
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
+        showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         shortcut = Shortcut.load()
         if !GlobalHotKey.shared.register(shortcut) { shortcut = nil }
+        // The shortcut is gone (or taken by another app): don't leave TrayOTP with no way in.
+        if shortcut == nil { showsMenuBarIcon = true }
         observeSystemLock()
         updater.checkIfDue()
     }
@@ -120,6 +130,7 @@ final class AppState {
             _ = try await context.evaluatePolicy(.deviceOwnerAuthentication,
                                                  localizedReason: "show your one-time codes")
             openVault()
+            PanelController.shared.focus()
         } catch let e as LAError where [.userCancel, .systemCancel, .appCancel].contains(e.code) {
             lockMessage = nil
         } catch {
@@ -146,6 +157,7 @@ final class AppState {
             // scrypt takes ~0.5 s; keep it off the main thread.
             let raw = try await Task.detached { try MasterPassword.unwrap(blob, password: password) }.value
             openVault(key: SymmetricKey(data: raw))
+            PanelController.shared.focus()
         } catch {
             lockMessage = error.localizedDescription
         }
@@ -267,6 +279,23 @@ final class AppState {
         }
         shortcut = choice
         Shortcut.save(choice)
+        // Without the icon the shortcut was the main way in: bring the icon back.
+        if choice == nil { showsMenuBarIcon = true }
+    }
+
+    func hideMenuBarIcon() {
+        if shortcut == nil {
+            guard Dialogs.confirm(title: "Set a shortcut first",
+                                  message: "Without the menu bar icon, a global shortcut opens TrayOTP.",
+                                  button: "Set Shortcut…")
+            else { return }
+            editShortcut()
+            guard shortcut != nil else { return }
+        }
+        showsMenuBarIcon = false
+        Dialogs.info(title: "Menu bar icon hidden",
+                     message: "Press \(shortcut?.display ?? "your shortcut") to open TrayOTP, or open the app again from Finder or Launchpad. "
+                         + "Show Menu Bar Icon in the ⋯ menu brings the icon back.")
     }
 
     private func touch() { lastActive = Date() }

@@ -6,9 +6,7 @@ import UniformTypeIdentifiers
 enum Dialogs {
     /// Closes the tray panel and brings the app forward so the dialog gets keyboard focus.
     private static func prepare() {
-        for window in NSApp.windows where window.isVisible && String(describing: type(of: window)).contains("MenuBarExtra") {
-            window.orderOut(nil)
-        }
+        PanelController.shared.hide()
         NSApp.activate(ignoringOtherApps: true)
     }
 
