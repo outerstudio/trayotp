@@ -193,10 +193,19 @@ struct TokenListView: View {
                     .focusable()
                     .focusEffectDisabled()
                     .focused($focus, equals: .list)
-                    .onKeyPress(.downArrow) { moveSelection(1); return .handled }
-                    .onKeyPress(.upArrow) {
-                        // Up from the first token goes back to the search field.
-                        if selection == 0 { focus = .search } else { moveSelection(-1) }
+                    .onKeyPress(keys: [.downArrow]) { press in
+                        if press.modifiers.contains(.command) { moveSelected(1) } else { moveSelection(1) }
+                        return .handled
+                    }
+                    .onKeyPress(keys: [.upArrow]) { press in
+                        if press.modifiers.contains(.command) {
+                            moveSelected(-1)
+                        } else if selection == 0 {
+                            // Up from the first token goes back to the search field.
+                            focus = .search
+                        } else {
+                            moveSelection(-1)
+                        }
                         return .handled
                     }
                     .onKeyPress(.return) { copySelected(); return .handled }
@@ -281,6 +290,19 @@ struct TokenListView: View {
         let count = filtered.count
         guard count > 0 else { return }
         select(min(max(selection + delta, 0), count - 1))
+    }
+
+    /// ⌘↑/⌘↓ moves the selected token one place. Past the end of its section it joins the
+    /// neighbouring one: below that section's last token going up, above its first going down.
+    private func moveSelected(_ delta: Int) {
+        let items = filtered
+        guard !isSearching, items.indices.contains(selection), items.indices.contains(selection + delta) else { return }
+        let token = items[selection], neighbor = items[selection + delta]
+        let section = savedSections.first { $0.tokens.contains { $0.id == token.id } }
+        let sameSection = section?.tokens.contains { $0.id == neighbor.id } ?? false
+        state.moveToken(token.id, nextTo: neighbor.id, after: (delta > 0) == sameSection)
+        // Crossing into the next section keeps the token at the same place in the list.
+        select(sameSection ? selection + delta : selection)
     }
 
     /// Selects a token by index in `filtered`, opening its section for now if it is collapsed.

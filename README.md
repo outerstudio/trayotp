@@ -31,7 +31,9 @@
 ## Features
 
 - **Lives in the menu bar.** Click the tray icon, click a code, it's copied. No Dock icon, no window to manage.
-- **Fast to use.** Type to search, ↑/↓ to select, Enter (↩) to copy. A fill behind each row shows when the code changes, with the next code beside it.
+- **Next code preview.** The upcoming code is shown on the right of each row, and a translucent fill behind the row shows the time left on the current one.
+- **Keyboard only or just click, your call.** Global shortcut, type to search, ↩ to copy, ⌘↑/↓ to reorder, Esc to close.
+  See [Copying codes](#copying-codes) and [Reorder](#groups).
 - **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
 - **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
 - **Move in or out freely.** Import from 2FAS, Aegis (plain or encrypted) and Ente Auth. Export to all three.
@@ -95,10 +97,11 @@ Apps you build yourself open without any warning.
 
 ### Copying codes
 
-- **Click a code** to copy it. A "Copied" message confirms it.
+- **Open it from anywhere:** set a key combination in **⋯ → Set Global Shortcut…**, then press it in any app.
+  **Esc** closes the panel and returns you to the app you were in.
+- **Click a code** to copy it. A "Copied" message confirms it. Click the upcoming code on the right of the row (or right-click → **Copy Next Code**) to copy it instead.
 - **Keyboard:** the search field is focused when the panel opens. Type to filter, use **↑/↓** to select, **Enter** (↩) to copy and **→** to copy the next code.
-- The upcoming code is shown on the right of each row, and a translucent fill behind the row shows the time left on
-  the current one. Click the upcoming code (or right-click → **Copy Next Code**) to copy it instead.
+  **↑** from the top row goes back to the search field.
 - For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
 - Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 
@@ -119,8 +122,10 @@ A live preview shows the code before you save it, so you can compare it with the
 - **Create a group:** **⋯ → New Group…**, or right-click a token → **Move to Group → New Group…**.
 - **Move a token:** right-click it → **Move to Group**, or drag it onto a group header.
 - **Reorder:** drag a token onto another one: the top half of the row puts it above, the bottom half below.
-  Drag a group header onto another one to reorder groups.
+  Or select it and press **⌘↑/⌘↓**; past the end of a group it moves into the next one. Drag a group header onto another one to reorder groups.
 - **Collapse:** click a group header (Ungrouped too). Search always finds tokens in collapsed groups.
+  Moving the selection into a collapsed group with ↑/↓ opens it until you move out; only clicking the header saves it
+  open or closed.
 - **Rename, move or delete a group:** right-click its header. Deleting a group keeps its tokens; they move to Ungrouped.
 
 ### Service icons
