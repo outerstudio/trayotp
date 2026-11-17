@@ -2,12 +2,24 @@ import AppKit
 import OTPCore
 import SwiftUI
 
-/// Root of the menu bar window.
+/// Root of the menu bar window, and of the floating window used when the menu bar icon is hidden.
 @MainActor
 struct PanelView: View {
     @Environment(AppState.self) private var state
+    /// Which window this is: the menu bar one or the floating one.
+    let inMenuBar: Bool
 
     var body: some View {
+        // Both windows can exist, and a hidden one keeps running its views: its search field would take
+        // the text cursor from the visible panel. The window of the other mode shows nothing.
+        if inMenuBar == state.showsMenuBarIcon {
+            panel
+        } else {
+            Color.clear.frame(width: Theme.panelWidth, height: 1)
+        }
+    }
+
+    private var panel: some View {
         Group {
             if state.isLocked {
                 LockView()
@@ -40,7 +52,7 @@ struct PanelView: View {
         }
         .frame(width: Theme.panelWidth)
         .environment(\.colorScheme, .dark)
-        .background(WindowFocusObserver { state.panelDidOpen() })
+        .background(WindowFocusObserver(onHide: { state.panelDidHide() }) { state.panelDidOpen() })
         .onExitCommand {
             if state.screen == .list { PanelController.shared.close() } else { state.screen = .list }
         }
@@ -68,6 +80,9 @@ struct TokenListView: View {
     /// leaves it; unlike a click on the header, this isn't saved.
     @State private var peeked: String?
     @FocusState private var focus: Focus?
+    /// Whether this list's window is on screen. Both panel windows (menu bar and floating) can exist,
+    /// and a hidden one that still holds focus takes the text cursor from the visible one.
+    @State private var onScreen = false
 
     /// Keyboard focus: the search field, or the token list (arrow keys move the selection).
     private enum Focus { case search, list }
@@ -143,7 +158,15 @@ struct TokenListView: View {
             }
         }
         // The window is reused, so onAppear doesn't run again: refocus search on every open.
-        .background(WindowFocusObserver { DispatchQueue.main.async { focus = .search; select(0) } })
+        .background(WindowFocusObserver(onHide: { onScreen = false; focus = nil }) {
+            onScreen = true
+            DispatchQueue.main.async { focus = .search; select(0) }
+        })
+        .onChange(of: state.focusRequest) {
+            guard onScreen else { return }
+            focus = .search
+            select(0)
+        }
         .onChange(of: search) { select(0) }
         .onChange(of: focus) { if focus != .list { peeked = nil } }
     }
@@ -304,7 +327,11 @@ struct TokenListView: View {
     private var footer: some View {
         HStack(spacing: 8) {
             Button { state.screen = .add } label: { Label("Add", systemImage: "plus") }
-            Button { state.lock() } label: { Label("Lock", systemImage: "lock") }
+            Button {
+                // Locking means done for now: close the panel. The lock screen shows on the next open.
+                state.lock()
+                PanelController.shared.close()
+            } label: { Label("Lock", systemImage: "lock") }
                 .disabled(!state.needsUnlock)
             Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
         }
@@ -639,32 +666,42 @@ func afterMenu(_ action: @escaping @MainActor () -> Void) {
     DispatchQueue.main.async { action() }
 }
 
-/// Calls `onFocus` each time the hosting window becomes key, i.e. every time the panel opens.
+/// Calls `onFocus` each time the hosting window becomes key, i.e. every time the panel opens,
+/// and `onHide` when the window goes off screen.
 struct WindowFocusObserver: NSViewRepresentable {
+    var onHide: (() -> Void)?
     let onFocus: () -> Void
 
     func makeNSView(context: Context) -> ObserverView {
         let view = ObserverView()
         view.onFocus = onFocus
+        view.onHide = onHide
         return view
     }
 
     func updateNSView(_ view: ObserverView, context: Context) {
         view.onFocus = onFocus
+        view.onHide = onHide
     }
 
     final class ObserverView: NSView {
         var onFocus: (() -> Void)?
-        private var token: NSObjectProtocol?
+        var onHide: (() -> Void)?
+        private var tokens: [NSObjectProtocol] = []
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            if let token { NotificationCenter.default.removeObserver(token) }
-            token = nil
+            tokens.forEach(NotificationCenter.default.removeObserver)
+            tokens = []
             guard let window else { return }
-            token = NotificationCenter.default.addObserver(
+            tokens.append(NotificationCenter.default.addObserver(
                 forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main
-            ) { [weak self] _ in self?.onFocus?() }
+            ) { [weak self] _ in self?.onFocus?() })
+            tokens.append(NotificationCenter.default.addObserver(
+                forName: NSWindow.didChangeOcclusionStateNotification, object: window, queue: .main
+            ) { [weak self, weak window] _ in
+                if window?.occlusionState.contains(.visible) == false { self?.onHide?() }
+            })
             if window.isKeyWindow { onFocus?() }
         }
     }

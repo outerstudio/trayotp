@@ -1,6 +1,7 @@
 import AppKit
 import CryptoKit
 import LocalAuthentication
+import LocalAuthenticationEmbeddedUI
 import OTPCore
 import ServiceManagement
 import SwiftUI
@@ -14,6 +15,8 @@ final class AppState {
     private(set) var groups: [TokenGroup] = []
     private(set) var isLocked = true
     private(set) var authInProgress = false
+    /// The Touch ID prompt inside the lock screen, while it waits for a finger.
+    private(set) var touchIDView: LAAuthenticationView?
     var screen: Screen = .list
     /// The token whose icon screen is open, to select it again back in the list.
     var listReturn: Token.ID?
@@ -21,6 +24,8 @@ final class AppState {
     var iconDraft: IconDraft?
     /// Text read by the camera, for the Add screen to pick up.
     var scannedInput: String?
+    /// Bumped after the panel is opened from code; the token list focuses search.
+    var focusRequest = 0
     var lockMessage: String?
     var toast: String?
     /// The token whose next code was just copied, so its row can flash the next code.
@@ -49,7 +54,10 @@ final class AppState {
 
     /// Off: no tray icon; the global shortcut (or opening the app again) shows a floating panel.
     var showsMenuBarIcon: Bool {
-        didSet { UserDefaults.standard.set(showsMenuBarIcon, forKey: Keys.showsMenuBarIcon) }
+        didSet {
+            UserDefaults.standard.set(showsMenuBarIcon, forKey: Keys.showsMenuBarIcon)
+            if showsMenuBarIcon != oldValue { PanelController.shared.menuBarIconChanged() }
+        }
     }
 
     /// The vault key is wrapped with a master password; unlocking needs it instead of Touch ID.
@@ -63,7 +71,11 @@ final class AppState {
     @ObservationIgnored private let store = VaultStore()
     @ObservationIgnored private var key: SymmetricKey?
     @ObservationIgnored private var lastActive: Date?
+    /// Whether the panel was closed since it last became key. Our own windows (the color sampler, the
+    /// file dialog) take the focus without closing it; getting it back isn't a new open.
+    @ObservationIgnored private var panelWasClosed = true
     @ObservationIgnored private var nextAutoPrompt = Date.distantPast
+    @ObservationIgnored private var switchToAlert = false
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var copiedNextTask: Task<Void, Never>?
@@ -97,10 +109,11 @@ final class AppState {
     // MARK: Lock
 
     func panelDidOpen() {
-        if !isLocked, needsUnlock, graceMinutes != Self.untilSleep, let lastActive,
+        if panelWasClosed, !isLocked, needsUnlock, graceMinutes != Self.untilSleep, let lastActive,
            Date().timeIntervalSince(lastActive) > max(5, Double(graceMinutes * 60)) {
             lock()
         }
+        panelWasClosed = false
         if isLocked {
             if hasMasterPassword {
                 // The lock screen asks for the password.
@@ -113,17 +126,59 @@ final class AppState {
         touch()
     }
 
-    func unlock() async {
-        guard isLocked, !authInProgress, !hasMasterPassword else { return }
+    /// A hidden window keeps the inline Touch ID prompt but stops drawing it: cancel it, the next open starts a new one.
+    func panelDidHide() {
+        panelDidClose()
+        guard let touchIDView else { return }
+        switchToAlert = false
+        touchIDView.context.invalidate()
+    }
+
+    /// Unlocks with Touch ID inside the lock screen when the panel is open and Touch ID is available.
+    /// The system's alert (Touch ID or the Mac password) opens on a screen of its choosing, on a
+    /// multi-screen Mac often not the panel's, so it's only used without Touch ID or with `alert`.
+    func unlock(alert: Bool = false) async {
+        guard isLocked, !hasMasterPassword else { return }
         guard requireAuth else { openVault(); return }
+        if authInProgress {
+            // "Use Password…" while the inline prompt waits: cancel it, and its unlock call opens the alert.
+            if alert, let touchIDView {
+                switchToAlert = true
+                touchIDView.context.invalidate()
+            }
+            return
+        }
 
         authInProgress = true
         lockMessage = nil
-        defer {
-            authInProgress = false
-            // Closing the Touch ID sheet re-focuses the panel; don't prompt again right away.
-            nextAutoPrompt = Date().addingTimeInterval(3)
+        defer { authInProgress = false }
+
+        let reason = "show your one-time codes"
+        let inline = LAContext()
+        if !alert, PanelController.shared.isOpen,
+           inline.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
+            // The view must be paired with the context before evaluating, and on screen to show anything.
+            let view = LAAuthenticationView(context: inline, controlSize: .regular)
+            touchIDView = view
+            defer { touchIDView = nil }
+            for _ in 0..<40 where !(view.window?.isVisible == true && view.window?.isKeyWindow == true) {
+                try? await Task.sleep(for: .milliseconds(25))
+            }
+            do {
+                _ = try await inline.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)
+                openVault()
+                // Touch ID can leave the panel without keyboard focus; take it back for the search field.
+                PanelController.shared.focus()
+                return
+            } catch let e as LAError where [.userCancel, .systemCancel, .appCancel].contains(e.code) {
+                lockMessage = nil
+                guard switchToAlert else { return }
+            } catch {
+                lockMessage = error.localizedDescription
+                return
+            }
         }
+        switchToAlert = false
 
         let context = LAContext()
         context.localizedFallbackTitle = "Use Password"
@@ -132,9 +187,10 @@ final class AppState {
             lockMessage = error?.localizedDescription ?? "Authentication is not available on this Mac."
             return
         }
+        // Closing the alert re-focuses the panel; don't prompt again right away.
+        defer { nextAutoPrompt = Date().addingTimeInterval(3) }
         do {
-            _ = try await context.evaluatePolicy(.deviceOwnerAuthentication,
-                                                 localizedReason: "show your one-time codes")
+            _ = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
             openVault()
             PanelController.shared.focus()
         } catch let e as LAError where [.userCancel, .systemCancel, .appCancel].contains(e.code) {
@@ -304,13 +360,22 @@ final class AppState {
             editShortcut()
             guard shortcut != nil else { return }
         }
-        showsMenuBarIcon = false
-        Dialogs.info(title: "Menu bar icon hidden",
+        // Explain first, then hide: removing the icon closes its window, and an alert that opens
+        // meanwhile doesn't get keyboard focus (Return wouldn't press OK).
+        Dialogs.info(title: "Hiding the menu bar icon",
                      message: "Press \(shortcut?.display ?? "your shortcut") to open TrayOTP, or open the app again from Finder or Launchpad. "
                          + "Show Menu Bar Icon in the ⋯ menu brings the icon back.")
+        showsMenuBarIcon = false
     }
 
-    private func touch() { lastActive = Date() }
+    /// Marks the vault as in use now; the Stay Unlocked timeout counts from the last call.
+    func touch() { lastActive = Date() }
+
+    /// The panel went off screen or the app went to the background: Stay Unlocked counts from now.
+    private func panelDidClose() {
+        if !panelWasClosed { touch() }
+        panelWasClosed = true
+    }
 
     private func observeSystemLock() {
         // All observers are registered on the main queue.
@@ -320,6 +385,10 @@ final class AppState {
                 self.lock()
             }
         }
+        // Clicking another app closes the menu bar panel; the window may not report going off screen.
+        observers.append(NotificationCenter.default.addObserver(
+            forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
+        ) { [weak self] _ in MainActor.assumeIsolated { self?.panelDidClose() } })
         let ws = NSWorkspace.shared.notificationCenter
         observers.append(ws.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main, using: lockIfNeeded))
         observers.append(ws.addObserver(forName: NSWorkspace.sessionDidResignActiveNotification, object: nil, queue: .main, using: lockIfNeeded))
@@ -516,7 +585,7 @@ final class AppState {
         screen = .iconEditor(token.id)
     }
 
-    /// Asks for an image file, then opens the icon editor. The file dialog closes the panel; it reopens after.
+    /// Asks for an image file, then opens the icon editor. The file dialog closes the panel; Dialogs reopens it.
     func chooseIconFile(_ token: Token) {
         let url = Dialogs.openImage()
         listReturn = token.id
@@ -527,7 +596,6 @@ final class AppState {
                 Dialogs.info(title: "Can't use this image", message: "“\(url.lastPathComponent)” could not be read as an image.")
             }
         }
-        PanelController.shared.open()
     }
 
     func pasteIcon(_ token: Token) {
@@ -660,7 +728,7 @@ final class AppState {
         Task {
             do {
                 guard let text = try await CameraScanner.scan() else {
-                    PanelController.shared.open()
+                    PanelController.shared.reopen()
                     return
                 }
                 if GoogleAuthenticator.isMigrationLink(text) {
@@ -670,7 +738,7 @@ final class AppState {
                     scannedInput = text
                     screen = .add
                 }
-                PanelController.shared.open()
+                PanelController.shared.reopen()
             } catch {
                 Dialogs.error(error, title: "Can't use the camera")
             }

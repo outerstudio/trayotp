@@ -11,7 +11,7 @@ struct TrayOTPApp: App {
 
     var body: some Scene {
         MenuBarExtra(isInserted: .constant(showsMenuBarIcon)) {
-            PanelView()
+            PanelView(inMenuBar: true)
                 .environment(appDelegate.state)
         } label: {
             Image(nsImage: Self.trayIcon)

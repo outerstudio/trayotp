@@ -44,6 +44,19 @@ struct LockView: View {
                 .buttonStyle(PanelButtonStyle())
                 .disabled(state.authInProgress || password.isEmpty)
                 .keyboardShortcut(.defaultAction)
+            } else if let touchIDView = state.touchIDView {
+                VStack(spacing: 6) {
+                    TouchIDHost(view: touchIDView).frame(width: 56, height: 56)
+                    Text("Touch ID to unlock").font(.caption).foregroundStyle(.secondary)
+                }
+                .id(ObjectIdentifier(touchIDView))
+
+                Button {
+                    Task { await state.unlock(alert: true) }
+                } label: {
+                    Label("Use Password…", systemImage: "key")
+                }
+                .buttonStyle(PanelButtonStyle())
             } else {
                 Button {
                     Task { await state.unlock() }
@@ -59,6 +72,14 @@ struct LockView: View {
                 .buttonStyle(PanelButtonStyle())
         }
         .padding(20)
+        .background {
+            // Esc closes the panel. Nothing here takes focus (unless there's a password field), so the
+            // panel's onExitCommand never sees the key; a window shortcut does.
+            Button("") { PanelController.shared.close() }
+                .keyboardShortcut(.cancelAction)
+                .opacity(0)
+                .allowsHitTesting(false)
+        }
     }
 
     private func unlockWithPassword() {
@@ -69,6 +90,52 @@ struct LockView: View {
             password = ""
             // After a successful unlock this view is gone and the token list takes focus.
             if state.isLocked { passwordFocused = true }
+        }
+    }
+}
+
+/// Shows the inline Touch ID view. A hidden panel window keeps updating its views too, and an NSView
+/// lives in one window only, so the view moves in only while this window is on screen.
+struct TouchIDHost: NSViewRepresentable {
+    let view: NSView
+
+    func makeNSView(context: Context) -> Container { Container() }
+    func updateNSView(_ container: Container, context: Context) { container.content = view }
+
+    final class Container: NSView {
+        var content: NSView? { didSet { attach() } }
+
+        override init(frame: NSRect) {
+            super.init(frame: frame)
+            // The glyph draws past its view's bounds; keep it off the text around it.
+            wantsLayer = true
+            layer?.masksToBounds = true
+        }
+
+        required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            attach()
+        }
+
+        // Also runs when the window comes on screen after the content was set.
+        override func layout() {
+            super.layout()
+            attach()
+        }
+
+        private func attach() {
+            guard let content, content.superview !== self, window?.isVisible == true else { return }
+            content.removeFromSuperview()
+            content.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(content)
+            NSLayoutConstraint.activate([
+                content.centerXAnchor.constraint(equalTo: centerXAnchor),
+                content.centerYAnchor.constraint(equalTo: centerYAnchor),
+                content.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
+                content.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor),
+            ])
         }
     }
 }

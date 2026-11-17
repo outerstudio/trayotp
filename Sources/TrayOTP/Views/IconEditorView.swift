@@ -189,7 +189,7 @@ struct IconAdjuster: View {
             Task { @MainActor in
                 if let color = picked.flatMap(HexColor.init) { state.iconDraft?.layout.background = color }
                 // The sampler's click lands outside the panel, which closes it: bring it back.
-                PanelController.shared.open()
+                PanelController.shared.reopen()
             }
         }
     }

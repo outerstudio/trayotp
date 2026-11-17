@@ -5,7 +5,9 @@ import UniformTypeIdentifiers
 @MainActor
 enum Dialogs {
     /// Closes the tray panel and brings the app forward so the dialog gets keyboard focus.
+    /// An open panel comes back once the dialogs are done.
     private static func prepare() {
+        if PanelController.shared.isOpen { PanelController.shared.reopenWhenIdle() }
         PanelController.shared.hide()
         NSApp.activate(ignoringOtherApps: true)
     }
