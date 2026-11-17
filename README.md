@@ -152,6 +152,7 @@ For anything else, right-click a token:
 
 | Menu item | What it does |
 |---|---|
+| **Edit Icon…** | Adjust the current icon (only when the token has one, not initials) |
 | **Choose Icon from Pack…** | Search the installed pack and pick an icon by hand |
 | **Set Icon from File…** | Use an image file (PNG, JPEG, SVG, HEIC, PDF…) |
 | **Paste Icon** | Use an image you copied |

@@ -23,6 +23,18 @@ struct PanelView: View {
                     } else {
                         TokenListView()
                     }
+                case .favicon(let id):
+                    if let token = state.tokens.first(where: { $0.id == id }) {
+                        FaviconView(token: token)
+                    } else {
+                        TokenListView()
+                    }
+                case .iconEditor(let id):
+                    if let token = state.tokens.first(where: { $0.id == id }), let draft = state.iconDraft {
+                        IconEditorView(token: token, draft: draft)
+                    } else {
+                        TokenListView()
+                    }
                 }
             }
         }
@@ -118,7 +130,18 @@ struct TokenListView: View {
         }
         .padding(14)
         // Delayed: focus set while the view is being inserted (e.g. right after unlocking) is dropped.
-        .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { focus = .search } }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Back from an icon screen: select the row it was opened from.
+                if let id = state.listReturn, let index = filtered.firstIndex(where: { $0.id == id }) {
+                    select(index)
+                    focus = .list
+                } else {
+                    focus = .search
+                }
+                state.listReturn = nil
+            }
+        }
         // The window is reused, so onAppear doesn't run again: refocus search on every open.
         .background(WindowFocusObserver { DispatchQueue.main.async { focus = .search; select(0) } })
         .onChange(of: search) { select(0) }
@@ -242,12 +265,16 @@ struct TokenListView: View {
             Button("New Group…") { afterMenu { state.moveToNewGroup(token) } }
         }
         Divider()
-        if state.icons.pack != nil {
-            Button("Choose Icon from Pack…") { state.screen = .iconPicker(token.id) }
+        // Only for a real icon (chosen, or matched from the pack), not colored initials.
+        if let image = token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token) {
+            Button("Edit Icon…") { state.editIcon(token, image: image) }
         }
-        Button("Set Icon from File…") { afterMenu { if let url = Dialogs.openImage() { state.setIcon(token, from: url) } } }
+        if state.icons.pack != nil {
+            Button("Choose Icon from Pack…") { open(.iconPicker(token.id), returningTo: token) }
+        }
+        Button("Set Icon from File…") { afterMenu { state.chooseIconFile(token) } }
         Button("Paste Icon") { afterMenu { state.pasteIcon(token) } }
-        Button("Fetch Icon from Website…") { afterMenu { state.fetchFavicon(token) } }
+        Button("Fetch Icon from Website…") { open(.favicon(token.id), returningTo: token) }
         if token.icon != nil {
             Button("Remove Icon") { state.setIcon(token, png: nil) }
         }
@@ -282,6 +309,13 @@ struct TokenListView: View {
             Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
         }
         .buttonStyle(PanelButtonStyle())
+    }
+
+    /// Opens another screen in the panel; coming back selects `token`, the row it was opened from.
+    private func open(_ screen: AppState.Screen, returningTo token: Token) {
+        state.listReturn = token.id
+        state.iconDraft = nil
+        state.screen = screen
     }
 
     private func moveSelection(_ delta: Int) {

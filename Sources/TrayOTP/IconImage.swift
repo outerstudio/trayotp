@@ -52,16 +52,28 @@ enum IconImage {
         return rep.representation(using: .png, properties: [:])
     }
 
-    /// A website favicon placed on a white circle, like browsers show them. Many favicons are
-    /// dark on transparent (GitHub) and would vanish on the dark panel.
-    static func faviconPNG(from image: NSImage) -> Data? {
+    /// An icon as the rows show it: the image centered in a circle, on an optional background color.
+    /// `scale` is the image's size relative to the circle: 1 fits it exactly, larger values crop it.
+    /// `offset` moves it from the center, as a fraction of the circle's width (right and down are positive).
+    static func compose(_ image: NSImage, scale: CGFloat, offset: CGSize = .zero, background: NSColor?) -> Data? {
+        let source = image.size
+        guard source.width > 0, source.height > 0 else { return nil }
         let side = CGFloat(pixelSize)
-        let inset = side * 0.17
+        let fit = side * scale / max(source.width, source.height)
+        let size = NSSize(width: source.width * fit, height: source.height * fit)
         let composed = NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
-            NSColor.white.setFill()
-            NSBezierPath(ovalIn: rect).fill()
+            let circle = NSBezierPath(ovalIn: rect)
+            if let background {
+                background.setFill()
+                circle.fill()
+            }
+            circle.addClip()
             NSGraphicsContext.current?.imageInterpolation = .high
-            image.draw(in: rect.insetBy(dx: inset, dy: inset), from: .zero, operation: .sourceOver, fraction: 1)
+            // Drawing is bottom-up, so a downward offset lowers y.
+            let target = NSRect(x: (side - size.width) / 2 + offset.width * side,
+                                y: (side - size.height) / 2 - offset.height * side,
+                                width: size.width, height: size.height)
+            image.draw(in: target, from: .zero, operation: .sourceOver, fraction: 1)
             return true
         }
         return pngData(from: composed)

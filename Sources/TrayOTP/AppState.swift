@@ -8,13 +8,17 @@ import SwiftUI
 @MainActor
 @Observable
 final class AppState {
-    enum Screen: Equatable { case list, add, iconPicker(Token.ID) }
+    enum Screen: Equatable { case list, add, iconPicker(Token.ID), favicon(Token.ID), iconEditor(Token.ID) }
 
     private(set) var tokens: [Token] = []
     private(set) var groups: [TokenGroup] = []
     private(set) var isLocked = true
     private(set) var authInProgress = false
     var screen: Screen = .list
+    /// The token whose icon screen is open, to select it again back in the list.
+    var listReturn: Token.ID?
+    /// The image shown in the icon editor screen.
+    var iconDraft: IconDraft?
     /// Text read by the camera, for the Add screen to pick up.
     var scannedInput: String?
     var lockMessage: String?
@@ -148,6 +152,7 @@ final class AppState {
         screen = .list
         Clipboard.clearIfOurs()
         QRCodeWindow.closeAll()
+        iconDraft = nil
     }
 
     func unlock(password: String) async {
@@ -504,20 +509,33 @@ final class AppState {
 
     // MARK: Icons
 
-    func setIcon(_ token: Token, from url: URL) {
-        guard let png = IconImage.pngData(contentsOf: url) else {
-            Dialogs.info(title: "Can't use this image", message: "“\(url.lastPathComponent)” could not be read as an image.")
-            return
+    /// Opens the icon editor on an image, to adjust zoom and background before using it.
+    func editIcon(_ token: Token, image: NSImage) {
+        iconDraft = IconDraft(image: image)
+        listReturn = token.id
+        screen = .iconEditor(token.id)
+    }
+
+    /// Asks for an image file, then opens the icon editor. The file dialog closes the panel; it reopens after.
+    func chooseIconFile(_ token: Token) {
+        let url = Dialogs.openImage()
+        listReturn = token.id
+        if let url {
+            if let image = IconImage.load(url), image.size.width > 0 {
+                editIcon(token, image: image)
+            } else {
+                Dialogs.info(title: "Can't use this image", message: "“\(url.lastPathComponent)” could not be read as an image.")
+            }
         }
-        setIcon(token, png: png)
+        PanelController.shared.open()
     }
 
     func pasteIcon(_ token: Token) {
-        guard let image = Clipboard.readImage(), let png = IconImage.pngData(from: image) else {
+        guard let image = Clipboard.readImage(), image.size.width > 0 else {
             Dialogs.info(title: "No image on the clipboard", message: "Copy an image first, then choose Paste Icon.")
             return
         }
-        setIcon(token, png: png)
+        editIcon(token, image: image)
     }
 
     func setIcon(_ token: Token, png: Data?) {
@@ -527,45 +545,28 @@ final class AppState {
     }
 
     func choosePackIcon(_ icon: IconPack.Icon, for token: Token) {
-        guard let image = icons.image(for: icon), let png = IconImage.pngData(from: image) else { return }
-        setIcon(token, png: png)
-        screen = .list
+        guard let image = icons.image(for: icon) else { return }
+        editIcon(token, image: image)
     }
 
-    /// Asks for the website, then fetches its favicon from DuckDuckGo. Nothing is fetched otherwise.
-    func fetchFavicon(_ token: Token) {
-        var input = Favicon.guessDomain(name: token.name, issuer: token.issuer)
-        var domain: String?
-        while domain == nil {
-            guard let typed = Dialogs.text(
-                title: "Fetch icon for “\(token.name)”",
-                message: "Website of this service. The icon is downloaded from DuckDuckGo, which will see this domain.",
-                value: input, button: "Fetch")
-            else { return }
-            input = typed
-            domain = Favicon.normalizeDomain(typed)
-            if domain == nil {
-                Dialogs.info(title: "Not a website", message: "Enter a domain like “plurk.com”.")
-            }
+    /// Downloads a site's favicon, trying the domain with and without "www.". Nil if there is none.
+    static func downloadFavicon(domain: String) async -> NSImage? {
+        for url in Favicon.urls(for: domain) {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 10
+            guard let (data, response) = try? await URLSession.shared.data(for: request),
+                  (response as? HTTPURLResponse)?.statusCode == 200,
+                  let image = NSImage(data: data), image.size.width > 0
+            else { continue }
+            return image
         }
-        guard let domain else { return }
+        return nil
+    }
 
-        Task {
-            for url in Favicon.urls(for: domain) {
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 10
-                guard let (data, response) = try? await URLSession.shared.data(for: request),
-                      (response as? HTTPURLResponse)?.statusCode == 200,
-                      let image = NSImage(data: data),
-                      let png = IconImage.faviconPNG(from: image)
-                else { continue }
-                setIcon(token, png: png)
-                showToast("Icon set for \(token.name)")
-                return
-            }
-            Dialogs.info(title: "No icon found for \(domain)",
-                         message: "DuckDuckGo has no icon for this site. Check the domain, or use Set Icon from File….")
-        }
+    func useIcon(_ png: Data, for token: Token) {
+        setIcon(token, png: png)
+        screen = .list
+        showToast("Icon set for \(token.name)")
     }
 
     func installIconPack() {

@@ -535,6 +535,17 @@ for (name, header) in [("PNG", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] 
 }
 check(Importer.detect(Data([UInt8](repeating: 0xC3, count: 64))) == .andOTP, "other binary data may be andOTP")
 
+// MARK: Colors typed or pasted for icon backgrounds
+
+equal(HexColor(parsing: "#1E90FF")?.hex, "#1E90FF", "hex color")
+equal(HexColor(parsing: " 1e90ff ")?.hex, "#1E90FF", "hex without #")
+equal(HexColor(parsing: "#19F")?.hex, "#1199FF", "short hex")
+equal(HexColor(parsing: "rgb(30, 144, 255)")?.hex, "#1E90FF", "rgb()")
+equal(HexColor(parsing: "30,144,255")?.hex, "#1E90FF", "comma list")
+equal(HexColor(parsing: "30 144 255")?.hex, "#1E90FF", "space list")
+check(HexColor(parsing: "300, 0, 0") == nil && HexColor(parsing: "#12345") == nil && HexColor(parsing: "blue") == nil,
+      "bad colors rejected")
+
 // MARK: Master password
 
 do {
