@@ -293,6 +293,18 @@ Crop the screenshot closer to the code. Google Authenticator "Transfer accounts"
 **"Wrong backup password"**
 Use the password set when the backup was exported from the other app (or TrayOTP), not your Mac password.
 
+## Use at your own risk
+
+TrayOTP is free, open-source software provided as is, without warranty of any kind (see the [license](LICENSE)).
+The authors aren't responsible for lost access to your accounts, lost or leaked secrets, or any other damage.
+
+Losing your 2FA codes can lock you out of your accounts, so don't let TrayOTP be your only copy:
+
+- Save each site's **recovery codes** when you set up 2FA.
+- Keep the token in a second app too, such as your phone (see the tip under [Adding a token](#adding-a-token)).
+- Export an encrypted backup now and then (**⋯ → Export → Aegis (Encrypted)**) and keep it somewhere safe.
+- After importing, check a few codes before deleting anything from your old app.
+
 ## Development
 
 Requires macOS 14 and the Command Line Tools.
@@ -374,7 +386,8 @@ git tag v0.1.0 && git push origin v0.1.0
 - Service icons come from icon packs you install yourself, such as [aegis-icons](https://github.com/aegis-icons/aegis-icons).
 - Favicons are fetched through [DuckDuckGo](https://duckduckgo.com)'s icon service.
 
-TrayOTP is not affiliated with 2FAS, Aegis, Ente or any service whose logo it displays. Logos are trademarks of their
+TrayOTP is not affiliated with 2FAS, Aegis, Ente, Google, Bitwarden, Proton or any other app it imports from, nor
+with any service whose logo it displays. Logos are trademarks of their
 respective owners, used only to identify each service.
 
 ## License
