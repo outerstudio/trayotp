@@ -15,6 +15,8 @@ app:
 # Rebuild, quit the running copy, relaunch.
 run: app
 	-pkill -x TrayOTP
+	@# Wait for it to exit, or LaunchServices sends the open to the dying process (error -600).
+	@while pgrep -qx TrayOTP; do sleep 0.1; done
 	open build/TrayOTP.app
 
 release:
