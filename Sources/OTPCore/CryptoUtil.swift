@@ -3,19 +3,45 @@ import Foundation
 
 enum CryptoUtil {
     static func pbkdf2SHA256(password: [UInt8], salt: [UInt8], iterations: UInt32, length: Int) -> [UInt8] {
+        pbkdf2(password: password, salt: salt, iterations: iterations, length: length, prf: CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256))
+    }
+
+    static func pbkdf2SHA1(password: [UInt8], salt: [UInt8], iterations: UInt32, length: Int) -> [UInt8] {
+        pbkdf2(password: password, salt: salt, iterations: iterations, length: length, prf: CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA1))
+    }
+
+    private static func pbkdf2(password: [UInt8], salt: [UInt8], iterations: UInt32, length: Int, prf: CCPseudoRandomAlgorithm) -> [UInt8] {
         var out = [UInt8](repeating: 0, count: length)
         let status = password.withUnsafeBufferPointer { pw in
             CCKeyDerivationPBKDF(
                 CCPBKDFAlgorithm(kCCPBKDF2),
                 pw.baseAddress.map { UnsafeRawPointer($0).assumingMemoryBound(to: CChar.self) }, pw.count,
                 salt, salt.count,
-                CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
+                prf,
                 iterations,
                 &out, out.count
             )
         }
         precondition(status == kCCSuccess, "PBKDF2 failed")
         return out
+    }
+
+    /// AES in ECB mode without padding (`data` must be a multiple of 16 bytes). Used to build CTR keystreams.
+    static func aesECBEncrypt(key: [UInt8], data: [UInt8]) -> [UInt8]? {
+        aes(CCOperation(kCCEncrypt), key: key, iv: nil, data: data, options: CCOptions(kCCOptionECBMode))
+    }
+
+    /// AES-CBC with PKCS#7 padding.
+    static func aesCBCDecrypt(key: [UInt8], iv: [UInt8], data: [UInt8]) -> [UInt8]? {
+        aes(CCOperation(kCCDecrypt), key: key, iv: iv, data: data, options: CCOptions(kCCOptionPKCS7Padding))
+    }
+
+    private static func aes(_ op: CCOperation, key: [UInt8], iv: [UInt8]?, data: [UInt8], options: CCOptions) -> [UInt8]? {
+        var out = [UInt8](repeating: 0, count: data.count + 16)
+        var moved = 0
+        let status = CCCrypt(op, CCAlgorithm(kCCAlgorithmAES), options, key, key.count, iv, data, data.count, &out, out.count, &moved)
+        guard status == kCCSuccess else { return nil }
+        return Array(out.prefix(moved))
     }
 
     static func hex(_ string: String) -> Data? {

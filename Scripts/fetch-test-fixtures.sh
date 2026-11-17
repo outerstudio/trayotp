@@ -19,6 +19,18 @@ FILES=(
   "aegis_plain.json|$AEGIS/aegis_plain.json|ff7645d711dd05aa1724975b0aa6f2b82b1911d709330f479c87dd755d7ffe5c"
   "aegis_encrypted.json|$AEGIS/aegis_encrypted.json|bf10ba479062b280753eb47f35c898cc286f8c921118f6d4e68c6af67d055d99"
   "ente_auth.txt|$AEGIS/ente_auth.txt|3bae1bf45e2f1077d98c4ac09be4edff937f04838718a13652272089cf46330d"
+  "plain.txt|$AEGIS/plain.txt|46c9ac5a0e5d4667894e7d21a7720814eb6e2314414b47e15315bad44b117120"
+  "andotp_plain.json|$AEGIS/andotp_plain.json|1c20c8223fe0aa2a27e051e6ad91afd32e2fcaa745b4711105ff0230da13b7a7"
+  "andotp_encrypted.bin|$AEGIS/andotp_encrypted.bin|6187f11929122b2eb0a973b900d650f729a577aef14a7f1da642b3f4a3daf0e0"
+  "andotp_encrypted_old.bin|$AEGIS/andotp_encrypted_old.bin|89222749901837cd091b40ca5f6376529b2d6752f71df376ea92d6db6881c88b"
+  "bitwarden.json|$AEGIS/bitwarden.json|4a38a35d93a1b00995ace4f27a4ebebd385449a044c3ab8463ad65e836cc8eee"
+  "bitwarden.csv|$AEGIS/bitwarden.csv|a5da13e4165a870e1eeeff94b2280cd4548ae92189f5edb7b456bbfc8e781a22"
+  "freeotp_plus.json|$AEGIS/freeotp_plus.json|4bc01be0840d7354d427deca0112110b3994af802f846134f71f1fcb311892c7"
+  "proton_authenticator.json|$AEGIS/proton_authenticator.json|0827a52eecb3ab36d6440a4abcc9d2d76c2a3bb7b8b566351b9f2ae7957a397c"
+  "proton_authenticator_encrypted.json|$AEGIS/proton_authenticator_encrypted.json|7138488e9e00af9ddc4aa3e990c3be7185a821d962972b03ff940a591bc6a7e5"
+  "stratum_plain.json|$AEGIS/stratum_plain.json|a04a06323b02b9a95e8b9fa76f8e7113b84d04f965a48d6d367a2339d2329989"
+  "stratum_encrypted.bin|$AEGIS/stratum_encrypted.bin|23f73e2d108104193f5436389849fbfb3fd8289137b4ddb7f49f7b528ce9af21"
+  "stratum_encrypted_legacy.bin|$AEGIS/stratum_encrypted_legacy.bin|bc29610411f4f2dd1947f6a24c51413911896d9a8b7e691d7d584bbbeee0a7fe"
 )
 
 for entry in "${FILES[@]}"; do

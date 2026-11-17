@@ -355,12 +355,173 @@ do {
     equal(try Importer.decode(aegisEnc, password: "hunter2").1.tokens.map(key), tokens.map(key), "Aegis encrypted round trip")
     equal(Result { try Importer.decode(aegisEnc, password: "nope") }.twoFASError, .wrongPassword, "Aegis export wrong password")
 
+    let (linkFormat, links) = try Importer.decode(Exporter.encode(backup, as: .linkList))
+    equal(linkFormat, .linkList, "otpauth link export detected")
+    equal(links.tokens.map(key), tokens.map(key), "otpauth link export round trip")
+
+    let (bwFormat, bw) = try Importer.decode(Exporter.encode(backup, as: .bitwarden))
+    equal(bwFormat, .bitwarden, "Bitwarden export detected")
+    equal(bw.tokens.map(key), tokens.filter { $0.kind != .hotp }.map(key), "Bitwarden export round trip (no HOTP)")
+    equal(bw.tokens.map { groupName(bw, $0) }, ["Work & Play", nil, nil], "Bitwarden folders round trip")
+    equal(Exporter.unsupported(tokens, in: .bitwarden).map(\.name), ["Bank"], "Bitwarden leaves out HOTP")
+
     let ente = String(decoding: try Exporter.encode(backup, as: .ente), as: UTF8.self)
     check(ente.contains("otpauth://steam/"), "Ente writes Steam as otpauth://steam")
     check(ente.contains("C%2B%2B"), "plus signs are percent-encoded")
 } catch {
     check(false, "export round trips threw \(error)")
 }
+
+// MARK: BLAKE2b / Argon2id (RFC 7693, RFC 9106 test vectors)
+
+equal(Blake2b_hex("abc"), "ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923", "BLAKE2b-512 abc")
+equal(Blake2b_hex(""), "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce", "BLAKE2b-512 empty")
+equal(Argon2_idHex(password: [UInt8](repeating: 1, count: 32), salt: [UInt8](repeating: 2, count: 16),
+                   secret: [UInt8](repeating: 3, count: 8), ad: [UInt8](repeating: 4, count: 12), t: 3, m: 32, p: 4, length: 32),
+      "0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659", "Argon2id RFC 9106 vector")
+
+// MARK: Other apps (fixtures from Aegis's importer tests; all hold the same test accounts)
+
+let tokenKey = { (t: Token) in "\(t.secret)|\(t.kind)|\(t.algorithm)|\(t.digits)|\(t.period)|\(t.counter)" }
+if let reference = fixture("plain.txt").flatMap({ try? Importer.decode($0).1 }) {
+    let expected = Set(reference.tokens.map(tokenKey))
+    let cases: [(file: String, format: BackupFormat, password: String?)] = [
+        ("andotp_plain.json", .andOTP, nil), ("andotp_encrypted.bin", .andOTP, "test"),
+        ("andotp_encrypted_old.bin", .andOTP, "test"),
+        ("bitwarden.json", .bitwarden, nil), ("bitwarden.csv", .passwordCSV, nil),
+        ("freeotp_plus.json", .freeOTPPlus, nil),
+        ("proton_authenticator.json", .proton, nil), ("proton_authenticator_encrypted.json", .proton, "test"),
+        ("stratum_plain.json", .stratum, nil), ("stratum_encrypted.bin", .stratum, "test"),
+        ("stratum_encrypted_legacy.bin", .stratum, "test"),
+    ]
+    for c in cases {
+        guard let data = fixture(c.file) else { skippedSuites.append(c.file); continue }
+        equal(Importer.detect(data), c.format, "\(c.file) detected")
+        equal(Importer.needsPassword(data), c.password != nil, "\(c.file) needsPassword")
+        do {
+            if c.password != nil {
+                equal(Result { try Importer.decode(data) }.twoFASError, .passwordRequired, "\(c.file) asks for a password")
+                equal(Result { try Importer.decode(data, password: "wrong") }.twoFASError, .wrongPassword, "\(c.file) wrong password")
+            }
+            let started = Date()
+            let (_, b) = try Importer.decode(data, password: c.password)
+            let got = Set(b.tokens.map(tokenKey))
+            // FreeOTP+ stores HOTP counters one lower than the others; compare those without the counter.
+            let strip = { (s: String) in String(s[..<s.lastIndex(of: "|")!]) }
+            if c.format == .freeOTPPlus {
+                equal(Set(got.map(strip)), Set(expected.filter { !$0.contains("steam") }.map(strip)), "\(c.file) tokens")
+            } else {
+                check(!got.isEmpty && got.isSubset(of: expected), "\(c.file) tokens match the reference: \(got.subtracting(expected))")
+            }
+            check(b.tokens.allSatisfy(\.isValid), "\(c.file) tokens valid")
+            if c.password != nil, c.format != .andOTP {
+                print(String(format: "  %@: %d tokens, %.2fs", c.file, b.tokens.count, Date().timeIntervalSince(started)))
+            }
+        } catch {
+            check(false, "\(c.file) threw \(error)")
+        }
+    }
+    if let bw = fixture("bitwarden.json"), let b = try? Importer.decode(bw).1 {
+        check(b.tokens.contains { $0.kind == .steam }, "Bitwarden steam:// imported")
+        equal(b.tokens.first?.name, "Test 1", "Bitwarden item name is the token name")
+    }
+} else {
+    skippedSuites.append("other apps' real exports")
+}
+
+do {
+    // Google Authenticator migration payload, built by hand:
+    // otp 1: secret "Hello!\xDE\xAD\xBE\xEF", name "Google:me@x.com", TOTP SHA1 6 digits;
+    // otp 2: issuer "Bank", name "acct", HOTP SHA256 8 digits counter 5.
+    func pb(_ n: Int, _ bytes: [UInt8]) -> [UInt8] { [UInt8(n << 3 | 2), UInt8(bytes.count)] + bytes }
+    func pv(_ n: Int, _ v: UInt8) -> [UInt8] { [UInt8(n << 3), v] }
+    let secret: [UInt8] = Array("Hello!".utf8) + [0xDE, 0xAD, 0xBE, 0xEF]
+    let otp1 = pb(1, secret) + pb(2, Array("Google:me@x.com".utf8)) + pv(4, 1) + pv(5, 1) + pv(6, 2)
+    let otp2 = pb(1, secret) + pb(2, Array("acct".utf8)) + pb(3, Array("Bank".utf8)) + pv(4, 2) + pv(5, 2) + pv(6, 1) + pv(7, 5)
+    let payload = Data(pb(1, otp1) + pb(1, otp2) + pv(2, 1) + pv(3, 1))
+    let encoded = payload.base64EncodedString().addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+    let link = "otpauth-migration://offline?data=\(encoded)"
+    check(GoogleAuthenticator.isMigrationLink(link), "migration link recognized")
+    let (format, g) = try Importer.decode(Data(link.utf8))
+    equal(format, .googleAuthenticator, "Google detected")
+    equal(g.tokens.map(\.name), ["Google", "Bank"], "Google names")
+    equal(g.tokens.first?.account, "me@x.com", "issuer split from name")
+    equal(g.tokens.first?.secret, Base32.encode(Data(secret)), "Google secret")
+    equal(g.tokens.last?.kind, .hotp, "Google HOTP")
+    equal(g.tokens.last?.algorithm, .sha256, "Google algorithm")
+    equal(g.tokens.last?.digits, 8, "Google digits")
+    equal(g.tokens.last?.counter, 5, "Google counter")
+    equal(Result { try Importer.decode(Data("otpauth-migration://offline?data=%%%".utf8)) }.value?.1.tokens.count, nil, "bad migration data rejected")
+} catch {
+    check(false, "Google import threw \(error)")
+}
+
+do {
+    // Apple Passwords / 1Password / KeePassXC style CSV, with quoting and rows without 2FA.
+    let csv = "\u{FEFF}Title,URL,Username,Password,Notes,OTPAuth\r\n"
+        + "GitHub,https://github.com,me,pw,,otpauth://totp/GitHub:me?secret=JBSWY3DPEHPK3PXP&issuer=GitHub\r\n"
+        + "\"Bank, Inc.\",https://bank.com,\"a \"\"b\"\"\",pw,\"multi\nline\",JBSWY3DPEHPK3PXQ\r\n"
+        + "NoTwoFA,https://x.com,me,pw,,\r\n"
+    let (format, c) = try Importer.decode(Data(csv.utf8))
+    equal(format, .passwordCSV, "CSV detected")
+    equal(c.tokens.map(\.name), ["GitHub", "Bank, Inc."], "CSV names, rows without OTP ignored")
+    equal(c.tokens.last?.account, "a \"b\"", "CSV quoted account")
+    equal(c.tokens.last?.secret, "JBSWY3DPEHPK3PXQ", "CSV bare secret")
+
+    let kp = "\"Group\",\"Title\",\"Username\",\"Password\",\"URL\",\"Notes\",\"TOTP\"\n\"Root/Work\",\"Mail\",\"me\",\"\",\"\",\"\",\"otpauth://totp/Mail:me?secret=JBSWY3DPEHPK3PXP\"\n"
+    let k = try Importer.decode(Data(kp.utf8)).1
+    equal(k.groups.map(\.name), ["Work"], "KeePassXC group path")
+
+    let raivo = #"[{"issuer":"Raivo","account":"me","secret":"JBSWY3DPEHPK3PXP","algorithm":"SHA256","digits":"8","kind":"TOTP","timer":"60","counter":"0","pinned":"false","iconType":"","iconValue":""}]"#
+    let (rf, r) = try Importer.decode(Data(raivo.utf8))
+    equal(rf, .raivo, "Raivo JSON detected")
+    equal(r.tokens.first.map(tokenKey), "JBSWY3DPEHPK3PXP|totp|sha256|8|60|0", "Raivo string fields")
+
+    let stratumGroups = #"{"Authenticators":[{"Type":2,"Issuer":"A","Username":"u","Secret":"JBSWY3DPEHPK3PXP","Algorithm":0,"Digits":6,"Period":30,"Counter":0,"Ranking":1},{"Type":3,"Issuer":"M","Username":null,"Secret":"abc","Algorithm":0,"Digits":6,"Period":10,"Counter":0,"Ranking":0}],"Categories":[{"Id":"c1","Name":"Work","Ranking":0}],"AuthenticatorCategories":[{"CategoryId":"c1","AuthenticatorSecret":"JBSWY3DPEHPK3PXP","Ranking":0}],"CustomIcons":[]}"#
+    let s = try Importer.decode(Data(stratumGroups.utf8)).1
+    equal(s.groups.map(\.name), ["Work"], "Stratum categories")
+    equal(s.tokens.first?.groupId, "c1", "Stratum token in category")
+    equal(s.skipped.count, 1, "Stratum mOTP skipped")
+
+    let enc = #"{"encrypted":true,"passwordProtected":true,"salt":"x","kdfType":0,"data":"x"}"#
+    check({ if case .unsupported = Result(catching: { try Importer.decode(Data(enc.utf8)) }).twoFASError { return true }; return false }(),
+          "encrypted Bitwarden explains it is unsupported")
+} catch {
+    check(false, "CSV/Raivo/Stratum imports threw \(error)")
+}
+
+// Raivo's real exports are AES-encrypted ZIPs; build one with 7-Zip when it's installed.
+if let sevenZip = ["/opt/homebrew/bin/7z", "/usr/local/bin/7z", "/opt/homebrew/bin/7zz"].first(where: FileManager.default.isExecutableFile) {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("trayotp-raivo-\(UUID().uuidString)")
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+    let json = "[" + (0..<40).map { #"{"issuer":"Site \#($0)","account":"me","secret":"JBSWY3DPEHPK3PXP","algorithm":"SHA1","digits":"6","kind":"TOTP","timer":"30","counter":"0"}"# }.joined(separator: ",") + "]"
+    try? Data(json.utf8).write(to: dir.appendingPathComponent("raivo-otp-export.json"))
+    for (level, label) in [("-mx0", "stored"), ("-mx9", "deflated")] {
+        let zip = dir.appendingPathComponent("\(label).zip")
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: sevenZip)
+        p.arguments = ["a", "-tzip", "-mem=AES256", "-phunter2", level, zip.path, dir.appendingPathComponent("raivo-otp-export.json").path]
+        p.standardOutput = FileHandle.nullDevice
+        try? p.run(); p.waitUntilExit()
+        guard let data = try? Data(contentsOf: zip) else { check(false, "7z \(label)"); continue }
+        equal(Importer.detect(data), .raivo, "Raivo ZIP (\(label)) detected")
+        check(Importer.needsPassword(data), "Raivo ZIP (\(label)) needs password")
+        equal(Result { try Importer.decode(data, password: "nope") }.twoFASError, .wrongPassword, "Raivo ZIP (\(label)) wrong password")
+        equal(Result { try Importer.decode(data, password: "hunter2") }.value?.1.tokens.count, 40, "Raivo ZIP (\(label)) tokens")
+    }
+} else {
+    skippedSuites.append("Raivo ZIP (needs 7z)")
+}
+
+// Photos of QR codes must not be mistaken for andOTP's header-less encrypted backups.
+for (name, header) in [("PNG", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] as [UInt8]),
+                       ("JPEG", [0xFF, 0xD8, 0xFF, 0xE0]),
+                       ("HEIC", [0x00, 0x00, 0x00, 0x18] + Array("ftypheic".utf8))] {
+    let file = Data(header + [UInt8](repeating: 0xC3, count: 64))
+    check(Importer.detect(file) == nil, "\(name) image is not detected as a backup")
+}
+check(Importer.detect(Data([UInt8](repeating: 0xC3, count: 64))) == .andOTP, "other binary data may be andOTP")
 
 // MARK: Master password
 
