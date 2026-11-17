@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Your two-factor codes, one click away in the macOS menu bar.</b><br>
-  Imports from and exports to 2FAS, Aegis and Ente Auth. Encrypted, offline, open source.
+  Imports from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator and more. Encrypted, offline, open source.
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel: a search field, tokens with service icons and next codes, collapsed DEV and GOOGLE groups, and Add, Lock and Quit buttons">
+  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel: a search field, tokens showing name, code, account and next code, a collapsed DEV group, and Add, Lock and Quit buttons">
 </p>
 
 ## Features
@@ -36,7 +36,8 @@
   See [Copying codes](#copying-codes) and [Reorder](#groups).
 - **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
 - **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
-- **Move in or out freely.** Import from 2FAS, Aegis (plain or encrypted) and Ente Auth. Export to all three.
+- **Move in or out freely.** Import from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
+  Stratum, andOTP, FreeOTP+, Raivo OTP and password manager CSVs. Export to 2FAS, Aegis, Ente Auth and Bitwarden.
 - **Groups.** Collapsible sections, drag and drop to sort and move tokens, kept in 2FAS, Aegis and Ente exports.
 - **Service icons.** Use any [Aegis icon pack](#service-icons), pick icons by hand, use your own images, or fetch a site's favicon.
 - **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
@@ -89,7 +90,8 @@ Apps you build yourself open without any warning.
 
 1. Click the TrayOTP icon in the menu bar (a lock in a circle) and unlock with Touch ID.
 2. Add your tokens:
-   - **From another app:** **⋯ → Import from 2FAS, Aegis or Ente…** (see [Import and export](#import-and-export)).
+   - **From another app:** click **Add → Import from File…**, or for Google Authenticator
+     **Add → Scan QR Code with Camera…** (see [Import and export](#import-and-export)).
    - **One at a time:** click **Add** and paste the setup link or secret (see [Adding a token](#adding-a-token)).
 3. Click any code to copy it.
 
@@ -103,6 +105,7 @@ Apps you build yourself open without any warning.
 - **Keyboard:** the search field is focused when the panel opens. Type to filter, use **↑/↓** to select, **Enter** (↩) to copy and **→** to copy the next code.
   **↑** from the top row goes back to the search field.
 - For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
+- **Edit a token:** right-click it → **Edit…** to change its service name and account. The code stays the same.
 - Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 
 ### Adding a token
@@ -114,8 +117,15 @@ Click **Add** at the bottom of the panel, then paste one of:
 | An `otpauth://…` setup link | Paste it. Name, account and settings are filled in from the link. |
 | A secret key like `JBSW Y3DP EHPK 3PXP` | Paste it and type a name (e.g. "GitHub"). Spaces and lowercase are fine. |
 | A QR code on screen | Screenshot it to the clipboard (**⌃⇧⌘4**), or right-click the image → **Copy Image**. Then open **Add** (it fills in automatically) or click **Paste Link, Secret or QR Image**. |
+| A QR code on another device or on paper | Click **Scan QR Code with Camera…** and hold it up to the Mac's camera. |
 
 A live preview shows the code before you save it, so you can compare it with the website.
+
+> **Tip: add a new token to your phone at the same time.** When a website shows its 2FA setup QR code, scan it
+> with your phone app (Google Authenticator, 2FAS, Aegis…) *and* screenshot it into TrayOTP (**⌃⇧⌘4**, then **Add**).
+> It's the same secret, so both show the same codes, and you keep a backup if you lose your phone or Mac.
+> Do it before you type the confirmation code on the website: most sites never show the QR code again.
+> No QR code? Copy the setup key (often under "Can't scan it?") and enter it in both apps.
 
 ### Groups
 
@@ -156,20 +166,53 @@ To set many at once, **⋯ → Import Icons from Folder…** matches image file 
 
 ### Import and export
 
-**Import:** **⋯ → Import from 2FAS, Aegis or Ente…**. TrayOTP detects the format. Tokens you already have are skipped,
-and anything that can't be imported is listed afterwards.
+**Import:** **Add → Import from File…**, then choose the file. TrayOTP detects the app and asks for the backup password if
+the file is encrypted. Anything that can't be imported is listed afterwards.
 
 **Export:** **⋯ → Export ▸**, then pick the app. TrayOTP asks for Touch ID first.
 
-| App | Import | Export | Groups | Icons |
-|---|---|---|---|---|
-| **2FAS** (`.2fas`) | Plain or encrypted | Plain or encrypted | ✓ | — |
-| **Aegis** (`.json`) | Plain or encrypted | Plain or encrypted | ✓ | ✓ |
-| **Ente Auth** (`.txt`) | Plain text | Plain text | ✓ (as tags) | — |
-| Any text file of `otpauth://` links | ✓ | — | — | — |
+| App | Import | Export | Groups |
+|---|---|---|---|
+| **2FAS** (`.2fas`) | Plain or encrypted | Plain or encrypted | ✓ |
+| **Aegis** (`.json`) | Plain or encrypted | Plain or encrypted | ✓ (and icons) |
+| **Ente Auth** (`.txt`) | Plain text | Plain text | ✓ (as tags) |
+| **Google Authenticator** | "Transfer accounts" QR codes | — | — |
+| **Bitwarden** and **Bitwarden Authenticator** (`.json`, `.csv`) | Unencrypted | Unencrypted JSON (no HOTP) | ✓ (folders) |
+| **Proton Authenticator** (`.json`) | Plain or encrypted | — | — |
+| **Stratum** / Authenticator Pro | Plain or encrypted | — | ✓ (categories) |
+| **andOTP** (`.json`, `.json.aes`) | Plain or encrypted | — | ✓ (first tag) |
+| **FreeOTP+** (`.json`) | ✓ | — | — |
+| **Raivo OTP** (`.zip`, untested, [please report](https://github.com/outerstudio/trayotp/issues)) | Password-protected ZIP | — | — |
+| **Apple Passwords** (`.csv`) | Verification codes (`OTPAuth` column) | — | — |
+| **Other password managers** (`.csv`, untested, [please report](https://github.com/outerstudio/trayotp/issues)): 1Password, KeePassXC… | A column named `OTPAuth`, `TOTP` or `login_totp` | — | ✓ (folder/group) |
+| Any text file of `otpauth://` links | ✓ | ✓ | — |
 
-Not supported yet: encrypted Ente Auth exports (export as plain text from Ente instead), Google Authenticator
-"Transfer accounts" QR codes, and Aegis's Yandex and mOTP token types.
+**Google Authenticator:** on your phone, open **⋮ → Transfer accounts → Export accounts**. Google blocks screenshots
+of this screen, so in TrayOTP click **Add → Scan QR Code with Camera…** and hold the phone up to the Mac's camera,
+about 20–30 cm away with the brightness up. All accounts in the code are imported at once. If Google shows several
+QR codes, scan each one. Dense codes are harder for a webcam to read: if it doesn't pick one up, export fewer
+accounts at a time.
+
+No built-in camera (Mac mini, Mac Studio, Mac Pro)? A USB webcam works, and so does an iPhone or iPad other than the
+one running Google Authenticator, used as a webcam (Continuity Camera). Or take a photo of the transfer screen
+with another phone, get it onto your Mac (AirDrop, iCloud Photos, email…) and import it with
+**Add → Import from File…**: PNG, JPEG and HEIC all work.
+
+**Duplicates:** a token is skipped when you already have one with the same secret and account, so importing the same
+file twice (or overlapping Google QR codes) adds nothing new. A token with the same name and account as one you have but a
+different secret is kept, with the time it was added after the name (e.g. `GitHub 2026-11-17 23:40`), and listed
+after the import. That usually means the site issued a new secret, so delete the old token once the new one works.
+The same applies when you add a token one at a time.
+
+**Untested** means TrayOTP reads the format as documented, but hasn't been tried with a file exported from that
+app yet. If an import fails or the codes don't match, please
+[open an issue](https://github.com/outerstudio/trayotp/issues) naming the app and its version (never attach the file:
+it contains your secrets).
+
+> **Before deleting tokens from your old app,** check that a few imported codes match the ones it shows.
+
+Not supported: encrypted Ente Auth exports (export as plain text from Ente instead), encrypted Bitwarden exports,
+the original FreeOTP's backups, Authy and Microsoft Authenticator (they can't export), and Yandex and mOTP tokens.
 
 > **Unencrypted exports contain all your secrets in plain text.** Delete the file once you've imported it.
 > For a backup you keep, use **Aegis (Encrypted)**: its password protection (scrypt) is much harder to crack
@@ -204,6 +247,8 @@ Click **Lock** at the bottom of the panel to lock right away.
   tokens are dropped from memory when it locks again.
 - **Exporting** and **deleting a token** always ask for Touch ID again, even while TrayOTP is unlocked.
 - Nothing leaves your Mac, except a domain you choose to look up with **Fetch Icon from Website…**.
+- The camera is used only while the **Scan QR Code** window is open. Frames are read in memory and never saved.
+  macOS asks for camera access the first time, and may ask again after an update (TrayOTP is ad-hoc signed).
 
 ### Optional master password
 
@@ -246,7 +291,7 @@ Launchpad only lists apps in `/Applications`. If the icon is still blank after m
 Crop the screenshot closer to the code. Google Authenticator "Transfer accounts" codes aren't supported.
 
 **"Wrong backup password"**
-Use the password set when the backup was exported from 2FAS, Aegis or TrayOTP, not your Mac password.
+Use the password set when the backup was exported from the other app (or TrayOTP), not your Mac password.
 
 ## Development
 
@@ -272,6 +317,11 @@ Sources/OTPCore/          pure logic, no UI, fully tested
   TwoFAS.swift            2FAS import/export (PBKDF2-SHA256 + AES-256-GCM)
   Aegis.swift             Aegis import/export (scrypt + AES-256-GCM)
   Ente.swift              Ente Auth and otpauth link lists
+  GoogleAuthenticator.swift  otpauth-migration:// transfer codes (protobuf)
+  Bitwarden.swift, ProtonAuthenticator.swift, Stratum.swift, AndOTP.swift, FreeOTPPlus.swift, Raivo.swift,
+  PasswordCSV.swift       other apps' exports
+  Zip.swift               ZIP reader with WinZip AES (Raivo)
+  Argon2.swift            Argon2id and BLAKE2b (Proton, Stratum)
   Importer.swift          format detection; Exporter
   MasterPassword.swift    scrypt-wrapped vault key
   IconPack.swift          Aegis icon pack manifest and matching
@@ -288,11 +338,12 @@ Scripts/                  bundle.sh (build .app), make-icon.swift, fetch-test-fi
 
 ### Tests
 
-The suite covers the RFC 4226 / 6238 / 7914 test vectors, otpauth parsing, and import/export round trips for every
+The suite covers the RFC 4226 / 6238 / 7914 / 9106 test vectors (HOTP, TOTP, scrypt, Argon2id), BLAKE2b, otpauth parsing, and import/export round trips for every
 format. To check compatibility with files the other apps really produce, `Scripts/fetch-test-fixtures.sh` downloads
 real exports from the [2fas-backup-decryptor](https://github.com/elliotwutingfeng/2fas-backup-decryptor) and
 [Aegis](https://github.com/beemdevelopment/Aegis) test suites into `ThirdPartyFixtures/`, pinned by SHA-256.
-They're GPL-licensed, so they aren't committed; without them those checks are skipped.
+They're GPL-licensed, so they aren't committed; without them those checks are skipped. The Raivo ZIP test needs
+`7z` (`brew install p7zip`) and is skipped without it.
 
 ### Format notes
 
@@ -302,6 +353,12 @@ They're GPL-licensed, so they aren't committed; without them those checks are sk
 - **Aegis:** a random master key encrypts `db` (AES-256-GCM, hex nonce and tag in `header.params`); each password
   slot wraps the master key with scrypt(password, N=2¹⁵, r=8, p=1).
 - **Ente Auth:** plain-text exports are `otpauth://` links with a `codeDisplay` JSON parameter (tags, trashed flag).
+- **Google Authenticator:** `otpauth-migration://offline?data=` + Base64 of a `MigrationPayload` protobuf.
+- **Proton Authenticator:** Argon2id (t=2, m=19 MiB, p=1) + AES-256-GCM, associated data `proton.authenticator.export.v1`.
+- **Stratum:** `AUTHENTICATORPRO` header, Argon2id (t=3, m=64 MiB, p=4) + AES-256-GCM; the legacy `AuthenticatorPro`
+  header uses PBKDF2-SHA1 (64,000 iterations) + AES-256-CBC.
+- **andOTP:** PBKDF2-SHA1 (iterations stored in the file) + AES-256-GCM; older files use SHA-256(password) as the key.
+- **Raivo OTP:** a WinZip AES ZIP (PBKDF2-SHA1, AES-CTR, HMAC-SHA1) containing `raivo-otp-export.json`.
 
 ### Releasing
 

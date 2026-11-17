@@ -14,10 +14,11 @@ enum Dialogs {
         prepare()
         let panel = NSOpenPanel()
         panel.title = "Import backup"
-        panel.message = "A 2FAS (.2fas), Aegis (.json) or Ente Auth (.txt) export"
+        panel.message = "An export from 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator, Stratum, andOTP, FreeOTP+, Raivo OTP or a password manager (CSV), or a screenshot of a Google Authenticator transfer QR code"
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.allowedContentTypes = [UTType(filenameExtension: "2fas"), .json, .plainText].compactMap { $0 }
+        // Any file: andOTP and Stratum backups have no standard extension. The format is detected from the content.
+        panel.allowedContentTypes = [.data]
         return panel.runModal() == .OK ? panel.url : nil
     }
 
@@ -100,6 +101,39 @@ enum Dialogs {
                 return value
             }
         }
+    }
+
+    /// Several labeled text fields, top to bottom. Returns their values, or nil on Cancel.
+    static func fields(title: String, message: String, fields: [(label: String, value: String)], button: String) -> [String]? {
+        prepare()
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.addButton(withTitle: button)
+        alert.addButton(withTitle: "Cancel")
+
+        // Plain frames, like `password`: an NSStackView would collapse the fields.
+        let width: CGFloat = 260, labelHeight: CGFloat = 16, fieldHeight: CGFloat = 24, gap: CGFloat = 8
+        let rowHeight = labelHeight + 2 + fieldHeight
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: width,
+                                             height: CGFloat(fields.count) * rowHeight + CGFloat(fields.count - 1) * gap))
+        var textFields: [NSTextField] = []
+        for (i, f) in fields.enumerated() {
+            let top = container.frame.height - CGFloat(i) * (rowHeight + gap)
+            let label = NSTextField(labelWithString: f.label)
+            label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+            label.frame = NSRect(x: 0, y: top - labelHeight, width: width, height: labelHeight)
+            let field = NSTextField(frame: NSRect(x: 0, y: top - rowHeight, width: width, height: fieldHeight))
+            field.stringValue = f.value
+            container.addSubview(label)
+            container.addSubview(field)
+            textFields.last?.nextKeyView = field
+            textFields.append(field)
+        }
+        alert.accessoryView = container
+        alert.layout()
+        alert.window.initialFirstResponder = textFields.first
+        return alert.runModal() == .alertFirstButtonReturn ? textFields.map(\.stringValue) : nil
     }
 
     /// One-line text prompt. Returns nil on Cancel.

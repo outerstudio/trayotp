@@ -37,8 +37,9 @@ enum Clipboard {
             return text
         }
         if let image = readImage() {
-            return QRReader.messages(in: image).first { $0.lowercased().hasPrefix("otpauth://") }
-                ?? QRReader.messages(in: image).first
+            // "otpauth" also matches Google Authenticator's otpauth-migration:// transfer codes.
+            let messages = QRReader.messages(in: image)
+            return messages.first { $0.lowercased().hasPrefix("otpauth") } ?? messages.first
         }
         return nil
     }

@@ -23,6 +23,9 @@
     <!-- Menu bar only: no Dock icon, no app menu. -->
     <key>LSUIElement</key>
     <true/>
+    <!-- Shown when the camera is first used: only for "Scan QR Code with Camera…". -->
+    <key>NSCameraUsageDescription</key>
+    <string>TrayOTP uses the camera only while you scan a QR code, such as Google Authenticator's transfer code. Nothing is recorded or sent anywhere.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>

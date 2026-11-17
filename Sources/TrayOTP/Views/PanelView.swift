@@ -228,6 +228,7 @@ struct TokenListView: View {
             Button("Copy Next Code") { state.copy(token, next: true) }
         }
         Divider()
+        Button("Edit…") { afterMenu { state.edit(token) } }
         Menu("Move to Group") {
             Picker("Move to Group", selection: Binding(get: { token.groupId }, set: { state.move(token, to: $0) })) {
                 Text("Ungrouped").tag(String?.none)
@@ -261,15 +262,12 @@ struct TokenListView: View {
                     .font(.system(size: 28))
                     .foregroundStyle(.secondary)
                 Text("No tokens yet").font(.headline)
-                Text("Paste an otpauth:// link, or import from 2FAS, Aegis or Ente Auth.")
+                Text("Paste an otpauth:// link, or import a backup from another authenticator app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                HStack {
-                    Button("Add Token") { state.screen = .add }
-                    Button("Import…") { state.importBackup() }
-                }
-                .padding(.top, 4)
+                Button("Add or Import") { state.screen = .add }
+                    .padding(.top, 4)
             }
             .padding(20)
             .frame(maxWidth: .infinity)
@@ -352,22 +350,6 @@ struct SettingsMenu: View {
     var body: some View {
         @Bindable var state = state
         Menu {
-            Button("Import from 2FAS, Aegis or Ente…") { afterMenu { state.importBackup() } }
-            Menu("Export") {
-                Section("2FAS") {
-                    Button("2FAS (Encrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: true) } }
-                    Button("2FAS (Unencrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: false) } }
-                }
-                Section("Aegis") {
-                    Button("Aegis (Encrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: true) } }
-                    Button("Aegis (Unencrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: false) } }
-                }
-                Section("Ente Auth") {
-                    Button("Ente Auth (Plain Text)…") { afterMenu { state.exportBackup(as: .ente, encrypted: false) } }
-                }
-            }
-            .disabled(state.tokens.isEmpty)
-            Divider()
             Button("New Group…") { afterMenu { state.newGroup() } }
             Divider()
             if let pack = state.icons.pack {
@@ -417,6 +399,27 @@ struct SettingsMenu: View {
             }))
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
+            Divider()
+            Menu("Export") {
+                Section("2FAS") {
+                    Button("2FAS (Encrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: true) } }
+                    Button("2FAS (Unencrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: false) } }
+                }
+                Section("Aegis") {
+                    Button("Aegis (Encrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: true) } }
+                    Button("Aegis (Unencrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: false) } }
+                }
+                Section("Ente Auth") {
+                    Button("Ente Auth (Plain Text)…") { afterMenu { state.exportBackup(as: .ente, encrypted: false) } }
+                }
+                Section("Bitwarden") {
+                    Button("Bitwarden (JSON)…") { afterMenu { state.exportBackup(as: .bitwarden, encrypted: false) } }
+                }
+                Section("Other Apps") {
+                    Button("otpauth Links (Plain Text)…") { afterMenu { state.exportBackup(as: .linkList, encrypted: false) } }
+                }
+            }
+            .disabled(state.tokens.isEmpty)
             Divider()
             if let release = state.updater.available {
                 Button("Update to \(release.version?.description ?? release.tag)…") {

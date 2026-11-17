@@ -33,10 +33,10 @@ sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD/" Support/Info.plist > "
 if [[ "$SIGN_IDENTITY" == "-" ]]; then
   # Ad-hoc signature with hardened runtime: blocks code injection and debugger attach
   # without needing an Apple certificate.
-  codesign --force --options runtime --sign - "$APP"
+  codesign --force --options runtime --entitlements Support/TrayOTP.entitlements --sign - "$APP"
 else
   # Developer ID + hardened runtime, required for notarization.
-  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+  codesign --force --options runtime --timestamp --entitlements Support/TrayOTP.entitlements --sign "$SIGN_IDENTITY" "$APP"
 fi
 
 codesign --verify --strict "$APP"

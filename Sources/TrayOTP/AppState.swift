@@ -15,6 +15,8 @@ final class AppState {
     private(set) var isLocked = true
     private(set) var authInProgress = false
     var screen: Screen = .list
+    /// Text read by the camera, for the Add screen to pick up.
+    var scannedInput: String?
     var lockMessage: String?
     var toast: String?
     /// The token whose next code was just copied, so its row can flash the next code.
@@ -341,6 +343,8 @@ final class AppState {
     }
 
     func add(_ token: Token) {
+        var token = token
+        Self.stampIfLookalike(&token, existing: tokens)
         tokens.append(token)
         persist()
         screen = .list
@@ -390,6 +394,24 @@ final class AppState {
         groups.append(group)
         persist()
         return group
+    }
+
+    /// Edits the service and account names. The secret, and so the code, stays the same.
+    func edit(_ token: Token) {
+        guard let i = tokens.firstIndex(where: { $0.id == token.id }),
+              let values = Dialogs.fields(title: "Edit “\(token.name)”",
+                                          message: "The code stays the same.",
+                                          fields: [("Service", token.name), ("Account", token.account ?? "")],
+                                          button: "Save")?
+                .map({ $0.trimmingCharacters(in: .whitespaces) })
+        else { return }
+        let (name, account) = (values[0], values[1])
+        guard !name.isEmpty else { return }
+        // The issuer usually repeats the service name; keep them in step so exports carry the new name.
+        if tokens[i].issuer == tokens[i].name { tokens[i].issuer = name }
+        tokens[i].name = name
+        tokens[i].account = account.isEmpty ? nil : account
+        persist()
     }
 
     func renameGroup(_ group: TokenGroup) {
@@ -611,26 +633,79 @@ final class AppState {
         }
     }
 
-    // MARK: 2FAS import / export
+    // MARK: Import / export
 
     func importBackup() {
         guard let url = Dialogs.openFile() else { return }
         do {
-            let data = try Data(contentsOf: url)
+            var data = try Data(contentsOf: url)
+            // A photo or screenshot of a QR code, e.g. Google Authenticator's transfer code taken with another phone.
+            if let image = NSImage(data: data) {
+                let messages = QRReader.messages(in: image)
+                guard !messages.isEmpty else { throw ImportError.unsupported("No QR code found in “\(url.lastPathComponent)”.") }
+                data = Data(messages.joined(separator: "\n").utf8)
+            }
+            importBackup(data, name: "“\(url.lastPathComponent)”")
+        } catch {
+            Dialogs.error(error, title: "Import failed")
+        }
+    }
+
+    /// Reads a QR code with the camera. Google Authenticator transfer codes are imported right away;
+    /// anything else goes to the Add screen, as if it had been pasted.
+    func scanWithCamera() {
+        PanelController.shared.hide()
+        Task {
+            do {
+                guard let text = try await CameraScanner.scan() else {
+                    PanelController.shared.open()
+                    return
+                }
+                if GoogleAuthenticator.isMigrationLink(text) {
+                    importBackup(Data(text.utf8), name: "the scanned QR code")
+                    screen = .list
+                } else {
+                    scannedInput = text
+                    screen = .add
+                }
+                PanelController.shared.open()
+            } catch {
+                Dialogs.error(error, title: "Can't use the camera")
+            }
+        }
+    }
+
+    /// Imports pasted text, e.g. Google Authenticator `otpauth-migration://` links.
+    func importText(_ text: String) {
+        importBackup(Data(text.utf8), name: "the pasted link")
+        screen = .list
+    }
+
+    private func importBackup(_ data: Data, name: String) {
+        do {
             let app = Importer.detect(data)?.rawValue ?? "the app"
             var password: String?
             if Importer.needsPassword(data) {
                 guard let p = Dialogs.password(title: "Backup password",
-                                               message: "Enter the password that was set when “\(url.lastPathComponent)” was exported from \(app). This is not your Mac or Keychain password.")
+                                               message: "Enter the password that was set when \(name) was exported from \(app). This is not your Mac or Keychain password.")
                 else { return }
                 password = p
             }
             let (format, backup) = try Importer.decode(data, password: password)
-            let existing = Set(tokens.map(Self.identity))
-            var fresh = backup.tokens.filter { !existing.contains(Self.identity($0)) }
+
+            // Skip tokens we already have, and repeats within the file (same secret and account).
+            var seen = Set(tokens.map(Self.identity))
+            var fresh = backup.tokens.filter { seen.insert(Self.identity($0)).inserted }
             // Aegis icons arrive as JPEG/PNG/SVG; store them like any other icon.
             for i in fresh.indices {
                 fresh[i].icon = fresh[i].icon.flatMap(IconImage.pngData(imported:))
+            }
+            // Same name and account as a token we have, but a different secret: keep both, tell them apart
+            // by the time the new one was added, and say so.
+            let existing = tokens
+            var lookalikes: [Token] = []
+            for i in fresh.indices {
+                if Self.stampIfLookalike(&fresh[i], existing: existing) { lookalikes.append(fresh[i]) }
             }
             tokens += Self.mergeGroups(backup.groups, into: &groups, tokens: fresh)
             persist()
@@ -638,6 +713,10 @@ final class AppState {
             let duplicates = backup.tokens.count - fresh.count
             var notes: [String] = []
             if duplicates > 0 { notes.append("\(duplicates) already existed and were skipped.") }
+            if !lookalikes.isEmpty {
+                notes.append("Same name and account as a token you already have, but a different secret. Both are kept; the new one is marked with the time it was added. Delete the old one once the new one works:\n"
+                             + lookalikes.map { "• \($0.name)\($0.account.map { ": \($0)" } ?? "")" }.joined(separator: "\n"))
+            }
             if !backup.skipped.isEmpty {
                 notes.append("Not imported:\n" + backup.skipped.map { "• \($0)" }.joined(separator: "\n"))
             }
@@ -674,14 +753,19 @@ final class AppState {
         let (name, ext): (String, String) = switch format {
         case .twoFAS: ("TrayOTP-\(day)", "2fas")
         case .aegis: ("aegis-export-TrayOTP-\(day)", "json")
-        case .ente, .linkList: ("ente-auth-codes-TrayOTP-\(day)", "txt")
+        case .ente: ("ente-auth-codes-TrayOTP-\(day)", "txt")
+        case .bitwarden: ("bitwarden_export_TrayOTP-\(day)", "json")
+        default: ("otpauth-links-TrayOTP-\(day)", "txt")
         }
         guard let url = Dialogs.saveFile(name: "\(name).\(ext)", fileExtension: ext, title: "Export to \(format.rawValue)") else { return }
         do {
             let data = try Exporter.encode(.init(tokens: tokens, groups: groups), as: format, password: password)
             try data.write(to: url, options: .atomic)
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-            Dialogs.info(title: "Exported \(tokens.count) tokens to \(format.rawValue)", message: url.path)
+            let left = Exporter.unsupported(tokens, in: format)
+            let note = left.isEmpty ? "" : "\n\nLeft out (\(format.rawValue) doesn't support counter-based HOTP codes): "
+                + left.map(\.name).joined(separator: ", ")
+            Dialogs.info(title: "Exported \(tokens.count - left.count) tokens to \(format.rawValue)", message: url.path + note)
         } catch {
             Dialogs.error(error, title: "Export failed")
         }
@@ -707,6 +791,21 @@ final class AppState {
     }
 
     private static func identity(_ t: Token) -> String { "\(t.secret)|\(t.account ?? "")" }
+
+    /// If a token with the same name and account but another secret exists, appends the time added
+    /// ("GitHub 2026-11-17 23:40") so the two can be told apart. Returns whether it did.
+    @discardableResult
+    private static func stampIfLookalike(_ token: inout Token, existing: [Token], now: Date = Date()) -> Bool {
+        let key = { (t: Token) in "\(t.name)|\(t.account ?? "")".lowercased() }
+        guard existing.contains(where: { key($0) == key(token) && $0.secret != token.secret }) else { return false }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        // Keep the service in the issuer, so icon matching still finds it.
+        if token.issuer == nil { token.issuer = token.name }
+        token.name += " " + formatter.string(from: now)
+        return true
+    }
 
     // MARK: Launch at login
 
