@@ -61,6 +61,8 @@ struct IconAdjuster: View {
     ].compactMap(HexColor.init(parsing:))
 
     private var image: NSImage { draft.image }
+    /// The icon the row shows now: a chosen icon wins over the icon pack's automatic match.
+    private var currentIcon: NSImage? { token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token) }
     private var initial: IconLayout { draft.initial }
     private var layout: IconLayout {
         get { draft.layout }
@@ -71,15 +73,14 @@ struct IconAdjuster: View {
     }
 
     var body: some View {
-        let color = Theme.color(for: token)
+        let color = Theme.color(for: token, icon: currentIcon)
         let png = layout.png(image)
 
         Card {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .center, spacing: 14) {
                     VStack(spacing: 4) {
-                        ServiceAvatar(name: token.name, color: color,
-                                      image: token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token))
+                        ServiceAvatar(name: token.name, color: color, image: currentIcon)
                         Text("Current").font(.caption2).foregroundStyle(.secondary)
                     }
                     Image(systemName: "arrow.right").foregroundStyle(.secondary)
@@ -197,7 +198,7 @@ struct IconAdjuster: View {
         if let c = HexColor(parsing: colorText) { layout.background = c }
     }
 
-    private var rowColor: HexColor? { HexColor(NSColor(Theme.color(for: token))) }
+    private var rowColor: HexColor? { HexColor(NSColor(Theme.color(for: token, icon: currentIcon))) }
 
     private func swatch(_ option: HexColor?, help: String) -> some View {
         let selected = option == layout.background

@@ -113,6 +113,52 @@ enum IconImage {
         return (opaque, (0..<3).allSatisfy { high[$0] - low[$0] < 0.1 })
     }
 
+    /// Main colors by image, holding the image so its identifier can't be reused.
+    private static var mainColors: [ObjectIdentifier: (image: NSImage, color: NSColor?)] = [:]
+
+    /// The icon's most common saturated hue, brightened to read on the dark panel. Nil for
+    /// black, white or gray logos, which fall back to the name's color.
+    static func mainColor(_ image: NSImage) -> NSColor? {
+        if let hit = mainColors[ObjectIdentifier(image)] { return hit.color }
+        let side = 32
+        var color: NSColor?
+        if let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side,
+                                      bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                      colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) {
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+            image.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+            NSGraphicsContext.restoreGraphicsState()
+
+            // 24 hue buckets, each pixel weighted by its saturation; the heaviest bucket wins.
+            var weight = [Double](repeating: 0, count: 24), opaque = 0.0
+            var sums = [(r: Double, g: Double, b: Double)](repeating: (0, 0, 0), count: 24)
+            for y in 0..<side {
+                for x in 0..<side {
+                    guard let c = rep.colorAt(x: x, y: y), c.alphaComponent > 0.5 else { continue }
+                    opaque += 1
+                    guard c.saturationComponent > 0.25, c.brightnessComponent > 0.2 else { continue }
+                    let i = min(Int(c.hueComponent * 24), 23)
+                    let w = c.saturationComponent
+                    weight[i] += w
+                    sums[i].r += c.redComponent * w
+                    sums[i].g += c.greenComponent * w
+                    sums[i].b += c.blueComponent * w
+                }
+            }
+            // Ignore a few colored pixels from anti-aliasing or a tiny accent.
+            if let best = weight.indices.max(by: { weight[$0] < weight[$1] }), weight[best] > opaque * 0.05 {
+                let w = weight[best]
+                let average = NSColor(deviceRed: sums[best].r / w, green: sums[best].g / w, blue: sums[best].b / w, alpha: 1)
+                color = NSColor(deviceHue: average.hueComponent, saturation: max(average.saturationComponent, 0.45),
+                                brightness: max(average.brightnessComponent, 0.75), alpha: 1)
+            }
+        }
+        if mainColors.count > 200 { mainColors.removeAll() }
+        mainColors[ObjectIdentifier(image)] = (image, color)
+        return color
+    }
+
     /// Repairs a blank SVG icon by making its background circle transparent, e.g. Simple Icons'
     /// Sony (white logo on a white circle): the logo then sits on the panel's dark background.
     /// Returns nil if nothing visible is left.

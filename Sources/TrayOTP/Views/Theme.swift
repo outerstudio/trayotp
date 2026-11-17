@@ -12,8 +12,9 @@ enum Theme {
     static let cardStroke = Color.white.opacity(0.08)
     static let selection = Color.white.opacity(0.08)
 
-    /// 2FAS badge color names → colors. Tokens without a badge get a stable color from their name.
-    static func color(for token: Token) -> Color {
+    /// 2FAS badge color names → colors. Tokens without a badge take their icon's main color,
+    /// or a stable color from their name when there's no icon or it has no clear color.
+    @MainActor static func color(for token: Token, icon: NSImage? = nil) -> Color {
         switch token.color?.lowercased() {
         case "red": return Color(red: 0.93, green: 0.26, blue: 0.27)
         case "orange": return .orange
@@ -26,6 +27,7 @@ enum Theme {
         case "pink": return .pink
         case "brown": return .brown
         default:
+            if let icon, let main = IconImage.mainColor(icon) { return Color(nsColor: main) }
             let palette: [Color] = [.teal, .blue, .indigo, .purple, .pink, .orange, .green, .mint]
             let hash = token.name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0xFFFF }
             return palette[hash % palette.count]

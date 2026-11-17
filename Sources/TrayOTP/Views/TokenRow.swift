@@ -8,12 +8,12 @@ struct TokenRow: View {
     let isSelected: Bool
 
     var body: some View {
-        let color = Theme.color(for: token)
+        // A chosen icon wins over the icon pack's automatic match.
+        let icon = token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token)
+        let color = Theme.color(for: token, icon: icon)
 
         HStack(spacing: 12) {
-            // A chosen icon wins over the icon pack's automatic match.
-            ServiceAvatar(name: token.name, color: color,
-                          image: token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token))
+            ServiceAvatar(name: token.name, color: color, image: icon)
 
             VStack(alignment: .leading, spacing: 0) {
                 // Name, code, then account on its own line, so a long account doesn't cut off the name.
