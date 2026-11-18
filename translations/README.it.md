@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="Il pannello di TrayOTP: un campo di ricerca, token con nome, codice, account e codice successivo e i pulsanti Aggiungi, Blocca ed Esci">
+  <img src="../docs/screenshots/panel.png" width="340" alt="Il pannello di TrayOTP sotto la sua icona nella barra dei menu: un campo di ricerca, token con nome, codice, account e codice successivo e i pulsanti Aggiungi, Blocca ed Esci">
 </p>
 
 > Questa traduzione potrebbe essere meno aggiornata del [README in inglese](../README.md). In caso di dubbio vale la versione inglese.

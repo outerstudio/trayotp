@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTP 面板：搜索栏、显示名称、验证码、账户和下一个验证码的令牌，以及添加、锁定和退出按钮">
+  <img src="../docs/screenshots/panel.png" width="340" alt="菜单栏图标下方的 TrayOTP 面板：搜索栏、显示名称、验证码、账户和下一个验证码的令牌，以及添加、锁定和退出按钮">
 </p>
 
 > 本译文可能落后于[英文 README](../README.md)。如有出入，以英文版为准。
