@@ -6,6 +6,8 @@ import AppKit
 
 let accentTop = NSColor(red: 1.00, green: 0.47, blue: 0.33, alpha: 1)
 let accentBottom = NSColor(red: 0.91, green: 0.29, blue: 0.19, alpha: 1)
+let tileTop = NSColor(red: 0.20, green: 0.21, blue: 0.24, alpha: 1)
+let tileBottom = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
 
 /// Draws the icon in a 1024×1024 coordinate space (y up), scaled to `pixels`.
 func drawIcon(pixels: Int) -> NSBitmapImageRep {
@@ -21,10 +23,10 @@ func drawIcon(pixels: Int) -> NSBitmapImageRep {
     // macOS icon grid: 824 pt rounded square centred on the 1024 canvas. Flat: no shadow, no backdrop.
     let tile = NSRect(x: 100, y: 100, width: 824, height: 824)
     let tilePath = NSBezierPath(roundedRect: tile, xRadius: 185, yRadius: 185)
-    NSGradient(starting: accentTop, ending: accentBottom)!.draw(in: tilePath, angle: -90)
+    NSGradient(starting: tileTop, ending: tileBottom)!.draw(in: tilePath, angle: -90)
 
-    // White lock: shackle + body.
-    NSColor.white.set()
+    // Orange lock on the dark tile: shackle + body.
+    accentTop.set()
     let shackle = NSBezierPath()
     shackle.lineWidth = 52
     shackle.lineCapStyle = .round
@@ -35,10 +37,10 @@ func drawIcon(pixels: Int) -> NSBitmapImageRep {
     shackle.stroke()
 
     let body = NSBezierPath(roundedRect: NSRect(x: 362, y: 330, width: 300, height: 240), xRadius: 44, yRadius: 44)
-    body.fill()
+    NSGradient(starting: accentTop, ending: accentBottom)!.draw(in: body, angle: -90)
 
     // Keyhole in the tile colour.
-    accentBottom.setFill()
+    tileBottom.setFill()
     NSBezierPath(ovalIn: NSRect(x: 512 - 30, y: 448, width: 60, height: 60)).fill()
     NSBezierPath(roundedRect: NSRect(x: 512 - 14, y: 392, width: 28, height: 80), xRadius: 14, yRadius: 14).fill()
 
