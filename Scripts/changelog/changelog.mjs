@@ -4,6 +4,10 @@
 //   node Scripts/changelog/changelog.mjs notes v1.2.0   # notes for one tag (the GitHub release body)
 //   node Scripts/changelog/changelog.mjs file           # rewrites CHANGELOG.md
 //
+// An annotated tag's message (minus its subject line) is a hand-written intro, shown above the generated
+// list in both. Create it with `git tag -a vX.Y.Z -F notes.md --cleanup=verbatim` so # headings survive.
+// A lightweight tag has none.
+//
 // Only what users notice is listed: feat, fix, perf and revert. docs, ci, build, chore, refactor,
 // style and test commits are left out (the conventionalcommits preset hides them).
 //
@@ -67,6 +71,12 @@ function userFacingCommits (from, to) {
     .filter(c => /^(feat|feature|fix|perf|revert)(\(|!|:)/i.test(c.subject) || /^Revert "/.test(c.subject))
 }
 
+/** The hand-written intro in an annotated tag's message, without its subject line; '' if there is none. */
+function highlights (version) {
+  if (git('cat-file', '-t', `refs/tags/${version.tag}`) !== 'tag') return ''
+  return git('tag', '-l', '--format=%(contents)', version.tag).replace(/^.*\n+/, '').trim()
+}
+
 /** One release section, all commits between the two tags (the first release: since the first commit). */
 async function section (version) {
   const from = previous(version)
@@ -93,7 +103,8 @@ if (command === 'notes' && parse(tag ?? '')) {
   const version = tags.find(t => t.tag === tag)
   if (!version) throw new Error(`No tag ${tag}`)
   // The release already has a title; drop the "## [1.2.0](…) (date)" heading.
-  const body = (await section(version)).replace(/^##? .*\n+/, '').trim()
+  const generated = (await section(version)).replace(/^##? .*\n+/, '').trim()
+  const body = [highlights(version), generated].filter(Boolean).join('\n\n')
   const from = previous(version)
   const [owner, name] = new URL(JSON.parse(readFileSync(join(here, 'package.json'), 'utf8')).repository)
     .pathname.split('/').filter(Boolean)
@@ -105,7 +116,11 @@ if (command === 'notes' && parse(tag ?? '')) {
 } else if (command === 'file') {
   const stable = tags.filter(t => !t.pre.length).reverse()
   const sections = []
-  for (const version of stable) sections.push(await section(version))
+  for (const version of stable) {
+    // The heading line, then the hand-written intro, then the generated lists.
+    const [heading, ...rest] = (await section(version)).split('\n')
+    sections.push([heading, highlights(version), rest.join('\n').trim()].filter(Boolean).join('\n\n'))
+  }
   writeFileSync(join(root, 'CHANGELOG.md'),
     '# Changelog\n\nUser-facing changes in each release. Pre-releases are listed on the ' +
     '[Releases](https://github.com/outerstudio/trayotp/releases) page.\n\n' + sections.join('\n\n') + '\n')
