@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../Support/AppIcon-1024.png" width="128" alt="TrayOTP 图标">
+  <img src="../docs/app-icon.gif" width="128" alt="TrayOTP 图标">
 </p>
 
 <h1 align="center">TrayOTP</h1>
