@@ -14,20 +14,20 @@ struct TrayOTPApp: App {
             PanelView(inMenuBar: true)
                 .environment(appDelegate.state)
         } label: {
-            Image(nsImage: Self.trayIcon)
+            TrayIcon(spinner: appDelegate.state.iconSpinner)
         }
         .menuBarExtraStyle(.window)
     }
+}
 
-    /// A round, slightly larger symbol than the default menu bar size (~13 pt): a lock inside a ring
-    /// with a transparent background. Template so macOS tints it for light and dark menu bars.
-    private static let trayIcon: NSImage = {
-        let config = NSImage.SymbolConfiguration(pointSize: 17, weight: .medium)
-        let image = NSImage(systemSymbolName: "lock.circle", accessibilityDescription: "TrayOTP")?
-            .withSymbolConfiguration(config) ?? NSImage()
-        image.isTemplate = true
-        return image
-    }()
+/// The menu bar icon: the app icon's ring and lock, turning with it (see `IconSpinner`).
+@MainActor
+private struct TrayIcon: View {
+    let spinner: IconSpinner
+
+    var body: some View {
+        Image(nsImage: IconArt.menuBarIcon(rotation: spinner.rotation))
+    }
 }
 
 @MainActor

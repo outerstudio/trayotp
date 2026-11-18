@@ -9,11 +9,8 @@ struct LockView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            // The app icon itself (Support/AppIcon.icns), so the lock screen always matches it.
-            // The icon has ~10% transparent margin, so 56 pt shows a ~45 pt tile.
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .interpolation(.high)
+            // The app icon, its ring counting down. It has ~10% transparent margin, so 56 pt shows a ~45 pt tile.
+            LockIcon(spinner: state.iconSpinner)
                 .frame(width: 56, height: 56)
                 .padding(.top, 6)
                 .accessibilityHidden(true)
@@ -138,6 +135,50 @@ struct TouchIDHost: NSViewRepresentable {
                 content.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
                 content.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor),
             ])
+        }
+    }
+}
+
+/// The app icon on the lock screen, its ring draining like a 30-second code, then sweeping full
+/// again. While it refills it sometimes turns somewhere new (a full ring would hide the turn).
+/// With Reduce Motion it stays still, as shipped.
+@MainActor
+struct LockIcon: View {
+    let spinner: IconSpinner
+    private static let period: TimeInterval = 30
+
+    var body: some View {
+        if IconSpinner.reduceMotion {
+            IconCanvas(rotation: spinner.rotation, remaining: 0.75)
+        } else {
+            TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+                let time = context.date.timeIntervalSince1970
+                let phase = time.truncatingRemainder(dividingBy: Self.period), refill = IconSpinner.duration
+                IconCanvas(rotation: spinner.rotation,
+                           remaining: phase < refill ? IconSpinner.ease(phase / refill)
+                                                     : 1 - (phase - refill) / (Self.period - refill))
+                    .onChange(of: Int(time / Self.period)) { spinner.maybeTurn(chance: 1.0 / 3) }
+            }
+        }
+    }
+}
+
+/// `IconArt.drawAppIcon` in a SwiftUI view, so the ring can change every frame.
+private struct IconCanvas: View {
+    let rotation: Double
+    let remaining: Double
+
+    var body: some View {
+        Canvas { context, size in
+            context.withCGContext { cg in
+                // Canvas is y-down; the icon is drawn y-up in a 1024-point space.
+                cg.translateBy(x: 0, y: size.height)
+                cg.scaleBy(x: size.width / 1024, y: -size.height / 1024)
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = NSGraphicsContext(cgContext: cg, flipped: false)
+                IconArt.drawAppIcon(rotation: rotation, remaining: remaining)
+                NSGraphicsContext.restoreGraphicsState()
+            }
         }
     }
 }

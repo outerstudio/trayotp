@@ -33,9 +33,11 @@ changelog:
 	npm ci --prefix Scripts/changelog --silent
 	node Scripts/changelog/changelog.mjs file
 
-# Redraw Support/AppIcon.icns after changing Scripts/make-icon.swift.
+# Redraw Support/AppIcon.icns after changing Sources/TrayOTP/IconArt.swift.
 icon:
-	swift Scripts/make-icon.swift
+	@mkdir -p .build
+	swiftc -O -parse-as-library Scripts/make-icon.swift Sources/TrayOTP/IconArt.swift -o .build/make-icon
+	.build/make-icon
 
 clean:
 	rm -rf .build build

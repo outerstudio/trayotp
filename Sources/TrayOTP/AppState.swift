@@ -32,6 +32,7 @@ final class AppState {
     private(set) var copiedNext: Token.ID?
     let icons = IconPackStore()
     let updater = Updater()
+    let iconSpinner = IconSpinner()
 
     /// Require Touch ID / password before codes are shown.
     var requireAuth: Bool {
@@ -216,6 +217,8 @@ final class AppState {
         Clipboard.clearIfOurs()
         QRCodeWindow.closeAll()
         iconDraft = nil
+        // Now and then the icon's ring turns somewhere new, as a small surprise.
+        iconSpinner.maybeTurn(chance: 0.25)
     }
 
     func unlock(password: String) async {
