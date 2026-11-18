@@ -94,15 +94,15 @@ final class IconPackStore {
               let url = Self.file(icon, in: directory), let image = IconImage.load(url)
         else { return nil }
         var result = image
-        if IconImage.isBlank(image) {
-            guard url.pathExtension.lowercased() == "svg",
-                  let svg = try? String(contentsOf: url, encoding: .utf8),
-                  let repaired = IconImage.repairedSVG(svg)
-            else {
-                blank.insert(icon.filename)
-                return nil
-            }
-            result = repaired
+        // Logos on a background circle are shown flat, without the circle (this also rescues
+        // a white logo on a white circle). Anything else unreadable falls back to initials.
+        if url.pathExtension.lowercased() == "svg",
+           let svg = try? String(contentsOf: url, encoding: .utf8),
+           let flat = IconImage.flattenedSVG(svg) {
+            result = flat
+        } else if IconImage.isBlank(image) {
+            blank.insert(icon.filename)
+            return nil
         }
         images[icon.filename] = result
         return result

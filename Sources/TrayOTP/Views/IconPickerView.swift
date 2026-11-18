@@ -85,9 +85,8 @@ private struct IconCell: View {
                     Image(systemName: "questionmark").foregroundStyle(.secondary)
                 }
             }
+            .frame(width: 32, height: 32)
             .frame(width: 40, height: 40)
-            .background(Color.white.opacity(0.08), in: Circle())
-            .clipShape(Circle())
 
             Text(icon.displayName)
                 .font(.system(size: 9))

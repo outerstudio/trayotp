@@ -25,11 +25,11 @@ struct IconDraft {
     }
 }
 
-/// How an image sits in its icon circle.
+/// How an image sits in its icon: a bare square, or a circle when it has a background color.
 struct IconLayout: Equatable {
-    /// Size relative to the circle: 1 fits it exactly, larger values crop it.
+    /// Size relative to the icon: 1 fits it exactly, larger values crop it.
     var scale: Double
-    /// Shift from the center, as a fraction of the circle's width (right and down are positive).
+    /// Shift from the center, as a fraction of the icon's width (right and down are positive).
     var offset = CGSize.zero
     var background: HexColor?
 
@@ -119,18 +119,20 @@ struct IconAdjuster: View {
         }
     }
 
-    /// Drag the image to move it within the circle.
+    /// Drag the image to move it within the icon. The frame shows what is kept: the square, or
+    /// the circle when there is a background color.
     private func largePreview(_ png: Data?) -> some View {
         let side = Self.previewSide
+        let shape = layout.background == nil ? AnyShape(RoundedRectangle(cornerRadius: 10)) : AnyShape(Circle())
         return ZStack {
-            Circle().fill(Color.white.opacity(0.08))
+            shape.fill(Color.white.opacity(0.08))
             if let png, let large = IconImage.image(for: png) {
                 Image(nsImage: large).resizable().interpolation(.high)
             }
         }
         .frame(width: side, height: side)
-        .overlay(Circle().strokeBorder(Color.white.opacity(0.15)))
-        .contentShape(Circle())
+        .overlay(shape.stroke(Color.white.opacity(0.15)))
+        .contentShape(shape)
         .gesture(
             DragGesture(minimumDistance: 1)
                 .onChanged { drag in

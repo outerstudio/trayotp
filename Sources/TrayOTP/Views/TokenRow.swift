@@ -121,13 +121,14 @@ struct ServiceAvatar: View {
 
     var body: some View {
         if let image {
+            // The bare logo, no circle behind it (like 2FAS), a little inset so it doesn't
+            // look larger than the initials badges.
             Image(nsImage: image)
                 .resizable()
                 .interpolation(.high)
                 .scaledToFit()
+                .frame(width: 30, height: 30)
                 .frame(width: 36, height: 36)
-                .background(Color.white.opacity(0.08), in: Circle())
-                .clipShape(Circle())
         } else {
             Text(initials)
                 .font(.system(size: 14, weight: .semibold))

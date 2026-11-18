@@ -52,9 +52,10 @@ enum IconImage {
         return rep.representation(using: .png, properties: [:])
     }
 
-    /// An icon as the rows show it: the image centered in a circle, on an optional background color.
-    /// `scale` is the image's size relative to the circle: 1 fits it exactly, larger values crop it.
-    /// `offset` moves it from the center, as a fraction of the circle's width (right and down are positive).
+    /// An icon as the rows show it: the bare image centered in a square, or, with a background
+    /// color, inside a circle of that color.
+    /// `scale` is the image's size relative to the square: 1 fits it exactly, larger values crop it.
+    /// `offset` moves it from the center, as a fraction of the square's width (right and down are positive).
     static func compose(_ image: NSImage, scale: CGFloat, offset: CGSize = .zero, background: NSColor?) -> Data? {
         let source = image.size
         guard source.width > 0, source.height > 0 else { return nil }
@@ -62,12 +63,12 @@ enum IconImage {
         let fit = side * scale / max(source.width, source.height)
         let size = NSSize(width: source.width * fit, height: source.height * fit)
         let composed = NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
-            let circle = NSBezierPath(ovalIn: rect)
             if let background {
+                let circle = NSBezierPath(ovalIn: rect)
                 background.setFill()
                 circle.fill()
+                circle.addClip()
             }
-            circle.addClip()
             NSGraphicsContext.current?.imageInterpolation = .high
             // Drawing is bottom-up, so a downward offset lowers y.
             let target = NSRect(x: (side - size.width) / 2 + offset.width * side,
@@ -159,25 +160,131 @@ enum IconImage {
         return color
     }
 
-    /// Repairs a blank SVG icon by making its background circle transparent, e.g. Simple Icons'
-    /// Sony (white logo on a white circle): the logo then sits on the panel's dark background.
-    /// Returns nil if nothing visible is left.
-    static func repairedSVG(_ svg: String) -> NSImage? {
+    /// Makes a pack icon drawn as a logo on a full-size background circle (like Aegis Simple Icons)
+    /// flat, like 2FAS: the circle is removed, a one-color logo takes the circle's brand color
+    /// (lightened, or white, when too dark for the panel), and the image is cropped to the logo.
+    /// Nil if the SVG has no background circle or nothing visible is left.
+    static func flattenedSVG(_ svg: String) -> NSImage? {
         let svg = SVGPathFixer.normalize(svg: svg)
         guard let circle = svg.range(of: "<circle"),
-              let end = svg[circle.upperBound...].firstIndex(of: ">")
+              let end = svg[circle.upperBound...].firstIndex(of: ">"),
+              let box = viewBox(svg)
         else { return nil }
         let tag = String(svg[circle.lowerBound...end])
+        // Only a circle that fills the canvas is a background; smaller ones are part of the logo.
+        guard let cx = number("cx", in: tag), let cy = number("cy", in: tag), let r = number("r", in: tag),
+              abs(cx - box.midX) < box.width * 0.05, abs(cy - box.midY) < box.height * 0.05,
+              r >= min(box.width, box.height) * 0.45
+        else { return nil }
+        let brand = fillColor(tag)
         var fixed = tag
             .replacingOccurrences(of: #"fill\s*=\s*"[^"]*""#, with: "fill=\"none\"", options: .regularExpression)
             .replacingOccurrences(of: #"fill\s*:\s*[^;"]+"#, with: "fill:none", options: .regularExpression)
         if fixed == tag { fixed = "<circle fill=\"none\"" + tag.dropFirst("<circle".count) }
-
-        // The remaining logo is one color by design, so only require that something is visible.
-        guard let image = NSImage(data: Data(svg.replacingCharacters(in: circle.lowerBound...end, with: fixed).utf8)),
-              colorStats(image).opaque > 0
+        guard let logo = NSImage(data: Data(svg.replacingCharacters(in: circle.lowerBound...end, with: fixed).utf8)),
+              logo.size.width > 0, logo.size.height > 0
         else { return nil }
-        return image
+
+        let side = 160
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side,
+                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        logo.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let stats = colorStats(logo)
+        guard stats.opaque > 0 else { return nil }
+        // Raw RGBA bytes, premultiplied, rows top-down (like CGImage's).
+        guard let pixels = rep.bitmapData else { return nil }
+        let row = rep.bytesPerRow
+        var bounds: (minX: Int, minY: Int, maxX: Int, maxY: Int) = (side, side, -1, -1)
+        var logoColor: NSColor?
+        for y in 0..<side {
+            for x in 0..<side {
+                let p = pixels + y * row + x * 4
+                guard p[3] > 5 else { continue }
+                bounds = (min(bounds.minX, x), min(bounds.minY, y), max(bounds.maxX, x), max(bounds.maxY, y))
+                if logoColor == nil, p[3] > 230 {
+                    let a = CGFloat(p[3])
+                    logoColor = NSColor(deviceRed: CGFloat(p[0]) / a, green: CGFloat(p[1]) / a, blue: CGFloat(p[2]) / a, alpha: 1)
+                }
+            }
+        }
+        guard bounds.maxX >= bounds.minX else { return nil }
+
+        // A one-color logo is repainted; a multicolor one keeps its own colors.
+        if stats.flat {
+            let readableColor = readable(brand) ?? readable(logoColor) ?? .white
+            let target = readableColor.usingColorSpace(.deviceRGB) ?? readableColor
+            let rgb = [target.redComponent, target.greenComponent, target.blueComponent]
+            for y in bounds.minY...bounds.maxY {
+                for x in bounds.minX...bounds.maxX {
+                    let p = pixels + y * row + x * 4
+                    for i in 0..<3 { p[i] = UInt8((rgb[i] * CGFloat(p[3])).rounded()) }
+                }
+            }
+        }
+        let crop = CGRect(x: bounds.minX, y: bounds.minY,
+                          width: bounds.maxX - bounds.minX + 1, height: bounds.maxY - bounds.minY + 1)
+        guard let cropped = rep.cgImage?.cropping(to: crop) else { return nil }
+        return NSImage(cgImage: cropped, size: NSSize(width: crop.width / 2, height: crop.height / 2))
+    }
+
+    /// The color as it reads on the dark panel: dark saturated colors are lightened toward white,
+    /// dark grays and black give nil.
+    private static func readable(_ color: NSColor?) -> NSColor? {
+        guard var color = color?.usingColorSpace(.sRGB) else { return nil }
+        func luminance(_ c: NSColor) -> CGFloat {
+            func linear(_ v: CGFloat) -> CGFloat { v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4) }
+            return 0.2126 * linear(c.redComponent) + 0.7152 * linear(c.greenComponent) + 0.0722 * linear(c.blueComponent)
+        }
+        if luminance(color) >= 0.1 { return color }
+        guard color.saturationComponent > 0.25 else { return nil }
+        for _ in 0..<6 where luminance(color) < 0.1 {
+            color = color.blended(withFraction: 0.15, of: .white) ?? color
+        }
+        return color
+    }
+
+    /// The SVG's viewBox, or its width and height.
+    private static func viewBox(_ svg: String) -> CGRect? {
+        guard let open = svg.range(of: "<svg"), let end = svg[open.upperBound...].firstIndex(of: ">") else { return nil }
+        let tag = String(svg[open.lowerBound...end])
+        if let range = tag.range(of: #"viewBox\s*=\s*"[^"]*""#, options: .regularExpression) {
+            let values = tag[range].drop { $0 != "\"" }.dropFirst().dropLast()
+                .split { $0 == " " || $0 == "," }.compactMap { Double($0) }
+            if values.count == 4, values[2] > 0, values[3] > 0 { return CGRect(x: values[0], y: values[1], width: values[2], height: values[3]) }
+        }
+        guard let w = number("width", in: tag), let h = number("height", in: tag), w > 0, h > 0 else { return nil }
+        return CGRect(x: 0, y: 0, width: w, height: h)
+    }
+
+    /// A numeric attribute such as `r="12"` (units like "px" are ignored).
+    private static func number(_ name: String, in tag: String) -> CGFloat? {
+        guard let range = tag.range(of: #"(^|\s)\#(name)\s*=\s*"[-0-9.]+"#, options: .regularExpression) else { return nil }
+        return Double(tag[range].drop { $0 != "\"" }.dropFirst()).map { CGFloat($0) }
+    }
+
+    /// The fill of an SVG tag, from a `fill` attribute or style: `#rgb`, `#rrggbb`, white or black.
+    private static func fillColor(_ tag: String) -> NSColor? {
+        guard let range = tag.range(of: #"fill\s*[=:]\s*"?[#a-zA-Z0-9]+"#, options: .regularExpression) else { return nil }
+        var value = String(tag[range].drop { $0 != "=" && $0 != ":" }.dropFirst())
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\" ")).lowercased()
+        switch value {
+        case "white": return .white
+        case "black": return .black
+        default: break
+        }
+        guard value.hasPrefix("#") else { return nil }
+        value.removeFirst()
+        if value.count == 3 { value = value.map { "\($0)\($0)" }.joined() }
+        guard value.count == 6, let rgb = Int(value, radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat(rgb >> 16 & 0xFF) / 255, green: CGFloat(rgb >> 8 & 0xFF) / 255,
+                       blue: CGFloat(rgb & 0xFF) / 255, alpha: 1)
     }
 
     /// Rows redraw every second, so decoded images are cached by their data.
