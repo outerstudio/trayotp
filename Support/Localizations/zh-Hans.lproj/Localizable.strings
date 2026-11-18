@@ -282,6 +282,11 @@
 "otpauth Links (Plain Text)…" = "otpauth 链接（纯文本）…";
 "Update to %@…" = "更新到 %@…";
 "Check for Updates…" = "检查更新…";
+"Release Notes" = "发行说明";
+"Version %@" = "版本 %@";
+"Enjoying TrayOTP? Help keep it going." = "喜欢 TrayOTP 吗？帮助它继续前行。";
+"About TrayOTP" = "关于 TrayOTP";
+"Support TrayOTP" = "支持 TrayOTP";
 "Check Automatically" = "自动检查";
 "Update Channel" = "更新渠道";
 "Stable" = "稳定版";

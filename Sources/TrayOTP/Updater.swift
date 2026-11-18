@@ -117,21 +117,16 @@ final class Updater {
 
     private func offer(_ release: Release) async {
         let message = String(localized: "TrayOTP \(release.version?.description ?? release.tag) is available; you have \(currentVersion?.description ?? "?").")
-        // HTML comments (left by release templates) are hidden on GitHub, so drop them here too.
-        let notes = (release.notes ?? "")
-            .replacingOccurrences(of: "<!--[\\s\\S]*?-->", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let details = notes.isEmpty ? nil : Self.render(notes: notes)
         guard canInstall, release.zip != nil, release.checksum != nil else {
             if Dialogs.confirm(title: String(localized: "Update available"), message: message,
-                               button: String(localized: "Open Release Page"), details: details) {
+                               button: String(localized: "Open Release Page"), releaseNotes: release.pageURL) {
                 NSWorkspace.shared.open(release.pageURL)
             }
             return
         }
         guard Dialogs.confirm(title: String(localized: "Update available"),
                               message: message + "\n\n" + String(localized: "TrayOTP will quit and reopen."),
-                              button: String(localized: "Install and Relaunch"), details: details)
+                              button: String(localized: "Install and Relaunch"), releaseNotes: release.pageURL)
         else { return }
         isBusy = true
         defer { isBusy = false }
@@ -142,90 +137,6 @@ final class Updater {
         } catch {
             Dialogs.error(error, title: String(localized: "Update failed"))
         }
-    }
-
-    /// GitHub release notes (Markdown) as styled text: headings bold, list items as bullets (nested
-    /// ones indented, wrapped lines hanging under the text), inline `**bold**`, `*italic*`,
-    /// `~~strikethrough~~`, `code`, `[links](…)` and images (as a link to the image), and bare URLs
-    /// made clickable.
-    private static func render(notes: String) -> NSAttributedString {
-        let size = NSFont.smallSystemFontSize
-        let body = NSFont.systemFont(ofSize: size)
-        let out = NSMutableAttributedString()
-        let lines = notes.components(separatedBy: .newlines)
-        for (index, raw) in lines.enumerated() {
-            let indent = raw.prefix { $0 == " " || $0 == "\t" }.reduce(0) { $0 + ($1 == "\t" ? 4 : 1) }
-            var line = raw.trimmingCharacters(in: .whitespaces)
-            // Like GitHub: 1–6 `#` then a space, so "#12 fixed …" stays a plain line.
-            let hashes = line.prefix { $0 == "#" }.count
-            let heading = (1...6).contains(hashes) && line.dropFirst(hashes).first == " "
-            // Nesting depth from the leading spaces (GitHub nests list items by 2 or more).
-            let level = min(indent / 2, 4)
-            var marker = ""
-            if heading {
-                line = String(line.dropFirst(hashes)).trimmingCharacters(in: .whitespaces)
-            } else if line.hasPrefix("* ") || line.hasPrefix("- ") || line.hasPrefix("+ ") {
-                marker = level == 0 ? "• " : "◦ "
-                line = String(line.dropFirst(2))
-            } else if let number = line.range(of: #"^\d+[.)] "#, options: .regularExpression) {
-                marker = String(line[number])
-                line = String(line[number.upperBound...])
-            }
-            let parsed = (try? AttributedString(markdown: line, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-                ?? AttributedString(line)
-
-            let start = out.length
-            out.append(NSAttributedString(string: marker, attributes: [.font: body, .foregroundColor: NSColor.labelColor]))
-            for run in parsed.runs {
-                let intent = run.inlinePresentationIntent ?? []
-                var font = intent.contains(.code)
-                    ? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
-                    : NSFont.systemFont(ofSize: size, weight: heading || intent.contains(.stronglyEmphasized) ? .bold : .regular)
-                if intent.contains(.emphasized) { font = NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask) }
-                var attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.labelColor]
-                if intent.contains(.strikethrough) { attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue }
-                var text = String(parsed[run.range].characters)
-                if let image = run.imageURL {
-                    // Images can't be shown inline: their alt text (or file name) links to the image.
-                    // An image without alt text comes back as U+FFFC (object replacement character).
-                    text = text.replacingOccurrences(of: "\u{FFFC}", with: "")
-                    if text.isEmpty { text = image.lastPathComponent }
-                    if let link = Self.safeLink(image) { attributes[.link] = link }
-                } else if let link = run.link.flatMap(Self.safeLink) {
-                    attributes[.link] = link
-                }
-                out.append(NSAttributedString(string: text, attributes: attributes))
-            }
-            if index < lines.count - 1 { out.append(NSAttributedString(string: "\n")) }
-
-            if !marker.isEmpty || level > 0 {
-                let paragraph = NSMutableParagraphStyle()
-                paragraph.firstLineHeadIndent = CGFloat(level) * 12
-                paragraph.headIndent = paragraph.firstLineHeadIndent + (marker as NSString).size(withAttributes: [.font: body]).width
-                out.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: start, length: out.length - start))
-            }
-        }
-        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
-            for match in detector.matches(in: out.string, range: NSRange(location: 0, length: out.length)) {
-                guard let url = match.url.flatMap(Self.safeLink),
-                      out.attribute(.link, at: match.range.location, effectiveRange: nil) == nil else { continue }
-                out.addAttribute(.link, value: url, range: match.range)
-            }
-        }
-        return out
-    }
-
-    /// Only web links are clickable in release notes, and always over HTTPS: `http` is upgraded,
-    /// any other scheme (`file:`, `mailto:`, custom app schemes…) is left as plain text.
-    private static func safeLink(_ url: URL) -> URL? {
-        guard var parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.host?.isEmpty == false
-        else { return nil }
-        switch parts.scheme?.lowercased() {
-        case "https": break
-        case "http": parts.scheme = "https"
-        default: return nil
-        }
-        return parts.url
     }
 
     /// Downloads, verifies and unpacks the release; returns the new .app inside a fresh temp folder.

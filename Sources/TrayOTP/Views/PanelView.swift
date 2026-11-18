@@ -325,15 +325,25 @@ struct TokenListView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 8) {
-            Button { state.screen = .add } label: { Label("Add", systemImage: "plus") }
-            Button {
-                // Locking means done for now: close the panel. The lock screen shows on the next open.
-                state.lock()
-                PanelController.shared.close()
-            } label: { Label("Lock", systemImage: "lock") }
-                .disabled(!state.needsUnlock)
-            Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Button { state.screen = .add } label: { Label("Add", systemImage: "plus") }
+                Button {
+                    // Locking means done for now: close the panel. The lock screen shows on the next open.
+                    state.lock()
+                    PanelController.shared.close()
+                } label: { Label("Lock", systemImage: "lock") }
+                    .disabled(!state.needsUnlock)
+                Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
+            }
+            if let release = state.updater.available {
+                Button {
+                    Task { await state.updater.offerAvailable() }
+                } label: {
+                    Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
+                }
+                .disabled(state.updater.isBusy)
+            }
         }
         .buttonStyle(PanelButtonStyle())
     }
@@ -508,11 +518,6 @@ struct SettingsMenu: View {
             }
             .disabled(state.tokens.isEmpty)
             Divider()
-            if let release = state.updater.available {
-                Button("Update to \(release.version?.description ?? release.tag)…") {
-                    afterMenu { Task { await state.updater.offerAvailable() } }
-                }
-            }
             Button("Check for Updates…") { afterMenu { Task { await state.updater.checkInteractively() } } }
                 .disabled(state.updater.isBusy)
             Toggle("Check Automatically", isOn: Binding(get: { state.updater.checksAutomatically },
@@ -525,8 +530,13 @@ struct SettingsMenu: View {
             }
             Divider()
             // A brand name: the same in every language.
-            Button { NSWorkspace.shared.open(URL(string: "https://buymeacoffee.com/garyyeap")!) } label: {
-                Text(verbatim: "Buy Me a Coffee…")
+            Button("About TrayOTP") { afterMenu { Dialogs.about() } }
+            Menu("Support TrayOTP") {
+                ForEach(Dialogs.sponsorLinks, id: \.name) { link in
+                    Button { NSWorkspace.shared.open(link.url) } label: {
+                        Text(verbatim: link.name + "…")
+                    }
+                }
             }
         } label: {
             Image(systemName: "ellipsis")

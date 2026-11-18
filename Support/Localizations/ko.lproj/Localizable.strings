@@ -282,6 +282,11 @@
 "otpauth Links (Plain Text)…" = "otpauth 링크(일반 텍스트)…";
 "Update to %@…" = "%@(으)로 업데이트…";
 "Check for Updates…" = "업데이트 확인…";
+"Release Notes" = "릴리스 노트";
+"Version %@" = "버전 %@";
+"Enjoying TrayOTP? Help keep it going." = "TrayOTP가 마음에 드시나요? 계속 이어갈 수 있도록 도와주세요.";
+"About TrayOTP" = "TrayOTP 정보";
+"Support TrayOTP" = "TrayOTP 후원";
 "Check Automatically" = "자동으로 확인";
 "Update Channel" = "업데이트 채널";
 "Stable" = "안정 버전";

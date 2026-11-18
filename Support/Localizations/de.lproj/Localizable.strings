@@ -280,6 +280,11 @@
 "otpauth Links (Plain Text)…" = "otpauth-Links (Klartext) …";
 "Update to %@…" = "Auf %@ aktualisieren …";
 "Check for Updates…" = "Nach Updates suchen …";
+"Release Notes" = "Versionshinweise";
+"Version %@" = "Version %@";
+"Enjoying TrayOTP? Help keep it going." = "Gefällt dir TrayOTP? Hilf mit, dass es weitergeht.";
+"About TrayOTP" = "Über TrayOTP";
+"Support TrayOTP" = "TrayOTP unterstützen";
 "Check Automatically" = "Automatisch suchen";
 "Update Channel" = "Update-Kanal";
 "Stable" = "Stabil";

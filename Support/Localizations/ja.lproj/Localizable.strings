@@ -282,6 +282,11 @@
 "otpauth Links (Plain Text)…" = "otpauthリンク（プレーンテキスト）…";
 "Update to %@…" = "%@にアップデート…";
 "Check for Updates…" = "アップデートを確認…";
+"Release Notes" = "リリースノート";
+"Version %@" = "バージョン %@";
+"Enjoying TrayOTP? Help keep it going." = "TrayOTP を気に入っていただけましたか？ 開発の継続にご協力ください。";
+"About TrayOTP" = "TrayOTP について";
+"Support TrayOTP" = "TrayOTP を支援";
 "Check Automatically" = "自動的に確認";
 "Update Channel" = "アップデートチャンネル";
 "Stable" = "安定版";
