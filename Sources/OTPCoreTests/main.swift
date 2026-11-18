@@ -582,7 +582,13 @@ extension Result where Failure == Error {
 
 check(AppVersion("v0.10.0")! > AppVersion("0.9.3")!, "versions compare numerically, not as text")
 check(AppVersion("1.0")! == AppVersion("v1.0.0")!, "missing components count as zero")
-check(AppVersion("0.2.0-beta.1")! == AppVersion("0.2.0")!, "pre-release suffix is ignored")
+check(AppVersion("0.2.0-beta.1")! < AppVersion("0.2.0")!, "a pre-release is older than its release")
+check(AppVersion("0.2.0-beta.1")! > AppVersion("0.1.9")!, "a pre-release is newer than the previous release")
+check(AppVersion("1.0.0-beta.2")! < AppVersion("1.0.0-beta.10")!, "numeric pre-release parts compare as numbers")
+check(AppVersion("1.0.0-alpha")! < AppVersion("1.0.0-beta")! && AppVersion("1.0.0-beta")! < AppVersion("1.0.0-beta.1")!,
+      "pre-release parts compare as text, and more parts is newer")
+check(AppVersion("v1.0.0-beta.1")!.description == "1.0.0-beta.1", "description keeps the pre-release")
+check(AppVersion("1.0.0-") == nil && AppVersion("1.0.0-beta..1") == nil, "empty pre-release parts are rejected")
 check(AppVersion("0.1.0")! < AppVersion("0.1.1")!, "patch bump is newer")
 check(AppVersion("") == nil && AppVersion("latest") == nil && AppVersion("1..2") == nil, "junk is rejected")
 

@@ -6,9 +6,10 @@ name: Release
 
 on:
   push:
-    # Only vX.Y.Z (no pre-release suffix): the tag becomes CFBundleShortVersionString and is
-    # what the in-app updater compares. Other tags, like v1.0.0-beta, don't start a run.
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    # vX.Y.Z or a pre-release like vX.Y.Z-beta.1: the tag becomes CFBundleShortVersionString and
+    # is what the in-app updater compares. Pre-releases are published as GitHub pre-releases,
+    # which the updater (it reads /releases/latest) never offers.
+    tags: ["v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
 
 permissions:
   contents: write
@@ -36,6 +37,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          PRERELEASE=()
+          [[ "$GITHUB_REF_NAME" == *-* ]] && PRERELEASE=(--prerelease)
           gh release create "$GITHUB_REF_NAME" \
             "TrayOTP-${GITHUB_REF_NAME}.zip" "TrayOTP-${GITHUB_REF_NAME}.zip.sha256" \
-            --generate-notes
+            --generate-notes "${PRERELEASE[@]}"
