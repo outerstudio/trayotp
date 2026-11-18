@@ -11,9 +11,9 @@ import SwiftUI
 final class AppState {
     enum Screen: Equatable { case list, add, iconPicker(Token.ID), favicon(Token.ID), iconEditor(Token.ID) }
 
-    private(set) var tokens: [Token] = []
+    private(set) var tokens: [Token] = [] { didSet { updateMenuBarRing() } }
     private(set) var groups: [TokenGroup] = []
-    private(set) var isLocked = true
+    private(set) var isLocked = true { didSet { updateMenuBarRing() } }
     private(set) var authInProgress = false
     /// The Touch ID prompt inside the lock screen, while it waits for a finger.
     private(set) var touchIDView: LAAuthenticationView?
@@ -33,15 +33,22 @@ final class AppState {
     let icons = IconPackStore()
     let updater = Updater()
     let iconSpinner = IconSpinner()
+    let menuBarRing = MenuBarRing()
 
     /// Require Touch ID / password before codes are shown.
     var requireAuth: Bool {
-        didSet { UserDefaults.standard.set(requireAuth, forKey: Keys.requireAuth) }
+        didSet {
+            UserDefaults.standard.set(requireAuth, forKey: Keys.requireAuth)
+            updateMenuBarRing()
+        }
     }
     /// Minutes the vault stays unlocked after last use. 0 = lock every time the panel opens,
     /// `untilSleep` = no timeout (it still locks on sleep and screen lock).
     var graceMinutes: Int {
-        didSet { UserDefaults.standard.set(graceMinutes, forKey: Keys.graceMinutes) }
+        didSet {
+            UserDefaults.standard.set(graceMinutes, forKey: Keys.graceMinutes)
+            updateMenuBarRing()
+        }
     }
     static let untilSleep = -1
 
@@ -64,6 +71,13 @@ final class AppState {
     /// Close the panel after a code is copied, giving the focus back to the previous app to paste it.
     var closesAfterCopy: Bool {
         didSet { UserDefaults.standard.set(closesAfterCopy, forKey: Keys.closesAfterCopy) }
+    }
+    /// When the menu bar icon's ring stops counting down with the codes.
+    var menuBarCountdown: MenuBarCountdown {
+        didSet {
+            UserDefaults.standard.set(menuBarCountdown.rawValue, forKey: Keys.menuBarCountdown)
+            updateMenuBarRing()
+        }
     }
 
     /// The vault key is wrapped with a master password; unlocking needs it instead of Touch ID.
@@ -93,6 +107,7 @@ final class AppState {
         static let ungroupedExpanded = "ungroupedExpanded"
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
+        static let menuBarCountdown = "menuBarCountdown"
     }
 
     init() {
@@ -106,6 +121,8 @@ final class AppState {
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
+        menuBarCountdown = defaults.string(forKey: Keys.menuBarCountdown).flatMap(MenuBarCountdown.init(rawValue:))
+            ?? .untilGraceEnds
         shortcut = Shortcut.load()
         if !GlobalHotKey.shared.register(shortcut) { shortcut = nil }
         // The shortcut is gone (or taken by another app): don't leave TrayOTP with no way in.
@@ -122,6 +139,7 @@ final class AppState {
             lock()
         }
         panelWasClosed = false
+        updateMenuBarRing()
         if isLocked {
             if hasMasterPassword {
                 // The lock screen asks for the password.
@@ -379,12 +397,37 @@ final class AppState {
     }
 
     /// Marks the vault as in use now; the Stay Unlocked timeout counts from the last call.
-    func touch() { lastActive = Date() }
+    func touch() {
+        lastActive = Date()
+        updateMenuBarRing()
+    }
 
     /// The panel went off screen or the app went to the background: Stay Unlocked counts from now.
     private func panelDidClose() {
         if !panelWasClosed { touch() }
         panelWasClosed = true
+        updateMenuBarRing()
+    }
+
+    // MARK: Menu bar countdown
+
+    /// Starts, re-times or stops the menu bar countdown. It follows the most common TOTP period
+    /// (30 s, normally) while the vault is unlocked; with `.untilGraceEnds` it also stops when
+    /// Stay Unlocked runs out after the panel closes, since the vault only locks for real on the
+    /// next open, and the countdown shouldn't wake the Mac for hours after codes stopped showing.
+    private func updateMenuBarRing() {
+        let periods = tokens.filter { $0.kind != .hotp }.map(\.period)
+        let period = Dictionary(grouping: periods, by: { $0 }).max { $0.value.count < $1.value.count }?.key
+        guard menuBarCountdown != .off, !isLocked, let period else {
+            menuBarRing.follow(period: nil, until: nil)
+            return
+        }
+        var end: Date?
+        if menuBarCountdown == .untilGraceEnds, panelWasClosed, needsUnlock, graceMinutes != Self.untilSleep,
+           let lastActive {
+            end = lastActive.addingTimeInterval(max(5, Double(graceMinutes * 60)))
+        }
+        menuBarRing.follow(period: TimeInterval(period), until: end)
     }
 
     private func observeSystemLock() {

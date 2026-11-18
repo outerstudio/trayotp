@@ -263,6 +263,10 @@
 "Custom: %@" = "사용자화: %@";
 "Custom…" = "사용자화…";
 "Show Menu Bar Icon" = "메뉴 막대 아이콘 보기";
+"Menu Bar Countdown" = "메뉴 막대 카운트다운";
+"Off" = "끔";
+"Until Stay Unlocked Ends" = "'잠금 해제 유지'가 끝날 때까지";
+"Until Locked" = "잠길 때까지";
 "Close After Copying" = "복사 후 닫기";
 "Launch at Login" = "로그인 시 실행";
 "Language" = "언어";

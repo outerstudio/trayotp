@@ -263,6 +263,10 @@
 "Custom: %@" = "カスタム：%@";
 "Custom…" = "カスタム…";
 "Show Menu Bar Icon" = "メニューバーにアイコンを表示";
+"Menu Bar Countdown" = "メニューバーのカウントダウン";
+"Off" = "オフ";
+"Until Stay Unlocked Ends" = "「ロック解除を保つ」が終わるまで";
+"Until Locked" = "ロックされるまで";
 "Close After Copying" = "コピー後に閉じる";
 "Launch at Login" = "ログイン時に起動";
 "Language" = "言語";

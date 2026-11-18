@@ -263,6 +263,10 @@
 "Custom: %@" = "自訂：%@";
 "Custom…" = "自訂⋯";
 "Show Menu Bar Icon" = "顯示選單列圖像";
+"Menu Bar Countdown" = "選單列倒數計時";
+"Off" = "關閉";
+"Until Stay Unlocked Ends" = "直到「保持解鎖」結束";
+"Until Locked" = "直到鎖定";
 "Close After Copying" = "拷貝後關閉";
 "Launch at Login" = "登入時啟動";
 "Language" = "語言";

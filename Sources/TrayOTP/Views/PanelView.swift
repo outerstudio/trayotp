@@ -458,6 +458,16 @@ struct SettingsMenu: View {
             Toggle("Show Menu Bar Icon", isOn: Binding(get: { state.showsMenuBarIcon }, set: { show in
                 afterMenu { if show { state.showsMenuBarIcon = true } else { state.hideMenuBarIcon() } }
             }))
+            Menu("Menu Bar Countdown") {
+                Picker("Menu Bar Countdown", selection: $state.menuBarCountdown) {
+                    Text("Off").tag(MenuBarCountdown.off)
+                    Text("Until Stay Unlocked Ends").tag(MenuBarCountdown.untilGraceEnds)
+                    Text("Until Locked").tag(MenuBarCountdown.untilLocked)
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
+            .disabled(!state.showsMenuBarIcon)
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))

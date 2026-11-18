@@ -263,6 +263,10 @@
 "Custom: %@" = "Personnalisé : %@";
 "Custom…" = "Personnalisé…";
 "Show Menu Bar Icon" = "Afficher l’icône dans la barre des menus";
+"Menu Bar Countdown" = "Compte à rebours dans la barre des menus";
+"Off" = "Désactivé";
+"Until Stay Unlocked Ends" = "Jusqu’à la fin de « Rester déverrouillé »";
+"Until Locked" = "Jusqu’au verrouillage";
 "Close After Copying" = "Fermer après la copie";
 "Launch at Login" = "Ouvrir à la connexion";
 "2FAS (Encrypted)…" = "2FAS (chiffré)…";

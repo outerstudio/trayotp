@@ -263,6 +263,10 @@
 "Custom: %@" = "Eigene: %@";
 "Custom…" = "Eigene …";
 "Show Menu Bar Icon" = "Menüleistensymbol anzeigen";
+"Menu Bar Countdown" = "Countdown in der Menüleiste";
+"Off" = "Aus";
+"Until Stay Unlocked Ends" = "Bis „Entsperrt bleiben“ abläuft";
+"Until Locked" = "Bis zum Sperren";
 "Close After Copying" = "Nach dem Kopieren schließen";
 "Launch at Login" = "Beim Anmelden starten";
 "2FAS (Encrypted)…" = "2FAS (verschlüsselt) …";

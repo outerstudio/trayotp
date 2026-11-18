@@ -69,7 +69,8 @@ enum IconArt {
 
     /// The menu bar icon: the same ring and lock as a template image, which macOS tints for light
     /// and dark menu bars. A little larger than the default symbol size (~13 pt), like the icons next to it.
-    static func menuBarIcon(rotation: CGFloat) -> NSImage {
+    /// `remaining` is how much of the ring is lit (it counts down with the codes, see `MenuBarRing`).
+    static func menuBarIcon(rotation: CGFloat, remaining: CGFloat = 0.75) -> NSImage {
         let side: CGFloat = 18
         let image = NSImage(size: NSSize(width: side, height: side), flipped: false) { _ in
             let center = NSPoint(x: side / 2, y: side / 2), radius: CGFloat = 7.5
@@ -79,13 +80,16 @@ enum IconArt {
             NSColor.black.withAlphaComponent(0.3).setStroke()
             track.stroke()
 
-            let arc = NSBezierPath()
-            let start = 90 - rotation
-            arc.appendArc(withCenter: center, radius: radius, startAngle: start, endAngle: start - 270, clockwise: true)
-            arc.lineWidth = 1.7
-            arc.lineCapStyle = .round
-            NSColor.black.setStroke()
-            arc.stroke()
+            let lit = min(max(remaining, 0), 1)
+            if lit > 0.001 {
+                let arc = NSBezierPath()
+                let start = 90 - rotation
+                arc.appendArc(withCenter: center, radius: radius, startAngle: start, endAngle: start - 360 * lit, clockwise: true)
+                arc.lineWidth = 1.7
+                arc.lineCapStyle = .round
+                NSColor.black.setStroke()
+                arc.stroke()
+            }
 
             // Lock: shackle + body, with the keyhole cut out.
             NSColor.black.set()

@@ -14,19 +14,21 @@ struct TrayOTPApp: App {
             PanelView(inMenuBar: true)
                 .environment(appDelegate.state)
         } label: {
-            TrayIcon(spinner: appDelegate.state.iconSpinner)
+            TrayIcon(spinner: appDelegate.state.iconSpinner, ring: appDelegate.state.menuBarRing)
         }
         .menuBarExtraStyle(.window)
     }
 }
 
-/// The menu bar icon: the app icon's ring and lock, turning with it (see `IconSpinner`).
+/// The menu bar icon: the app icon's ring and lock, turning with it (see `IconSpinner`) and
+/// counting down with the codes (see `MenuBarRing`).
 @MainActor
 private struct TrayIcon: View {
     let spinner: IconSpinner
+    let ring: MenuBarRing
 
     var body: some View {
-        Image(nsImage: IconArt.menuBarIcon(rotation: spinner.rotation))
+        Image(nsImage: IconArt.menuBarIcon(rotation: spinner.rotation, remaining: ring.remaining))
     }
 }
 

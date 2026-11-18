@@ -263,6 +263,10 @@
 "Custom: %@" = "Personalizzato: %@";
 "Custom…" = "Personalizzato…";
 "Show Menu Bar Icon" = "Mostra icona nella barra dei menu";
+"Menu Bar Countdown" = "Conto alla rovescia nella barra dei menu";
+"Off" = "Disattivato";
+"Until Stay Unlocked Ends" = "Fino alla fine di “Resta sbloccato”";
+"Until Locked" = "Fino al blocco";
 "Close After Copying" = "Chiudi dopo la copia";
 "Launch at Login" = "Apri al login";
 "Language" = "Lingua";
