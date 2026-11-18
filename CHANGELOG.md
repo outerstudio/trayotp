@@ -4,6 +4,22 @@ User-facing changes in each release. Pre-releases are listed on the [Releases](h
 
 ## [0.5.0](https://github.com/outerstudio/trayotp/compare/v0.4.0...v0.5.0) (2026-11-18)
 
+A new look: the app icon is now a flat lock inside a TOTP countdown ring, and the same countdown now runs in your menu bar.
+
+What's new
+
+- Countdown in the menu bar. The menu bar icon counts down along with your codes, so you can see when they're about to change without opening the panel.
+- New app icon. It's a dark icon with an orange lock inside a countdown ring. The ring turns at random moments. The lock screen shows the same icon.
+- Flat service logos. Logos in the token list are drawn flat, without the circle behind them.
+- Update channels. Choose stable, beta or alpha under updates. Pre-release versions like v1.0.0-beta.1 are now recognised.
+- Release notes in the update dialog. When an update is available, you see what changed, formatted, before you install it.
+
+Install
+
+Download TrayOTP.zip below, unzip it and move TrayOTP to Applications. It's a universal build for Apple silicon and Intel. Builds are ad-hoc signed, not notarized, so on first launch use System Settings → Privacy & Security → Open Anyway. Existing vaults carry over.
+
+Full changelog: https://github.com/outerstudio/trayotp/compare/v0.4.0...v0.5.0
+
 ### Features
 
 * **icon:** dark app icon with an orange lock ([5987fb3](https://github.com/outerstudio/trayotp/commit/5987fb3a54361211691e12311d2d03f5a63090fe))
