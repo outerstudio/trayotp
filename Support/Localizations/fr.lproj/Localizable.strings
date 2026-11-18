@@ -277,6 +277,10 @@
 "Update to %@…" = "Mettre à jour vers %@…";
 "Check for Updates…" = "Rechercher des mises à jour…";
 "Check Automatically" = "Rechercher automatiquement";
+"Update Channel" = "Canal de mise à jour";
+"Stable" = "Stable";
+"Beta" = "Bêta";
+"Alpha" = "Alpha";
 "Collapse" = "Replier";
 "Expand" = "Déplier";
 "Rename…" = "Renommer…";

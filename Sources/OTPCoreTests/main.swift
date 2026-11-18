@@ -605,6 +605,38 @@ let digest = String(repeating: "ab", count: 32)
 equal(Release.parseChecksum("\(digest.uppercased())  TrayOTP-v0.2.0.zip\n"), digest, "checksum line parsed")
 check(Release.parseChecksum("not a hash") == nil, "bad checksum rejected")
 
+equal(UpdateChannel(AppVersion("1.1.3")!), .stable, "a release is stable")
+equal(UpdateChannel(AppVersion("1.1.2-beta")!), .beta, "beta suffix")
+equal(UpdateChannel(AppVersion("1.1.2-RC.1")!), .beta, "a release candidate is beta")
+equal(UpdateChannel(AppVersion("1.1.1-alpha.2")!), .alpha, "alpha suffix")
+equal(UpdateChannel(AppVersion("1.1.1-nightly")!), .alpha, "an unknown suffix is alpha")
+
+func releases(_ tags: [String]) -> [Release] {
+    tags.compactMap { tag in
+        try? JSONDecoder().decode(Release.self, from: Data("""
+        {"tag_name":"\(tag)","html_url":"https://github.com/outerstudio/trayotp/releases/tag/\(tag)","assets":[]}
+        """.utf8))
+    }
+}
+func newest(_ channel: UpdateChannel, from current: String, _ tags: [String]) -> String? {
+    channel.newest(of: releases(tags), after: AppVersion(current)!)?.tag
+}
+// Alpha on 1.1.1-alpha takes a newer beta or release.
+equal(newest(.alpha, from: "v1.1.1-alpha", ["v1.1.2-beta"]), "v1.1.2-beta", "alpha takes a newer beta")
+equal(newest(.alpha, from: "v1.1.1-alpha", ["v1.1.3"]), "v1.1.3", "alpha takes a newer release")
+equal(newest(.alpha, from: "v1.1.1-alpha", ["v1.1.2-beta", "v1.1.3", "v1.1.0"]), "v1.1.3", "alpha takes the newest of all")
+// Beta on 1.1.2-beta skips alphas, old or new, and takes newer releases and betas.
+equal(newest(.beta, from: "v1.1.2-beta", ["v1.1.1-alpha"]), nil, "beta skips an older alpha")
+equal(newest(.beta, from: "v1.1.2-beta", ["v1.1.3-alpha"]), nil, "beta skips a newer alpha")
+equal(newest(.beta, from: "v1.1.2-beta", ["v1.1.3"]), "v1.1.3", "beta takes a newer release")
+equal(newest(.beta, from: "v1.1.2-beta", ["v1.1.4-beta"]), "v1.1.4-beta", "beta takes a newer beta")
+equal(newest(.beta, from: "v1.1.2-beta", ["v1.1.3", "v1.1.4-beta", "v1.1.5-alpha"]), "v1.1.4-beta",
+      "beta takes the newest beta or release, not the newer alpha")
+// Stable takes releases only, and never goes back.
+equal(newest(.stable, from: "v1.1.2-beta", ["v1.1.1", "v1.1.3-beta"]), nil, "stable skips pre-releases and older releases")
+equal(newest(.stable, from: "v1.1.2-beta", ["v1.1.2", "v1.1.3-beta"]), "v1.1.2", "stable takes the release of a beta")
+equal(newest(.stable, from: "v1.1.3", ["v1.1.3", "not-a-version"]), nil, "the same version and junk tags are skipped")
+
 if !skippedSuites.isEmpty {
     print("  skipped (run Scripts/fetch-test-fixtures.sh): \(skippedSuites.joined(separator: ", "))")
 }

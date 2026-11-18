@@ -279,6 +279,10 @@
 "Update to %@…" = "更新到 %@⋯";
 "Check for Updates…" = "檢查更新⋯";
 "Check Automatically" = "自動檢查";
+"Update Channel" = "更新頻道";
+"Stable" = "穩定版";
+"Beta" = "測試版";
+"Alpha" = "預覽版";
 "Collapse" = "收合";
 "Expand" = "展開";
 "Rename…" = "重新命名⋯";

@@ -18,12 +18,26 @@ final class Updater {
         didSet { UserDefaults.standard.set(checksAutomatically, forKey: Keys.auto) }
     }
 
+    /// Which releases are offered. Until one is chosen, the channel of the running build, so a
+    /// beta build keeps getting betas.
+    var channel: UpdateChannel {
+        didSet {
+            guard channel != oldValue else { return }
+            UserDefaults.standard.set(channel.rawValue, forKey: Keys.channel)
+            // An update found on the old channel may not belong to the new one.
+            available = nil
+            if checksAutomatically { Task { _ = try? await check() } }
+        }
+    }
+
     private enum Keys {
         static let auto = "checkUpdatesAutomatically"
+        static let channel = "updateChannel"
         static let lastCheck = "lastUpdateCheck"
     }
 
-    private static let latestURL = URL(string: "https://api.github.com/repos/outerstudio/trayotp/releases/latest")!
+    /// Newest first. /releases/latest skips pre-releases, so the beta and alpha channels need the list.
+    private static let releasesURL = URL(string: "https://api.github.com/repos/outerstudio/trayotp/releases?per_page=30")!
     private static let checkInterval: TimeInterval = 24 * 60 * 60
 
     private struct UpdateError: LocalizedError {
@@ -34,9 +48,13 @@ final class Updater {
     init() {
         UserDefaults.standard.register(defaults: [Keys.auto: true])
         checksAutomatically = UserDefaults.standard.bool(forKey: Keys.auto)
+        channel = UserDefaults.standard.string(forKey: Keys.channel).flatMap(UpdateChannel.init(rawValue:))
+            ?? Self.bundleVersion.map(UpdateChannel.init) ?? .stable
     }
 
-    var currentVersion: AppVersion? {
+    var currentVersion: AppVersion? { Self.bundleVersion }
+
+    private static var bundleVersion: AppVersion? {
         AppVersion(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     }
 
@@ -72,17 +90,17 @@ final class Updater {
     private func check() async throws -> Release? {
         isBusy = true
         defer { isBusy = false }
-        var request = URLRequest(url: Self.latestURL, timeoutInterval: 20)
+        var request = URLRequest(url: Self.releasesURL, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("TrayOTP", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        if status == 404 { available = nil; return nil } // no release published yet
         guard status == 200 else { throw UpdateError(String(localized: "GitHub answered with status \(status).")) }
         UserDefaults.standard.set(Date(), forKey: Keys.lastCheck)
 
-        let release = try JSONDecoder().decode(Release.self, from: data)
-        guard let latest = release.version, let current = currentVersion, latest > current else {
+        // No releases yet is an empty list.
+        let releases = try JSONDecoder().decode([Release].self, from: data)
+        guard let current = currentVersion, let release = channel.newest(of: releases, after: current) else {
             available = nil
             return nil
         }

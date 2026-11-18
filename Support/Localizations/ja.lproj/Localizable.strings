@@ -279,6 +279,10 @@
 "Update to %@…" = "%@にアップデート…";
 "Check for Updates…" = "アップデートを確認…";
 "Check Automatically" = "自動的に確認";
+"Update Channel" = "アップデートチャンネル";
+"Stable" = "安定版";
+"Beta" = "ベータ版";
+"Alpha" = "アルファ版";
 "Collapse" = "折りたたむ";
 "Expand" = "展開";
 "Rename…" = "名前を変更…";

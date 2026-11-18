@@ -51,7 +51,38 @@ public struct AppVersion: Comparable, Sendable, CustomStringConvertible {
     }
 }
 
-/// The parts of a GitHub release (`GET /repos/{owner}/{repo}/releases/latest`) that updating needs.
+/// Which releases the updater offers. Each channel takes its own builds and anything more stable:
+/// stable takes releases only, beta adds betas (and release candidates), alpha takes everything.
+public enum UpdateChannel: String, CaseIterable, Comparable, Sendable {
+    case stable, beta, alpha
+
+    /// The channel a version belongs to, from its first pre-release part: `1.2.0` is stable,
+    /// `1.2.0-beta.1` and `1.2.0-rc.1` are beta, `1.2.0-alpha` and any other suffix are alpha.
+    public init(_ version: AppVersion) {
+        switch version.preRelease.first?.lowercased() {
+        case nil: self = .stable
+        case "beta", "rc": self = .beta
+        default: self = .alpha
+        }
+    }
+
+    private var rank: Int { Self.allCases.firstIndex(of: self)! }
+
+    /// Ordered from most to least stable.
+    public static func < (a: UpdateChannel, b: UpdateChannel) -> Bool { a.rank < b.rank }
+
+    public func accepts(_ version: AppVersion) -> Bool { UpdateChannel(version) <= self }
+
+    /// The newest release this channel takes that is newer than `current`, if any.
+    public func newest(of releases: [Release], after current: AppVersion) -> Release? {
+        releases
+            .compactMap { release in release.version.map { (release, $0) } }
+            .filter { accepts($0.1) && $0.1 > current }
+            .max { $0.1 < $1.1 }?.0
+    }
+}
+
+/// The parts of a GitHub release (`GET /repos/{owner}/{repo}/releases`) that updating needs.
 public struct Release: Decodable, Sendable {
     public struct Asset: Decodable, Sendable {
         public let name: String

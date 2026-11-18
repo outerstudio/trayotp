@@ -507,6 +507,12 @@ struct SettingsMenu: View {
                 .disabled(state.updater.isBusy)
             Toggle("Check Automatically", isOn: Binding(get: { state.updater.checksAutomatically },
                                                            set: { state.updater.checksAutomatically = $0 }))
+            // Each channel also gets everything more stable: beta gets releases, alpha gets betas and releases.
+            Picker("Update Channel", selection: Binding(get: { state.updater.channel }, set: { state.updater.channel = $0 })) {
+                Text("Stable").tag(UpdateChannel.stable)
+                Text("Beta").tag(UpdateChannel.beta)
+                Text("Alpha").tag(UpdateChannel.alpha)
+            }
             Divider()
             // A brand name: the same in every language.
             Button { NSWorkspace.shared.open(URL(string: "https://buymeacoffee.com/garyyeap")!) } label: {
