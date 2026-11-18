@@ -6,7 +6,9 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    # Only vX.Y.Z (no pre-release suffix): the tag becomes CFBundleShortVersionString and is
+    # what the in-app updater compares. Other tags, like v1.0.0-beta, don't start a run.
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
 
 permissions:
   contents: write
