@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="O painel do TrayOTP: um campo de busca, tokens com nome, código, conta e próximo código, um grupo GOOGLE recolhido e os botões Adicionar, Bloquear e Encerrar">
+  <img src="../docs/screenshots/panel.png" width="340" alt="O painel do TrayOTP: um campo de busca, tokens com nome, código, conta e próximo código e os botões Adicionar, Bloquear e Encerrar">
 </p>
 
 > Esta tradução pode estar desatualizada em relação ao [README em inglês](../README.md). Em caso de dúvida, vale a versão em inglês.

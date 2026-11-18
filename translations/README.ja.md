@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTPのパネル：検索フィールド、名前・コード・アカウント・次のコードを表示したトークン、折りたたまれたGOOGLEグループ、追加・ロック・終了ボタン">
+  <img src="../docs/screenshots/panel.png" width="340" alt="TrayOTPのパネル：検索フィールド、名前・コード・アカウント・次のコードを表示したトークン、追加・ロック・終了ボタン">
 </p>
 
 > この翻訳は[英語版README](../README.md)より古い場合があります。内容が異なる場合は英語版が優先されます。
