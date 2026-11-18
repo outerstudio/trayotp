@@ -43,12 +43,23 @@ jobs:
       # User-facing changes only (feat, fix, perf, revert) from the Conventional Commits since the
       # previous tag; a stable release also includes what its betas shipped. Outside contributors
       # and the reporters of closed issues are thanked. See Scripts/changelog.
+      #
+      # A hand-written note wins: an annotated tag's message (minus its subject line) becomes the
+      # release body. Create it with `git tag -a vX.Y.Z -F notes.md --cleanup=verbatim` so Markdown
+      # headings starting with # survive. Lightweight tags get the generated notes.
       - name: Release notes
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          npm ci --prefix Scripts/changelog
-          node Scripts/changelog/changelog.mjs notes "$GITHUB_REF_NAME" > release-notes.md
+          if [[ "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" == tag ]]; then
+            git tag -l --format='%(contents)' "$GITHUB_REF_NAME" | sed '1,/^$/d' > release-notes.md
+          else
+            : > release-notes.md
+          fi
+          if [[ ! -s release-notes.md ]]; then
+            npm ci --prefix Scripts/changelog
+            node Scripts/changelog/changelog.mjs notes "$GITHUB_REF_NAME" > release-notes.md
+          fi
           cat release-notes.md
 
       - name: Publish GitHub release
