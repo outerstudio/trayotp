@@ -176,7 +176,8 @@ enum Dialogs {
         }
     }
 
-    static func confirm(title: String, message: String, button: String) -> Bool {
+    /// `details`, if given, is shown under the message in a scrolling box whose links can be clicked.
+    static func confirm(title: String, message: String, button: String, details: NSAttributedString? = nil) -> Bool {
         prepare()
         let alert = NSAlert()
         alert.messageText = title
@@ -184,7 +185,40 @@ enum Dialogs {
         alert.alertStyle = .warning
         alert.addButton(withTitle: button)
         alert.addButton(withTitle: String(localized: "Cancel"))
+        if let details {
+            alert.accessoryView = detailsView(details)
+            alert.layout()
+        }
         return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    private static func detailsView(_ text: NSAttributedString) -> NSView {
+        let width: CGFloat = 260, maxHeight: CGFloat = 180
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: width, height: maxHeight))
+        scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.drawsBackground = false
+
+        // Selectable (not editable): NSTextView only follows links when its text is selectable.
+        let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: scroll.contentSize.width, height: 0))
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.drawsBackground = false
+        textView.textContainerInset = .zero
+        textView.textContainer?.lineFragmentPadding = 0
+        textView.textContainer?.widthTracksTextView = true
+        textView.isVerticallyResizable = true
+        textView.autoresizingMask = .width
+        textView.textStorage?.setAttributedString(text)
+
+        if let layout = textView.layoutManager, let container = textView.textContainer {
+            layout.ensureLayout(for: container)
+            let height = ceil(layout.usedRect(for: container).height)
+            textView.frame.size.height = height
+            scroll.frame.size.height = min(height, maxHeight)
+        }
+        scroll.documentView = textView
+        return scroll
     }
 
     static func info(title: String, message: String) {
