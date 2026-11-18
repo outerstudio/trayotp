@@ -7,3 +7,5 @@ build/
 *.2fas
 # GPL-licensed test exports, downloaded by Scripts/fetch-test-fixtures.sh.
 ThirdPartyFixtures/
+# Node packages for Scripts/changelog (installed by npm ci).
+node_modules/

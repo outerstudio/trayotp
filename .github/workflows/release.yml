@@ -33,6 +33,18 @@ jobs:
           ditto -c -k --keepParent build/TrayOTP.app "TrayOTP-${GITHUB_REF_NAME}.zip"
           shasum -a 256 "TrayOTP-${GITHUB_REF_NAME}.zip" > "TrayOTP-${GITHUB_REF_NAME}.zip.sha256"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # User-facing changes only (feat, fix, perf, revert) from the Conventional Commits since the
+      # previous tag; a stable release also includes what its betas shipped. See Scripts/changelog.
+      - name: Release notes
+        run: |
+          npm ci --prefix Scripts/changelog
+          node Scripts/changelog/changelog.mjs notes "$GITHUB_REF_NAME" > release-notes.md
+          cat release-notes.md
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -41,4 +53,4 @@ jobs:
           [[ "$GITHUB_REF_NAME" == *-* ]] && PRERELEASE=(--prerelease)
           gh release create "$GITHUB_REF_NAME" \
             "TrayOTP-${GITHUB_REF_NAME}.zip" "TrayOTP-${GITHUB_REF_NAME}.zip.sha256" \
-            --generate-notes "${PRERELEASE[@]}"
+            --notes-file release-notes.md "${PRERELEASE[@]}"

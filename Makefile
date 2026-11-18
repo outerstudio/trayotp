@@ -1,4 +1,4 @@
-.PHONY: build test strings app run release icon clean
+.PHONY: build test strings app run release icon changelog clean
 
 build:
 	swift build
@@ -26,6 +26,12 @@ run: app
 
 release:
 	CONFIG=release Scripts/bundle.sh
+
+# Rewrite CHANGELOG.md from the Conventional Commits between release tags (user-facing changes only).
+# Run after tagging a release. Needs Node.
+changelog:
+	npm ci --prefix Scripts/changelog --silent
+	node Scripts/changelog/changelog.mjs file
 
 # Redraw Support/AppIcon.icns after changing Scripts/make-icon.swift.
 icon:
