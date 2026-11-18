@@ -26,3 +26,7 @@ jobs:
 
       - name: Translations
         run: make strings
+
+      # Only the release-notes logic, which has no dependencies; no packages to install.
+      - name: Release notes tests
+        run: node --test Scripts/changelog/acknowledgements.test.mjs

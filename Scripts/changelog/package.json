@@ -4,6 +4,9 @@
   "description": "Generates TrayOTP release notes and CHANGELOG.md. See changelog.mjs.",
   "repository": "https://github.com/outerstudio/trayotp",
   "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
   "devDependencies": {
     "conventional-changelog": "8.1.3",
     "conventional-changelog-conventionalcommits": "10.4.1"

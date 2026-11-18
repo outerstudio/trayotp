@@ -8,11 +8,14 @@ on:
   push:
     # vX.Y.Z or a pre-release like vX.Y.Z-beta.1: the tag becomes CFBundleShortVersionString and
     # is what the in-app updater compares. Pre-releases are published as GitHub pre-releases,
-    # which the updater (it reads /releases/latest) never offers.
+    # which the updater only offers on its beta and alpha channels.
     tags: ["v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
 
 permissions:
   contents: write
+  # Read by the release notes, to thank contributors and issue reporters.
+  issues: read
+  pull-requests: read
 
 jobs:
   release:
@@ -38,8 +41,11 @@ jobs:
           node-version: 22
 
       # User-facing changes only (feat, fix, perf, revert) from the Conventional Commits since the
-      # previous tag; a stable release also includes what its betas shipped. See Scripts/changelog.
+      # previous tag; a stable release also includes what its betas shipped. Outside contributors
+      # and the reporters of closed issues are thanked. See Scripts/changelog.
       - name: Release notes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           npm ci --prefix Scripts/changelog
           node Scripts/changelog/changelog.mjs notes "$GITHUB_REF_NAME" > release-notes.md

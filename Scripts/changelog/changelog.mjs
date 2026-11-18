@@ -9,12 +9,16 @@
 //
 // A stable release covers everything since the previous stable release, betas included, so users
 // on the stable channel see the whole update. A pre-release covers what changed since the tag before it.
+// Release notes also thank outside contributors and issue reporters (see acknowledgements.mjs);
+// that needs a GitHub token in GITHUB_TOKEN or GH_TOKEN, and is skipped without one.
+//
 // Install first: npm ci --prefix Scripts/changelog
 import { execFileSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ConventionalChangelog } from 'conventional-changelog'
+import { fetchAcknowledgements } from './acknowledgements.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..', '..')
@@ -49,6 +53,20 @@ function previous (version) {
   return older.at(-1)
 }
 
+/** The user-facing commits (the types the notes list) between two tags, oldest first. */
+function userFacingCommits (from, to) {
+  const range = from ? `${from.tag}..${to.tag}` : to.tag
+  // Hash, then the full message; records end with NUL.
+  return git('log', '--reverse', '--format=%H%n%B%x00', range).split('\0')
+    .map(record => record.trim()).filter(Boolean)
+    .map(record => {
+      const [hash, ...rest] = record.split('\n')
+      const message = rest.join('\n').trim()
+      return { hash, subject: message.split('\n')[0], message }
+    })
+    .filter(c => /^(feat|feature|fix|perf|revert)(\(|!|:)/i.test(c.subject) || /^Revert "/.test(c.subject))
+}
+
 /** One release section, all commits between the two tags (the first release: since the first commit). */
 async function section (version) {
   const from = previous(version)
@@ -77,10 +95,13 @@ if (command === 'notes' && parse(tag ?? '')) {
   // The release already has a title; drop the "## [1.2.0](…) (date)" heading.
   const body = (await section(version)).replace(/^##? .*\n+/, '').trim()
   const from = previous(version)
+  const [owner, name] = new URL(JSON.parse(readFileSync(join(here, 'package.json'), 'utf8')).repository)
+    .pathname.split('/').filter(Boolean)
+  const thanks = (await fetchAcknowledgements(owner, name, userFacingCommits(from, version))).join('\n')
   const compare = from
     ? `\n\n**Full Changelog**: https://github.com/outerstudio/trayotp/compare/${from.tag}...${version.tag}`
     : ''
-  process.stdout.write((body || 'No user-facing changes.') + compare + '\n')
+  process.stdout.write((body || 'No user-facing changes.') + (thanks ? '\n\n' + thanks : '') + compare + '\n')
 } else if (command === 'file') {
   const stable = tags.filter(t => !t.pre.length).reverse()
   const sections = []
