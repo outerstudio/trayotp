@@ -2,6 +2,20 @@
 
 User-facing changes in each release. Pre-releases are listed on the [Releases](https://github.com/outerstudio/trayotp/releases) page.
 
+## [0.5.0](https://github.com/outerstudio/trayotp/compare/v0.4.0...v0.5.0) (2026-11-18)
+
+### Features
+
+* **icon:** dark app icon with an orange lock ([5987fb3](https://github.com/outerstudio/trayotp/commit/5987fb3a54361211691e12311d2d03f5a63090fe))
+* **icon:** flat lock inside a TOTP countdown ring ([97ca67f](https://github.com/outerstudio/trayotp/commit/97ca67f2e0b0f82cfc22c7fe364f05decb1d1d10))
+* **icons:** show service logos flat, without a circle ([43e8685](https://github.com/outerstudio/trayotp/commit/43e8685fb42654f8355d49547141dfcb9e4ceb54))
+* **icon:** turn the icon's ring at random moments ([05f5193](https://github.com/outerstudio/trayotp/commit/05f519370db7e1ff151097079f9481ae6adb0ca7))
+* **lock:** show the app icon on the lock screen ([9906f61](https://github.com/outerstudio/trayotp/commit/9906f6190e6ccb1ff84713405c7792b3d0a67788))
+* **menu-bar:** count down with the codes in the menu bar icon ([e70d165](https://github.com/outerstudio/trayotp/commit/e70d165e48fd32b3c6ee24f21058c4592b6fb300))
+* **updater:** choose a stable, beta or alpha update channel ([a707a4b](https://github.com/outerstudio/trayotp/commit/a707a4b8359b9c0895405b168c95b3f9963ecb2c))
+* **updater:** show formatted release notes in the update dialog ([6f2fa4e](https://github.com/outerstudio/trayotp/commit/6f2fa4e279ea2fb04883632417afb6c9eea75f1a))
+* **updater:** support pre-release versions like v1.0.0-beta.1 ([98d3da1](https://github.com/outerstudio/trayotp/commit/98d3da1cf83d445d6ba869eae8170f7b4d6998a6))
+
 ## [0.4.0](https://github.com/outerstudio/trayotp/compare/v0.3.0...v0.4.0) (2026-11-18)
 
 ### Features
