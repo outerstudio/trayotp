@@ -1,13 +1,14 @@
 // Draws the TrayOTP app icon and writes Support/AppIcon.icns.
 // Run from the repo root:  swift Scripts/make-icon.swift   (or: make icon)
 //
-// The lock is drawn by hand: SF Symbols may not be used in app icons.
+// A lock inside a TOTP countdown ring, echoing the lock.circle tray symbol. Everything is
+// drawn by hand: SF Symbols may not be used in app icons.
 import AppKit
 
-let accentTop = NSColor(red: 1.00, green: 0.47, blue: 0.33, alpha: 1)
-let accentBottom = NSColor(red: 0.91, green: 0.29, blue: 0.19, alpha: 1)
-let tileTop = NSColor(red: 0.20, green: 0.21, blue: 0.24, alpha: 1)
-let tileBottom = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
+// Flat colours only: no gradients, shadows or highlights.
+let accent = NSColor(red: 0.96, green: 0.38, blue: 0.25, alpha: 1)
+let tileColor = NSColor(red: 0.13, green: 0.14, blue: 0.16, alpha: 1)
+let trackColor = NSColor(red: 0.21, green: 0.22, blue: 0.25, alpha: 1)
 
 /// Draws the icon in a 1024×1024 coordinate space (y up), scaled to `pixels`.
 func drawIcon(pixels: Int) -> NSBitmapImageRep {
@@ -23,26 +24,41 @@ func drawIcon(pixels: Int) -> NSBitmapImageRep {
     // macOS icon grid: 824 pt rounded square centred on the 1024 canvas. Flat: no shadow, no backdrop.
     let tile = NSRect(x: 100, y: 100, width: 824, height: 824)
     let tilePath = NSBezierPath(roundedRect: tile, xRadius: 185, yRadius: 185)
-    NSGradient(starting: tileTop, ending: tileBottom)!.draw(in: tilePath, angle: -90)
+    tileColor.setFill()
+    tilePath.fill()
 
-    // Orange lock on the dark tile: shackle + body.
-    accentTop.set()
+    // TOTP countdown ring: a faint full track, then the time left as an orange arc running
+    // clockwise from 12 o'clock (three quarters of the period left).
+    let center = NSPoint(x: 512, y: 512), radius: CGFloat = 268, ringWidth: CGFloat = 60
+    let track = NSBezierPath(ovalIn: NSRect(x: center.x - radius, y: center.y - radius, width: 2 * radius, height: 2 * radius))
+    track.lineWidth = ringWidth
+    trackColor.setStroke()
+    track.stroke()
+
+    let arc = NSBezierPath()
+    arc.appendArc(withCenter: center, radius: radius, startAngle: 90, endAngle: 90 - 270, clockwise: true)
+    arc.lineWidth = ringWidth
+    arc.lineCapStyle = .round
+    accent.setStroke()
+    arc.stroke()
+
+    // White lock in the ring: shackle + body, optically centred (the shackle makes it top-heavy).
+    NSColor.white.set()
     let shackle = NSBezierPath()
-    shackle.lineWidth = 52
+    shackle.lineWidth = 38
     shackle.lineCapStyle = .round
-    shackle.move(to: NSPoint(x: 432, y: 560))
-    shackle.line(to: NSPoint(x: 432, y: 630))
-    shackle.appendArc(withCenter: NSPoint(x: 512, y: 630), radius: 80, startAngle: 180, endAngle: 0, clockwise: true)
-    shackle.line(to: NSPoint(x: 592, y: 560))
+    shackle.move(to: NSPoint(x: 456, y: 500))
+    shackle.line(to: NSPoint(x: 456, y: 576))
+    shackle.appendArc(withCenter: NSPoint(x: 512, y: 576), radius: 56, startAngle: 180, endAngle: 0, clockwise: true)
+    shackle.line(to: NSPoint(x: 568, y: 500))
     shackle.stroke()
 
-    let body = NSBezierPath(roundedRect: NSRect(x: 362, y: 330, width: 300, height: 240), xRadius: 44, yRadius: 44)
-    NSGradient(starting: accentTop, ending: accentBottom)!.draw(in: body, angle: -90)
+    NSBezierPath(roundedRect: NSRect(x: 404, y: 358, width: 216, height: 166), xRadius: 34, yRadius: 34).fill()
 
     // Keyhole in the tile colour.
-    tileBottom.setFill()
-    NSBezierPath(ovalIn: NSRect(x: 512 - 30, y: 448, width: 60, height: 60)).fill()
-    NSBezierPath(roundedRect: NSRect(x: 512 - 14, y: 392, width: 28, height: 80), xRadius: 14, yRadius: 14).fill()
+    tileColor.setFill()
+    NSBezierPath(ovalIn: NSRect(x: 512 - 23, y: 438, width: 46, height: 46)).fill()
+    NSBezierPath(roundedRect: NSRect(x: 512 - 11, y: 394, width: 22, height: 62), xRadius: 11, yRadius: 11).fill()
 
     NSGraphicsContext.restoreGraphicsState()
     return rep
