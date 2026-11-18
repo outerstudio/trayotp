@@ -9,12 +9,14 @@ struct LockView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            // Same symbol as the tray icon.
-            Image(systemName: "lock.circle.fill")
-                .font(.system(size: 44, weight: .medium))
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, Theme.accent.gradient)
-                .padding(.top, 10)
+            // The app icon itself (Support/AppIcon.icns), so the lock screen always matches it.
+            // The icon has ~10% transparent margin, so 56 pt shows a ~45 pt tile.
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 56, height: 56)
+                .padding(.top, 6)
+                .accessibilityHidden(true)
 
             Text("TrayOTP is locked")
                 .font(.system(size: 15, weight: .semibold))
