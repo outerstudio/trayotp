@@ -72,6 +72,8 @@ struct TokenRow: View {
         // An explicit Rectangle: a bare color background takes the Card's rounded container shape.
         .background { if isSelected { Rectangle().fill(Theme.selection) } }
         .contentShape(Rectangle())
+        // A copy wiggles the row (or just its next code) for about 0.7 s.
+        .modifier(Shake(token: token.id, next: false))
     }
 }
 
@@ -108,6 +110,7 @@ struct NextCode: View {
         .animation(.easeOut(duration: 0.12), value: hovering)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
+        .modifier(Shake(token: token.id, next: true))
         .onTapGesture { state.copy(token, next: true) }
         .help("Click or press → to copy the next code")
     }
@@ -142,5 +145,31 @@ struct ServiceAvatar: View {
         let words = name.split { !$0.isLetter && !$0.isNumber }
         if words.count >= 2 { return String(words[0].prefix(1) + words[1].prefix(1)).uppercased() }
         return String(name.prefix(2)).uppercased()
+    }
+}
+
+/// Wiggles its view for about 0.7 s when `AppState` asks for it: the row's whole content
+/// (`next` false) or just its next-code area (`next` true).
+@MainActor
+private struct Shake: ViewModifier {
+    @Environment(AppState.self) private var state
+    let token: Token.ID
+    let next: Bool
+    @State private var shakes = 0
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: state.shakeCount) {
+                if state.shakenRow == token, state.shakesNext == next { shakes += 1 }
+            }
+            .keyframeAnimator(initialValue: 0.0, trigger: shakes) { content, dx in
+                content.offset(x: dx)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    for dx in [8.0, -8, 6, -6, 4, -4, 2, -2, 0] {
+                        CubicKeyframe(dx, duration: 0.078)
+                    }
+                }
+            }
     }
 }

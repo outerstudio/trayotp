@@ -30,6 +30,11 @@ final class AppState {
     var toast: String?
     /// The token whose next code was just copied, so its row can flash the next code.
     private(set) var copiedNext: Token.ID?
+    /// The row to shake after a copy that leaves the panel open; `shakeCount` changes on every request.
+    private(set) var shakenRow: Token.ID?
+    private(set) var shakeCount = 0
+    /// The shake is for the row's next-code area (a next code was copied) rather than the whole row.
+    private(set) var shakesNext = false
     let icons = IconPackStore()
     let updater = Updater()
     let iconSpinner = IconSpinner()
@@ -99,6 +104,7 @@ final class AppState {
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var copiedNextTask: Task<Void, Never>?
+    @ObservationIgnored private var closeTask: Task<Void, Never>?
 
     private enum Keys {
         static let requireAuth = "requireAuth"
@@ -457,11 +463,25 @@ final class AppState {
         Clipboard.copy(code)
         touch()
         if closesAfterCopy {
-            PanelController.shared.close()
+            // Shake the row first so the copy is visible, then close.
+            shakeRow(token.id, next: next)
+            closeTask?.cancel()
+            closeTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(0.7))
+                guard !Task.isCancelled, self?.closesAfterCopy == true else { return }
+                PanelController.shared.close()
+            }
             return
         }
         showToast(next ? String(localized: "Copied next \(token.name)") : String(localized: "Copied \(token.name)"))
         if next { flashNext(token.id) }
+        shakeRow(token.id, next: next)
+    }
+
+    private func shakeRow(_ id: Token.ID, next: Bool) {
+        shakenRow = id
+        shakesNext = next
+        shakeCount += 1
     }
 
     private func flashNext(_ id: Token.ID) {
