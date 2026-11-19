@@ -38,6 +38,10 @@
   <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel under its menu bar icon: a search field, tokens showing name, code, account and next code, and Add, Lock and Quit buttons">
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/deep-black.png" width="340" alt="The panel with the Deep Black theme: a pure black background for OLED screens">
+</p>
+
 ## Features
 
 - **Lives in the menu bar.** Click the tray icon, click a code, it's copied. No Dock icon, no window to manage.
@@ -249,6 +253,7 @@ All in the **⋯** menu:
 | **Set Global Shortcut…** | Open the panel from any app with a key combination of your choice (needs ⌘, ⌃ or ⌥). |
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
 | **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
+| **Deep Black Theme** | Pure black panel background instead of the translucent material, for OLED screens. |
 | **Launch at Login** | Start TrayOTP when you log in. |
 | **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |
 
