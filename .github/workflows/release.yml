@@ -51,6 +51,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          # actions/checkout turns the tag that triggered the run into a lightweight one, which drops
+          # its message; fetch it again to get the annotated tag back.
+          git fetch --force origin "+refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
           npm ci --prefix Scripts/changelog
           node Scripts/changelog/changelog.mjs notes "$GITHUB_REF_NAME" > release-notes.md
           cat release-notes.md
