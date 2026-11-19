@@ -7,7 +7,8 @@
 // An annotated tag's message (minus its subject line) is a hand-written intro, shown above the generated
 // list in both. Create it with `git tag -a vX.Y.Z -F notes.md --cleanup=verbatim` so # headings survive.
 // A lightweight tag has none.
-// The release notes (not CHANGELOG.md) end with the install steps from install.md, so tag messages don't repeat them.
+// Sections read: intro, generated list, Install (install.md), Full Changelog link, so tag messages don't repeat
+// the last two. Tags whose message already has a compare link (v0.5.0) are left as written.
 //
 // Only what users notice is listed: feat, fix, perf and revert. docs, ci, build, chore, refactor,
 // style and test commits are left out (the conventionalcommits preset hides them).
@@ -99,29 +100,39 @@ async function section (version) {
   return text.trim()
 }
 
+/** The install steps shared by every release. */
+const install = () => readFileSync(join(here, 'install.md'), 'utf8').trim()
+
+/** A tag message from before install.md, which already has its own install steps and compare link. */
+const legacy = intro => intro.includes('/compare/')
+
+const compareLink = (from, version) => from
+  ? `**Full Changelog**: https://github.com/outerstudio/trayotp/compare/${from.tag}...${version.tag}`
+  : ''
+
 const [command, tag] = process.argv.slice(2)
 if (command === 'notes' && parse(tag ?? '')) {
   const version = tags.find(t => t.tag === tag)
   if (!version) throw new Error(`No tag ${tag}`)
   // The release already has a title; drop the "## [1.2.0](…) (date)" heading.
   const generated = (await section(version)).replace(/^##? .*\n+/, '').trim()
-  const body = [highlights(version), generated].filter(Boolean).join('\n\n')
+  const intro = highlights(version)
   const from = previous(version)
   const [owner, name] = new URL(JSON.parse(readFileSync(join(here, 'package.json'), 'utf8')).repository)
     .pathname.split('/').filter(Boolean)
   const thanks = (await fetchAcknowledgements(owner, name, userFacingCommits(from, version))).join('\n')
-  const compare = from
-    ? `\n\n**Full Changelog**: https://github.com/outerstudio/trayotp/compare/${from.tag}...${version.tag}`
-    : ''
-  const install = readFileSync(join(here, 'install.md'), 'utf8').trim()
-  process.stdout.write((body || 'No user-facing changes.') + '\n\n' + install + (thanks ? '\n\n' + thanks : '') + compare + '\n')
+  const body = [intro, generated, legacy(intro) ? '' : install(), thanks, legacy(intro) ? '' : compareLink(from, version)]
+  process.stdout.write((body.filter(Boolean).join('\n\n') || 'No user-facing changes.') + '\n')
 } else if (command === 'file') {
   const stable = tags.filter(t => !t.pre.length).reverse()
   const sections = []
   for (const version of stable) {
     // The heading line, then the hand-written intro, then the generated lists.
     const [heading, ...rest] = (await section(version)).split('\n')
-    sections.push([heading, highlights(version), rest.join('\n').trim()].filter(Boolean).join('\n\n'))
+    const intro = highlights(version)
+    const wrapped = intro && !legacy(intro)
+    sections.push([heading, intro, rest.join('\n').trim(), wrapped && install(), wrapped && compareLink(previous(version), version)]
+      .filter(Boolean).join('\n\n'))
   }
   writeFileSync(join(root, 'CHANGELOG.md'),
     '# Changelog\n\nUser-facing changes in each release. Pre-releases are listed on the ' +
