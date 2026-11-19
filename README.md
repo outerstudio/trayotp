@@ -5,9 +5,9 @@
 <h1 align="center">TrayOTP</h1>
 
 <p align="center">
-  <b>English</b> · <a href="translations/README.de.md">Deutsch</a> · <a href="translations/README.es.md">Español</a> · <a href="translations/README.fr.md">Français</a> ·
+  <b>English</b> · <a href="translations/README.zh-Hant.md">繁體中文</a> · <a href="translations/README.zh-Hans.md">简体中文</a> · <a href="translations/README.de.md">Deutsch</a> · <a href="translations/README.es.md">Español</a> · <a href="translations/README.fr.md">Français</a> ·
   <a href="translations/README.it.md">Italiano</a> · <a href="translations/README.ja.md">日本語</a> · <a href="translations/README.ko.md">한국어</a> ·
-  <a href="translations/README.pt-BR.md">Português (Brasil)</a> · <a href="translations/README.zh-Hans.md">简体中文</a> · <a href="translations/README.zh-Hant.md">繁體中文</a>
+  <a href="translations/README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <p align="center">
