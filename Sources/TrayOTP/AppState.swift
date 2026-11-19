@@ -120,8 +120,8 @@ final class AppState {
     @ObservationIgnored private var nextAutoPrompt = Date.distantPast
     @ObservationIgnored private var passwordPromptActive = false
     @ObservationIgnored private var reminderSnoozedUntil = Date.distantPast
-    /// Deleting stays unlocked until this time; every delete pushes it back (a debounce).
-    @ObservationIgnored private var deleteGraceUntil: Date?
+    /// When each `Grace` ends; every use pushes its end back (a debounce).
+    @ObservationIgnored private var graceUntil: [Grace: Date] = [:]
     @ObservationIgnored private var switchToAlert = false
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var toastTask: Task<Void, Never>?
@@ -266,7 +266,7 @@ final class AppState {
         groups = []
         key = nil
         exportVerifier = nil
-        deleteGraceUntil = nil
+        graceUntil = [:]
         isLocked = true
         screen = .list
         Clipboard.clearIfOurs()
@@ -396,8 +396,15 @@ final class AppState {
     /// What `authorize` learned: the password the user typed, or nil when Touch ID or the Mac password was used.
     struct Authorization { var password: String? }
 
-    /// Seconds deleting stays unlocked after a password: every delete pushes the end back.
-    private static let deleteGrace: TimeInterval = 120
+    /// Actions that skip the password prompt for a while after it was last passed, in seconds:
+    /// deleting for 2 minutes, showing token QR codes for 3.
+    private enum Grace: TimeInterval {
+        case delete = 120, qr = 180
+    }
+
+    private func extendGrace(_ grace: Grace) {
+        graceUntil[grace] = Date().addingTimeInterval(grace.rawValue)
+    }
 
     @ObservationIgnored private var lastPasswordCheck: Date? {
         get { UserDefaults.standard.object(forKey: Keys.lastPasswordCheck) as? Date }
@@ -419,11 +426,11 @@ final class AppState {
 
     /// Asks for the password before an action that exposes or destroys secrets. A Touch ID prompt
     /// would let someone use a sleeper's finger, so the password is typed. Without one (the user
-    /// skipped it), it falls back to `confirmOwner`. `debounced` skips the prompt for a while after
-    /// the last time it was passed, for deleting several tokens in a row.
-    private func authorize(_ reason: String, debounced: Bool = false) async -> Authorization? {
-        if debounced, let until = deleteGraceUntil, Date() < until {
-            deleteGraceUntil = Date().addingTimeInterval(Self.deleteGrace)
+    /// skipped it), it falls back to `confirmOwner`. `grace` skips the prompt for a while after
+    /// the last time it was passed, for deleting or showing several tokens in a row.
+    private func authorize(_ reason: String, grace: Grace? = nil) async -> Authorization? {
+        if let grace, let until = graceUntil[grace], Date() < until {
+            extendGrace(grace)
             return Authorization(password: nil)
         }
         guard let verifier = gateVerifier() else {
@@ -436,7 +443,7 @@ final class AppState {
             else { return nil }
             if await Self.check(verifier, password: typed) {
                 lastPasswordCheck = Date()
-                if debounced { deleteGraceUntil = Date().addingTimeInterval(Self.deleteGrace) }
+                if let grace { extendGrace(grace) }
                 return Authorization(password: typed)
             }
             info = String(localized: "Wrong password. If you forgot it, ⋯ → Master Password → Forgot Password… erases your tokens so you can start again from a backup.")
@@ -762,7 +769,7 @@ final class AppState {
                               button: String(localized: "Delete"))
         else { return }
         Task {
-            guard await authorize(String(localized: "delete “\(token.name)”"), debounced: true) != nil else { return }
+            guard await authorize(String(localized: "delete “\(token.name)”"), grace: .delete) != nil else { return }
             tokens.removeAll { $0.id == token.id }
             persist()
         }
@@ -1141,6 +1148,22 @@ final class AppState {
         Task {
             guard let auth = await authorize(String(localized: "export all your secrets to \(format.displayName)")) else { return }
             exportConfirmed(as: format, encrypted: encrypted, typedPassword: auth.password)
+        }
+    }
+
+    /// Shows one token as a QR code (a standard otpauth:// link) for another authenticator app to scan.
+    func showQRCode(_ token: Token) {
+        Task {
+            guard await authorize(String(localized: "show “\(token.name)” as a QR code"), grace: .qr) != nil,
+                  tokens.contains(where: { $0.id == token.id })
+            else { return }
+            let link = OTPAuthURI.make(token)
+            var instructions = String(localized: "In your other authenticator app, add an account by scanning this QR code. Anyone who sees it can copy this account.")
+            if token.kind == .steam {
+                instructions += " " + String(localized: "Many authenticator apps don't support Steam codes and will show wrong ones.")
+            }
+            QRCodeWindow.show(title: String(localized: "QR Code for “\(token.name)”"), instructions: instructions,
+                              codes: [link], copyableLink: link)
         }
     }
 

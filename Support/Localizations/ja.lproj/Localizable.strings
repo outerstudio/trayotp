@@ -344,3 +344,10 @@
 "Unlock with your master password?" = "マスターパスワードでロックを解除しますか？";
 "unlock with the master password instead of Touch ID" = "Touch IDの代わりにマスターパスワードでロックを解除";
 "unlock with Touch ID again" = "再びTouch IDでロックを解除";
+"show “%@” as a QR code" = "「%@」をQRコードで表示する";
+"QR Code for “%@”" = "「%@」のQRコード";
+"In your other authenticator app, add an account by scanning this QR code. Anyone who sees it can copy this account." = "もう一方の認証アプリで、このQRコードをスキャンしてアカウントを追加してください。QRコードを見た人はこのアカウントをコピーできます。";
+"Export…" = "書き出す…";
+"Copy Link" = "リンクをコピー";
+"Link copied" = "リンクをコピーしました";
+"Many authenticator apps don't support Steam codes and will show wrong ones." = "多くの認証アプリはSteamコードに対応しておらず、誤ったコードが表示されます。";

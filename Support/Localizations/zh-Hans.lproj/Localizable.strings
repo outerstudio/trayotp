@@ -344,3 +344,10 @@
 "Unlock with your master password?" = "要用主密码解锁吗？";
 "unlock with the master password instead of Touch ID" = "用主密码代替 Touch ID 解锁";
 "unlock with Touch ID again" = "重新用 Touch ID 解锁";
+"show “%@” as a QR code" = "将“%@”显示为二维码";
+"QR Code for “%@”" = "“%@”的二维码";
+"In your other authenticator app, add an account by scanning this QR code. Anyone who sees it can copy this account." = "在另一个验证器应用中扫描此二维码以添加账户。看到它的人都可以复制此账户。";
+"Export…" = "导出…";
+"Copy Link" = "复制链接";
+"Link copied" = "链接已复制";
+"Many authenticator apps don't support Steam codes and will show wrong ones." = "许多验证器应用不支持 Steam 验证码，会显示错误的验证码。";

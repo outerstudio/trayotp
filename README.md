@@ -285,6 +285,8 @@ After your first token is added or imported, TrayOTP asks you to set a **master 
 
 - exporting your tokens (the password also encrypts the backup file by default; you can pick another one for each export),
 - deleting a token (after you type it once, further deletes within 2 minutes don't ask again),
+- showing a single token as a QR code (right-click → **Export…**, for adding it to another authenticator app;
+  after you type the password once, further QR codes within 3 minutes don't ask again),
 - changing or removing the password.
 
 By default it doesn't replace Touch ID for opening TrayOTP. Turn on **⋯ → Master Password → Unlock with Password

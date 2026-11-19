@@ -16,9 +16,10 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
     private let previous = NSButton(title: String(localized: "Previous"), target: nil, action: nil)
     private let next = NSButton(title: String(localized: "Next"), target: nil, action: nil)
 
-    static func show(title: String, instructions: String, codes: [String]) {
+    /// `copyableLink` adds a field with the link below the code and a button that copies it.
+    static func show(title: String, instructions: String, codes: [String], copyableLink: String? = nil) {
         current?.window.close()
-        let w = QRCodeWindow(title: title, instructions: instructions, codes: codes)
+        let w = QRCodeWindow(title: title, instructions: instructions, codes: codes, copyableLink: copyableLink)
         current = w
         NSApp.activate(ignoringOtherApps: true)
         w.window.makeKeyAndOrderFront(nil)
@@ -26,8 +27,13 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
 
     static func closeAll() { current?.window.close() }
 
-    private init(title: String, instructions: String, codes: [String]) {
+    private let link: String?
+    private let toast = NSView()
+    private var toastTask: Task<Void, Never>?
+
+    private init(title: String, instructions: String, codes: [String], copyableLink: String?) {
         self.codes = codes
+        link = copyableLink
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
                           styleMask: [.titled, .closable], backing: .buffered, defer: false)
         super.init()
@@ -60,6 +66,35 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
         }
         next.keyEquivalent = "\r"
         for view in [text, imageView, counter] as [NSView] { content.addSubview(view) }
+        if let link {
+            let field = NSTextField(labelWithString: link)
+            field.usesSingleLineMode = true
+            field.maximumNumberOfLines = 1
+            field.lineBreakMode = .byTruncatingMiddle
+            field.toolTip = link
+            field.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+            field.frame = NSRect(x: 20, y: 66, width: 270, height: 18)
+            let copy = NSButton(title: String(localized: "Copy Link"), target: self, action: #selector(copyLink))
+            copy.bezelStyle = .rounded
+            copy.frame = NSRect(x: 300, y: 62, width: 100, height: 28)
+            content.addSubview(field)
+            content.addSubview(copy)
+
+            let label = NSTextField(labelWithString: String(localized: "Link copied"))
+            label.alignment = .center
+            label.font = .systemFont(ofSize: 13, weight: .medium)
+            label.textColor = .white
+            // A label draws at the top of its frame, so size it to its text and center that in the pill.
+            let size = label.fittingSize
+            toast.frame = NSRect(x: 135, y: 108, width: 150, height: 28)
+            label.frame = NSRect(x: 0, y: ((toast.frame.height - size.height) / 2).rounded(), width: toast.frame.width, height: size.height)
+            toast.addSubview(label)
+            toast.wantsLayer = true
+            toast.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.8).cgColor
+            toast.layer?.cornerRadius = 10
+            toast.alphaValue = 0
+            content.addSubview(toast)
+        }
         window.contentView = content
         window.center()
         update()
@@ -77,6 +112,17 @@ final class QRCodeWindow: NSObject, NSWindowDelegate {
 
     @objc private func showPrevious() { index = max(index - 1, 0); update() }
     @objc private func showNext() { index = min(index + 1, codes.count - 1); update() }
+    @objc private func copyLink() {
+        guard let link else { return }
+        Clipboard.copy(link)
+        toastTask?.cancel()
+        toast.animator().alphaValue = 1
+        toastTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            self?.toast.animator().alphaValue = 0
+        }
+    }
     @objc private func finish() { window.close() }
 
     nonisolated func windowWillClose(_ notification: Notification) {

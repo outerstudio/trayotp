@@ -276,6 +276,7 @@ struct TokenListView: View {
         }
         Divider()
         Button("Edit…") { afterMenu { state.edit(token) } }
+        Button("Export…") { afterMenu { state.showQRCode(token) } }
         Menu("Move to Group") {
             Picker("Move to Group", selection: Binding(get: { token.groupId }, set: { state.move(token, to: $0) })) {
                 Text("Ungrouped").tag(String?.none)

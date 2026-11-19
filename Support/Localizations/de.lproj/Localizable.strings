@@ -344,3 +344,10 @@
 "Unlock with your master password?" = "Mit dem Master-Passwort entsperren?";
 "unlock with the master password instead of Touch ID" = "mit dem Master-Passwort statt Touch ID zu entsperren";
 "unlock with Touch ID again" = "wieder mit Touch ID zu entsperren";
+"show “%@” as a QR code" = "„%@“ als QR-Code anzuzeigen";
+"QR Code for “%@”" = "QR-Code für „%@“";
+"In your other authenticator app, add an account by scanning this QR code. Anyone who sees it can copy this account." = "Füge in deiner anderen Authenticator-App ein Konto hinzu, indem du diesen QR-Code scannst. Wer ihn sieht, kann dieses Konto kopieren.";
+"Export…" = "Exportieren…";
+"Copy Link" = "Link kopieren";
+"Link copied" = "Link kopiert";
+"Many authenticator apps don't support Steam codes and will show wrong ones." = "Viele Authenticator-Apps unterstützen keine Steam-Codes und zeigen falsche an.";
