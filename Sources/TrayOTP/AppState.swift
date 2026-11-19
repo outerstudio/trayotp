@@ -77,6 +77,10 @@ final class AppState {
     var closesAfterCopy: Bool {
         didSet { UserDefaults.standard.set(closesAfterCopy, forKey: Keys.closesAfterCopy) }
     }
+    /// Pure black panel background instead of the translucent material: OLED pixels switch off.
+    var deepBlack: Bool {
+        didSet { UserDefaults.standard.set(deepBlack, forKey: Keys.deepBlack) }
+    }
     /// When the menu bar icon's ring stops counting down with the codes.
     var menuBarCountdown: MenuBarCountdown {
         didSet {
@@ -113,6 +117,7 @@ final class AppState {
         static let ungroupedExpanded = "ungroupedExpanded"
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
+        static let deepBlack = "deepBlack"
         static let menuBarCountdown = "menuBarCountdown"
     }
 
@@ -127,6 +132,7 @@ final class AppState {
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
+        deepBlack = defaults.bool(forKey: Keys.deepBlack)
         menuBarCountdown = defaults.string(forKey: Keys.menuBarCountdown).flatMap(MenuBarCountdown.init(rawValue:))
             ?? .untilGraceEnds
         shortcut = Shortcut.load()

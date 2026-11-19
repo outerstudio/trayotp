@@ -52,6 +52,7 @@ struct PanelView: View {
         }
         .frame(width: Theme.panelWidth)
         .environment(\.colorScheme, .dark)
+        .background { if state.deepBlack { Color.black } }
         .background(WindowFocusObserver(onHide: { state.panelDidHide() }) { state.panelDidOpen() })
         .onExitCommand {
             if state.screen == .list { PanelController.shared.close() } else { state.screen = .list }
@@ -479,6 +480,7 @@ struct SettingsMenu: View {
             }
             .disabled(!state.showsMenuBarIcon)
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
+            Toggle("Deep Black Theme", isOn: $state.deepBlack)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.launchAtLogin = $0 }))
             Menu("Language") {
