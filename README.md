@@ -249,7 +249,8 @@ All in the **⋯** menu:
 |---|---|
 | **Require Unlock** | Ask for Touch ID or your Mac password before showing codes (on by default). |
 | **Stay Unlocked ▸** | How long TrayOTP stays unlocked after you last used it: every time, 1 minute to 1 hour, **Until Mac Sleeps or Locks**, or a custom number of minutes. It always locks when your Mac sleeps or the screen locks. |
-| **Set Master Password…** | Protect the vault with a password of your own, typed instead of Touch ID (see [Security](#security)). |
+| **Set Master Password…** | The password you type before exporting or deleting tokens (see [Security](#security)). Once set, the menu offers Change, Remove, **Unlock with Password Instead of Touch ID**, and **Forgot Password…** to erase all tokens and start again. |
+| **Password Reminder ▸** | Ask for the password again every 7, 30 or 90 days (or a custom number), so you don't forget it. 30 days by default. |
 | **Set Global Shortcut…** | Open the panel from any app with a key combination of your choice (needs ⌘, ⌃ or ⌥). |
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
 | **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
@@ -271,21 +272,35 @@ Click **Lock** at the bottom of the panel to lock right away.
 - The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
 - With **Require Unlock** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
   tokens are dropped from memory when it locks again.
-- **Exporting** and **deleting a token** always ask for Touch ID again, even while TrayOTP is unlocked.
+- **Exporting**, **deleting a token** and **changing the master password** always ask for your password again, even while
+  TrayOTP is unlocked. See [Master password](#master-password).
 - Nothing leaves your Mac, except a domain you choose to look up with **Fetch Icon from Website…**.
 - The camera is used only while the **Scan QR Code** window is open. Frames are read in memory and never saved.
   macOS asks for camera access the first time, and may ask again after an update (TrayOTP is ad-hoc signed).
 
-### Optional master password
+### Master password
 
-With **⋯ → Set Master Password…**, the vault key in the Keychain is itself encrypted with a key derived from your
-password (scrypt with N=2¹⁷, r=8, p=1: about 0.5 s and 128 MB per guess). Someone who gets into your keychain
-still has to guess the password. You then unlock with the password instead of Touch ID.
+Touch ID would let someone use your finger while you sleep, so TrayOTP asks for a password you type instead.
+After your first token is added or imported, TrayOTP asks you to set a **master password**. It stands in front of:
 
-Setting, changing or removing the master password switches to a new vault key, so old copies of the keychain
+- exporting your tokens (the password also encrypts the backup file by default; you can pick another one for each export),
+- deleting a token (after you type it once, further deletes within 2 minutes don't ask again),
+- changing or removing the password.
+
+By default it doesn't replace Touch ID for opening TrayOTP. Turn on **⋯ → Master Password → Unlock with Password
+Instead of Touch ID** and the vault key in the Keychain is itself encrypted with a key derived from the same password
+(scrypt with N=2¹⁷, r=8, p=1: about 0.5 s and 128 MB per guess). Someone who gets into your keychain still has to guess
+the password. Turning it on, off or changing the password switches to a new vault key, so old copies of the keychain
 (for example in a Time Machine backup) can't open the vault afterwards.
 
-> **If you forget the master password, your tokens cannot be recovered.** Keep an encrypted export somewhere safe.
+**If you forget it, it cannot be recovered.** Without the unlock option, the only way back in is
+**⋯ → Master Password → Forgot Password…**, which erases all your tokens. With it, your tokens cannot be recovered at all.
+Make sure you can sign in to each account another way (its backup codes, or an encrypted export) before you rely on
+TrayOTP alone. **Password Reminder** asks for the password every so many days so it stays fresh.
+
+You can skip it by typing *I understand the risk*. Then exports and deletes only ask for Touch ID or your Mac password,
+and anyone at your unlocked Mac can export all your tokens. It also leaves a window: if you skipped, whoever opens
+TrayOTP first can set the password. Turn it on later with **⋯ → Set Master Password…**.
 
 ### Limitations
 
@@ -369,7 +384,8 @@ Sources/OTPCore/          pure logic, no UI, fully tested
   Zip.swift               ZIP reader with WinZip AES (Raivo)
   Argon2.swift            Argon2id and BLAKE2b (Proton, Stratum)
   Importer.swift          format detection; Exporter
-  MasterPassword.swift    scrypt-wrapped vault key
+  MasterPassword.swift    scrypt-wrapped vault key (unlock with password)
+  ExportPassword.swift    scrypt verifier for the master password
   IconPack.swift          Aegis icon pack manifest and matching
   SVGPathFixer.swift      rewrites minified SVG paths that macOS draws wrongly
   CryptoUtil.swift        PBKDF2, hex, scrypt (RFC 7914)

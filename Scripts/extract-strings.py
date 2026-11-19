@@ -14,7 +14,7 @@ import glob, os, re, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 # Interpolated expressions that are integers: Int is %lld, UInt64 %llu. Everything else is a string (%@).
 INTS = {"count", "matched", "duplicates", "leftCount", "codeCount", "iconCount", "tokenCount", "number", "total",
-        "status", "m / 60", "minutes", "pack.icons.count", "pack.version"}
+        "status", "m / 60", "minutes", "days", "pack.icons.count", "pack.version"}
 UINT64S = {"other"}
 # App names, shown as they are in every language.
 VERBATIM = {"2FAS", "Aegis", "Ente Auth", "Google Authenticator", "Bitwarden"}

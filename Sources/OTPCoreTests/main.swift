@@ -568,6 +568,17 @@ extension Result where Failure == Error {
     var masterError: MasterPassword.Error? { if case .failure(let e) = self { return e as? MasterPassword.Error }; return nil }
 }
 
+// MARK: Export password
+
+do {
+    let verifier = try ExportPassword.makeVerifier(password: "correct horse", n: 1 << 10)
+    check(ExportPassword.verify(verifier, password: "correct horse"), "export password accepted")
+    check(!ExportPassword.verify(verifier, password: "wrong"), "wrong export password rejected")
+    check(!ExportPassword.verify(Data("junk".utf8), password: "correct horse"), "damaged verifier rejected")
+    check(try ExportPassword.makeVerifier(password: "x", n: 1 << 10) != ExportPassword.makeVerifier(password: "x", n: 1 << 10),
+          "fresh salt each time")
+}
+
 // MARK: Done
 
 extension Result where Failure == Error {

@@ -7,15 +7,19 @@ import Security
 struct Vault: Codable {
     var tokens: [Token] = []
     var groups: [TokenGroup] = []
+    /// Proves the master password (see `ExportPassword`); nil until one is set.
+    var exportVerifier: Data?
 
-    init(tokens: [Token] = [], groups: [TokenGroup] = []) {
+    init(tokens: [Token] = [], groups: [TokenGroup] = [], exportVerifier: Data? = nil) {
         self.tokens = tokens
         self.groups = groups
+        self.exportVerifier = exportVerifier
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         tokens = try c.decode([Token].self, forKey: .tokens)
+        exportVerifier = try c.decodeIfPresent(Data.self, forKey: .exportVerifier)
         if let typed = try? c.decode([TokenGroup].self, forKey: .groups) {
             groups = typed
         } else {

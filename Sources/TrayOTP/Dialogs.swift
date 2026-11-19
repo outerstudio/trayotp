@@ -68,7 +68,7 @@ enum Dialogs {
     }
 
     /// Asks for a password; with `confirm` the user types it twice.
-    static func password(title: String, message: String, confirm: Bool = false) -> String? {
+    static func password(title: String, message: String, confirm: Bool = false, placeholder: String? = nil) -> String? {
         prepare()
         var info = message
         while true {
@@ -82,7 +82,7 @@ enum Dialogs {
             let width: CGFloat = 260, height: CGFloat = 24, gap: CGFloat = 8
             let container = NSView(frame: NSRect(x: 0, y: 0, width: width, height: confirm ? height * 2 + gap : height))
             let first = NSSecureTextField(frame: NSRect(x: 0, y: container.frame.height - height, width: width, height: height))
-            first.placeholderString = confirm ? String(localized: "New backup password") : String(localized: "Backup password")
+            first.placeholderString = placeholder ?? (confirm ? String(localized: "New backup password") : String(localized: "Backup password"))
             let second = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: width, height: height))
             second.placeholderString = String(localized: "Confirm password")
             container.addSubview(first)
@@ -104,6 +104,18 @@ enum Dialogs {
                 return value
             }
         }
+    }
+
+    /// A warning with several buttons; returns the index of the one pressed. A button titled Cancel also
+    /// answers Escape; without one, the user has to pick.
+    static func choice(title: String, message: String, buttons: [String]) -> Int {
+        prepare()
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        for button in buttons { alert.addButton(withTitle: button) }
+        return alert.runModal().rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
     }
 
     /// Several labeled text fields, top to bottom. Returns their values, or nil on Cancel.
@@ -153,6 +165,32 @@ enum Dialogs {
         alert.layout()
         alert.window.initialFirstResponder = field
         return alert.runModal() == .alertFirstButtonReturn ? field.stringValue : nil
+    }
+
+    /// A warning whose button stays disabled until the user has typed `phrase` (case and edge spaces aside).
+    /// Returns false on Cancel.
+    static func typedConfirmation(title: String, message: String, phrase: String, button: String) -> Bool {
+        prepare()
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: button)
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        let confirm = alert.buttons[0]
+        confirm.isEnabled = false
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
+        alert.accessoryView = field
+        alert.layout()
+        alert.window.initialFirstResponder = field
+        let observer = NotificationCenter.default.addObserver(forName: NSControl.textDidChangeNotification, object: field,
+                                                              queue: .main) { _ in
+            MainActor.assumeIsolated {
+                confirm.isEnabled = field.stringValue.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(phrase) == .orderedSame
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
     /// Records a key combination. Returns nil on Cancel; `.some(nil)` means "Clear".

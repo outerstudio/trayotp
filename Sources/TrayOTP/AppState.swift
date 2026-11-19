@@ -94,6 +94,20 @@ final class AppState {
         didSet { UserDefaults.standard.set(hasMasterPassword, forKey: Keys.masterPassword) }
     }
 
+    /// Proves the master password (see `ExportPassword`); nil until one is set.
+    private(set) var exportVerifier: Data?
+    /// The user chose to go without a master password, after typing the confirmation phrase.
+    private(set) var exportPasswordSkipped: Bool {
+        didSet { UserDefaults.standard.set(exportPasswordSkipped, forKey: Keys.exportPasswordSkipped) }
+    }
+    /// Days between asking for the password again, so it isn't forgotten. 0 = never.
+    var passwordReminderDays: Int {
+        didSet { UserDefaults.standard.set(passwordReminderDays, forKey: Keys.passwordReminderDays) }
+    }
+
+    /// Whether a password, the master or the export one, stands in front of exports and deletes.
+    var hasPasswordGate: Bool { hasMasterPassword || exportVerifier != nil }
+
     /// Whether the vault ever locks (Touch ID required, or a master password set).
     var needsUnlock: Bool { requireAuth || hasMasterPassword }
 
@@ -104,6 +118,10 @@ final class AppState {
     /// file dialog) take the focus without closing it; getting it back isn't a new open.
     @ObservationIgnored private var panelWasClosed = true
     @ObservationIgnored private var nextAutoPrompt = Date.distantPast
+    @ObservationIgnored private var passwordPromptActive = false
+    @ObservationIgnored private var reminderSnoozedUntil = Date.distantPast
+    /// Deleting stays unlocked until this time; every delete pushes it back (a debounce).
+    @ObservationIgnored private var deleteGraceUntil: Date?
     @ObservationIgnored private var switchToAlert = false
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var toastTask: Task<Void, Never>?
@@ -114,6 +132,9 @@ final class AppState {
         static let requireAuth = "requireAuth"
         static let graceMinutes = "graceMinutes"
         static let masterPassword = "masterPassword"
+        static let exportPasswordSkipped = "exportPasswordSkipped"
+        static let passwordReminderDays = "passwordReminderDays"
+        static let lastPasswordCheck = "lastPasswordCheck"
         static let ungroupedExpanded = "ungroupedExpanded"
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
@@ -124,12 +145,14 @@ final class AppState {
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
-                                     Keys.showsMenuBarIcon: true])
+                                     Keys.showsMenuBarIcon: true, Keys.passwordReminderDays: 30])
         ungroupedExpanded = defaults.bool(forKey: Keys.ungroupedExpanded)
         requireAuth = defaults.bool(forKey: Keys.requireAuth)
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
+        exportPasswordSkipped = defaults.bool(forKey: Keys.exportPasswordSkipped)
+        passwordReminderDays = defaults.integer(forKey: Keys.passwordReminderDays)
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
         deepBlack = defaults.bool(forKey: Keys.deepBlack)
@@ -242,6 +265,8 @@ final class AppState {
         tokens = []
         groups = []
         key = nil
+        exportVerifier = nil
+        deleteGraceUntil = nil
         isLocked = true
         screen = .list
         Clipboard.clearIfOurs()
@@ -261,6 +286,7 @@ final class AppState {
             // scrypt takes ~0.5 s; keep it off the main thread.
             let raw = try await Task.detached { try MasterPassword.unwrap(blob, password: password) }.value
             openVault(key: SymmetricKey(data: raw))
+            lastPasswordCheck = Date()
             PanelController.shared.focus()
         } catch {
             lockMessage = error.localizedDescription
@@ -274,10 +300,12 @@ final class AppState {
             key = k
             tokens = vault.tokens
             groups = vault.groups
+            exportVerifier = vault.exportVerifier
             isLocked = false
             lockMessage = nil
             if given == nil { hasMasterPassword = false }
             touch()
+            checkPasswordPrompts()
         } catch VaultError.passwordRequired {
             hasMasterPassword = true
             lockMessage = nil
@@ -288,46 +316,64 @@ final class AppState {
 
     // MARK: Master password
 
+    /// Sets the first master password. It gates exports and deletes; Touch ID still unlocks the vault.
     func setMasterPassword() {
-        let changing = hasMasterPassword
+        Task { _ = await chooseMasterPassword() }
+    }
+
+    func changeMasterPassword() {
         Task {
-            guard await confirmOwner(changing ? String(localized: "change the master password") : String(localized: "set a master password")) else { return }
-            if !changing {
-                guard Dialogs.confirm(
-                    title: String(localized: "Set a master password?"),
-                    message: String(localized: "TrayOTP will ask for it instead of Touch ID. If you forget it, your tokens cannot be recovered. Export an encrypted backup first."),
-                    button: String(localized: "Continue"))
-                else { return }
-            }
-            var info = String(localized: "At least 8 characters. Not your Mac password: a long passphrase works best.")
-            while true {
-                guard let password = Dialogs.password(title: changing ? String(localized: "New master password") : String(localized: "Master password"),
-                                                      message: info, confirm: true)
-                else { return }
-                if password.count >= 8 {
-                    await rekey(password: password)
-                    return
-                }
-                info = String(localized: "Too short. Use at least 8 characters.")
-            }
+            guard await authorize(String(localized: "change the master password")) != nil else { return }
+            _ = await chooseMasterPassword(title: String(localized: "New master password"))
         }
     }
 
     func removeMasterPassword() {
         Task {
-            guard await confirmOwner(String(localized: "remove the master password")),
-                  Dialogs.confirm(title: String(localized: "Remove the master password?"),
-                                  message: String(localized: "The vault key will be protected by the Keychain and Touch ID only."),
-                                  button: String(localized: "Remove"))
+            guard await authorize(String(localized: "remove the master password")) != nil, confirmSkip() else { return }
+            let old = exportVerifier
+            exportVerifier = nil
+            if hasMasterPassword {
+                guard await rekey(password: nil) else { exportVerifier = old; return }
+            } else {
+                persist()
+            }
+            showToast(String(localized: "Master password removed"))
+        }
+    }
+
+    /// Switches between unlocking with Touch ID and typing the master password. With the password, the
+    /// vault key is wrapped with it too, so the Keychain item alone can't open the vault.
+    func setUnlocksWithPassword(_ on: Bool) {
+        Task {
+            guard let password = await authorize(on ? String(localized: "unlock with the master password instead of Touch ID")
+                                                    : String(localized: "unlock with Touch ID again"))?.password
             else { return }
-            await rekey(password: nil)
+            if on {
+                guard Dialogs.confirm(
+                    title: String(localized: "Unlock with your master password?"),
+                    message: String(localized: "TrayOTP will ask for it instead of Touch ID. If you forget it, your tokens cannot be recovered. Export an encrypted backup first."),
+                    button: String(localized: "Continue"))
+                else { return }
+            } else if exportVerifier == nil {
+                // Keep the password in front of exports once the vault key no longer depends on it.
+                do {
+                    exportVerifier = try await Task.detached { try ExportPassword.makeVerifier(password: password) }.value
+                } catch {
+                    Dialogs.error(error, title: String(localized: "Could not change the master password"))
+                    return
+                }
+            }
+            await rekey(password: on ? password : nil)
         }
     }
 
     /// Switches to a fresh vault key, optionally wrapped with `password`. A new key means a copy of
     /// the old Keychain item (e.g. in a Time Machine backup) can't open the vault from now on.
-    private func rekey(password: String?) async {
-        guard !isLocked else { return }
+    /// False if it failed (the error is shown) or the vault locked meanwhile: nothing changed.
+    @discardableResult
+    private func rekey(password: String?) async -> Bool {
+        guard !isLocked else { return false }
         let newKey = SymmetricKey(size: .bits256)
         let raw = newKey.withUnsafeBytes { Data($0) }
         do {
@@ -337,13 +383,213 @@ final class AppState {
             } else {
                 item = raw
             }
-            try store.rekey(Vault(tokens: tokens, groups: groups), newKey: newKey, keyItem: item)
+            try store.rekey(Vault(tokens: tokens, groups: groups, exportVerifier: exportVerifier), newKey: newKey, keyItem: item)
             key = newKey
             hasMasterPassword = password != nil
-            showToast(password == nil ? String(localized: "Master password removed") : String(localized: "Master password set"))
+            return true
         } catch {
             Dialogs.error(error, title: String(localized: "Could not change the master password"))
+            return false
         }
+    }
+
+    /// What `authorize` learned: the password the user typed, or nil when Touch ID or the Mac password was used.
+    struct Authorization { var password: String? }
+
+    /// Seconds deleting stays unlocked after a password: every delete pushes the end back.
+    private static let deleteGrace: TimeInterval = 120
+
+    @ObservationIgnored private var lastPasswordCheck: Date? {
+        get { UserDefaults.standard.object(forKey: Keys.lastPasswordCheck) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.lastPasswordCheck) }
+    }
+
+    /// The verifier, or for a vault from before it, the wrapped vault key. Both open with the password.
+    private func gateVerifier() -> Data? {
+        if let exportVerifier { return exportVerifier }
+        return hasMasterPassword ? try? store.keyItem() : nil
+    }
+
+    private var gateName: String { String(localized: "master password") }
+
+    private nonisolated static func check(_ verifier: Data, password: String) async -> Bool {
+        // scrypt takes ~0.5 s; keep it off the main thread.
+        await Task.detached { ExportPassword.verify(verifier, password: password) }.value
+    }
+
+    /// Asks for the password before an action that exposes or destroys secrets. A Touch ID prompt
+    /// would let someone use a sleeper's finger, so the password is typed. Without one (the user
+    /// skipped it), it falls back to `confirmOwner`. `debounced` skips the prompt for a while after
+    /// the last time it was passed, for deleting several tokens in a row.
+    private func authorize(_ reason: String, debounced: Bool = false) async -> Authorization? {
+        if debounced, let until = deleteGraceUntil, Date() < until {
+            deleteGraceUntil = Date().addingTimeInterval(Self.deleteGrace)
+            return Authorization(password: nil)
+        }
+        guard let verifier = gateVerifier() else {
+            return await confirmOwner(reason) ? Authorization(password: nil) : nil
+        }
+        var info = String(localized: "Enter your \(gateName) to \(reason).")
+        while true {
+            guard let typed = Dialogs.password(title: String(localized: "Enter your \(gateName)"), message: info,
+                                               placeholder: String(localized: "Password"))
+            else { return nil }
+            if await Self.check(verifier, password: typed) {
+                lastPasswordCheck = Date()
+                if debounced { deleteGraceUntil = Date().addingTimeInterval(Self.deleteGrace) }
+                return Authorization(password: typed)
+            }
+            info = String(localized: "Wrong password. If you forgot it, ⋯ → Master Password → Forgot Password… erases your tokens so you can start again from a backup.")
+        }
+    }
+
+    // MARK: Master password prompts
+
+    private var needsPasswordSetup: Bool {
+        !isLocked && !tokens.isEmpty && !hasPasswordGate && !exportPasswordSkipped
+    }
+
+    /// Runs after the vault opens and after tokens are added: asks for a password if there is none,
+    /// or reminds the user of it now and then. Safe to call repeatedly.
+    func checkPasswordPrompts() {
+        Task {
+            if needsPasswordSetup {
+                await promptPasswordSetup()
+            } else {
+                await remindPassword()
+            }
+        }
+    }
+
+    /// Blocks until the user sets a password or skips it with the confirmation phrase.
+    private func promptPasswordSetup() async {
+        guard !passwordPromptActive else { return }
+        passwordPromptActive = true
+        defer { passwordPromptActive = false }
+        while needsPasswordSetup {
+            let pick = Dialogs.choice(
+                title: String(localized: "Set a master password"),
+                message: String(localized: "Exporting, deleting and changing tokens will ask for it, so nobody at your Mac can take all your secrets, even with your fingerprint while you sleep."),
+                buttons: [String(localized: "Set Password…"), String(localized: "Skip")])
+            if pick == 0 {
+                if await chooseMasterPassword() { return }
+            } else if confirmSkip() {
+                return
+            }
+        }
+    }
+
+    private func confirmSkip() -> Bool {
+        let phrase = String(localized: "I understand the risk")
+        guard Dialogs.typedConfirmation(
+            title: String(localized: "Go without a master password?"),
+            message: String(localized: "Anyone with access to this Mac, even using your fingerprint while you sleep, can export all your tokens. Type “\(phrase)” to continue."),
+            phrase: phrase, button: String(localized: "Skip"))
+        else { return false }
+        exportPasswordSkipped = true
+        return true
+    }
+
+    /// Asks for a new master password twice and stores it. False if cancelled.
+    private func chooseMasterPassword(title: String = String(localized: "Master password")) async -> Bool {
+        // The warning stays on screen with the field, so the setup screen before it can stay short.
+        let warning = String(localized: "If you forget it, the only way to reset it is to erase all your tokens. Make sure you can get back into each account another way: its backup codes, or an encrypted backup of your tokens.")
+        var info = String(localized: "At least 8 characters. Not your Mac password: a long passphrase works best.") + "\n\n" + warning
+        while true {
+            guard let password = Dialogs.password(title: title, message: info, confirm: true,
+                                                  placeholder: String(localized: "New password"))
+            else { return false }
+            guard password.count >= ExportPassword.minLength else {
+                info = String(localized: "Too short. Use at least 8 characters.") + "\n\n" + warning
+                continue
+            }
+            do {
+                let verifier = try await Task.detached { try ExportPassword.makeVerifier(password: password) }.value
+                let old = exportVerifier
+                exportVerifier = verifier
+                // With the vault key wrapped by the old password, it takes the new one too.
+                if hasMasterPassword {
+                    guard await rekey(password: password) else { exportVerifier = old; return false }
+                } else {
+                    persist()
+                }
+                exportPasswordSkipped = false
+                lastPasswordCheck = Date()
+                showToast(String(localized: "Master password set"))
+                return true
+            } catch {
+                Dialogs.error(error, title: String(localized: "Could not set the master password"))
+                return false
+            }
+        }
+    }
+
+    /// Asks for the password again when `passwordReminderDays` have passed since it was last typed.
+    private func remindPassword() async {
+        guard !isLocked, !passwordPromptActive, passwordReminderDays > 0, let verifier = gateVerifier(),
+              Date() >= reminderSnoozedUntil
+        else { return }
+        guard let last = lastPasswordCheck else { lastPasswordCheck = Date(); return }
+        let days = passwordReminderDays
+        guard Date().timeIntervalSince(last) > Double(days) * 86400 else { return }
+
+        passwordPromptActive = true
+        defer { passwordPromptActive = false }
+        var info = String(localized: "It has been more than \(days) days. Type your \(gateName) so you don't forget it. Cancel to be asked again tomorrow.")
+        while true {
+            guard let typed = Dialogs.password(title: String(localized: "Remember your \(gateName)?"), message: info,
+                                               placeholder: String(localized: "Password"))
+            else {
+                reminderSnoozedUntil = Date().addingTimeInterval(86400)
+                return
+            }
+            if await Self.check(verifier, password: typed) {
+                lastPasswordCheck = Date()
+                showToast(String(localized: "Password confirmed"))
+                return
+            }
+            info = String(localized: "Wrong password. If you forgot it, cancel, then use ⋯ → Master Password → Forgot Password… to erase your tokens and start again from a backup.")
+        }
+    }
+
+    /// The only way back in without the password: erase every token. Touch ID is enough, because this
+    /// destroys secrets instead of exposing them.
+    func forgotMasterPassword() {
+        Task {
+            let phrase = String(localized: "Erase all tokens")
+            guard exportVerifier != nil, !hasMasterPassword,
+                  Dialogs.confirm(title: String(localized: "Forgot the master password?"),
+                                  message: String(localized: "It cannot be recovered. You can erase all your tokens and set a new password, then import them again from a backup or sign in to each account to add its token."),
+                                  button: String(localized: "Continue")),
+                  Dialogs.typedConfirmation(title: String(localized: "Erase all tokens?"),
+                                            message: String(localized: "This cannot be undone. Type “\(phrase)” to continue."),
+                                            phrase: phrase, button: String(localized: "Erase")),
+                  await confirmOwner(String(localized: "erase all your tokens"))
+            else { return }
+            tokens = []
+            groups = []
+            exportVerifier = nil
+            exportPasswordSkipped = false
+            persist()
+            showToast(String(localized: "All tokens erased"))
+        }
+    }
+
+    // MARK: Password reminder setting
+
+    static let reminderPresets = [0, 7, 30, 90]
+
+    static func reminderLabel(_ days: Int) -> String {
+        days == 0 ? String(localized: "Never") : String(localized: "\(days) days")
+    }
+
+    func setCustomReminder() {
+        guard let text = Dialogs.text(title: String(localized: "Password Reminder"),
+                                      message: String(localized: "Days between asking for your password again, so you don't forget it. 0 turns it off."),
+                                      value: String(passwordReminderDays), button: String(localized: "Set")),
+              let days = Int(text.trimmingCharacters(in: .whitespaces)), (0...3650).contains(days)
+        else { return }
+        passwordReminderDays = days
     }
 
     // MARK: Stay unlocked
@@ -507,6 +753,7 @@ final class AppState {
         persist()
         screen = .list
         showToast(String(localized: "Added \(token.name)"))
+        checkPasswordPrompts()
     }
 
     func delete(_ token: Token) {
@@ -515,7 +762,7 @@ final class AppState {
                               button: String(localized: "Delete"))
         else { return }
         Task {
-            guard await confirmOwner(String(localized: "delete “\(token.name)”")) else { return }
+            guard await authorize(String(localized: "delete “\(token.name)”"), debounced: true) != nil else { return }
             tokens.removeAll { $0.id == token.id }
             persist()
         }
@@ -777,7 +1024,7 @@ final class AppState {
     private func persist() {
         guard let key else { return }
         do {
-            try store.save(Vault(tokens: tokens, groups: groups), key: key)
+            try store.save(Vault(tokens: tokens, groups: groups, exportVerifier: exportVerifier), key: key)
         } catch {
             Dialogs.error(error, title: String(localized: "Could not save"))
         }
@@ -884,6 +1131,7 @@ final class AppState {
             Dialogs.info(title: count == 1 ? String(localized: "Imported 1 token from \(source)")
                                            : String(localized: "Imported \(count) tokens from \(source)"),
                          message: notes.joined(separator: "\n\n"))
+            checkPasswordPrompts()
         } catch {
             Dialogs.error(error, title: String(localized: "Import failed"))
         }
@@ -891,15 +1139,15 @@ final class AppState {
 
     func exportBackup(as format: BackupFormat, encrypted: Bool) {
         Task {
-            guard await confirmOwner(String(localized: "export all your secrets to \(format.displayName)")) else { return }
-            exportConfirmed(as: format, encrypted: encrypted)
+            guard let auth = await authorize(String(localized: "export all your secrets to \(format.displayName)")) else { return }
+            exportConfirmed(as: format, encrypted: encrypted, typedPassword: auth.password)
         }
     }
 
     /// Shows Google Authenticator transfer QR codes, to scan with its Transfer accounts → Import accounts.
     func exportToGoogle() {
         Task {
-            guard await confirmOwner(String(localized: "show all your secrets as QR codes for Google Authenticator")) else { return }
+            guard await authorize(String(localized: "show all your secrets as QR codes for Google Authenticator")) != nil else { return }
             let codes = GoogleAuthenticator.encode(.init(tokens: tokens, groups: groups))
             let left = Exporter.unsupported(tokens, in: .googleAuthenticator)
             if !left.isEmpty {
@@ -928,9 +1176,20 @@ final class AppState {
         }
     }
 
-    private func exportConfirmed(as format: BackupFormat, encrypted: Bool) {
+    private func exportConfirmed(as format: BackupFormat, encrypted: Bool, typedPassword: String?) {
         var password: String?
-        if encrypted {
+        if encrypted, let typedPassword {
+            switch Dialogs.choice(title: String(localized: "Encrypt the backup"),
+                                  message: String(localized: "The file will be encrypted with your master password. \(format.displayName) will ask for it when importing."),
+                                  buttons: [String(localized: "Use Master Password"), String(localized: "Use a Different Password…"), String(localized: "Cancel")]) {
+            case 0: password = typedPassword
+            case 1: password = Dialogs.password(title: String(localized: "Set a backup password"),
+                                                message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
+                                                confirm: true)
+                if password == nil { return }
+            default: return
+            }
+        } else if encrypted {
             guard let p = Dialogs.password(title: String(localized: "Set a backup password"),
                                            message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
                                            confirm: true)

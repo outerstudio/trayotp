@@ -438,14 +438,38 @@ struct SettingsMenu: View {
             }
             .disabled(state.tokens.isEmpty)
             Divider()
-            if state.hasMasterPassword {
+            if state.hasPasswordGate {
                 Menu("Master Password") {
-                    Button("Change…") { afterMenu { state.setMasterPassword() } }
+                    Button("Change…") { afterMenu { state.changeMasterPassword() } }
                     Button("Remove…") { afterMenu { state.removeMasterPassword() } }
+                    Toggle("Unlock with Password Instead of Touch ID",
+                           isOn: Binding(get: { state.hasMasterPassword }, set: { on in afterMenu { state.setUnlocksWithPassword(on) } }))
+                    if !state.hasMasterPassword {
+                        Divider()
+                        Button("Forgot Password…") { afterMenu { state.forgotMasterPassword() } }
+                    }
                 }
             } else {
                 Button("Set Master Password…") { afterMenu { state.setMasterPassword() } }
+            }
+            if !state.hasMasterPassword {
                 Toggle("Require Unlock", isOn: $state.requireAuth)
+            }
+            if state.hasPasswordGate {
+                Menu("Password Reminder: \(AppState.reminderLabel(state.passwordReminderDays))") {
+                    Picker("Password Reminder", selection: $state.passwordReminderDays) {
+                        ForEach(AppState.reminderPresets, id: \.self) { days in
+                            Text(AppState.reminderLabel(days)).tag(days)
+                        }
+                        if !AppState.reminderPresets.contains(state.passwordReminderDays) {
+                            Text("Custom: \(AppState.reminderLabel(state.passwordReminderDays))").tag(state.passwordReminderDays)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                    Divider()
+                    Button("Custom…") { afterMenu { state.setCustomReminder() } }
+                }
             }
             Menu("Stay Unlocked: \(AppState.graceLabel(state.graceMinutes))") {
                 // An inline Picker gets native menu checkmarks; a Label's icon isn't drawn in menus.
