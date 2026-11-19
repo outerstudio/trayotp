@@ -2,6 +2,16 @@
 
 User-facing changes in each release. Pre-releases are listed on the [Releases](https://github.com/outerstudio/trayotp/releases) page.
 
+## [0.6.0](https://github.com/outerstudio/trayotp/compare/v0.5.0...v0.6.0) (2026-11-20)
+
+### Features
+
+* **security:** ask for a typed master password before exports and deletes ([5ffdb2d](https://github.com/outerstudio/trayotp/commit/5ffdb2d377e66b4403087ff9a8120409f1d0feec))
+* **security:** export a single token as a QR code behind the master password ([f461290](https://github.com/outerstudio/trayotp/commit/f46129002aeef855b80aa99ccb97e5fb97366003))
+* **ui:** add a Deep Black theme with a pure black panel for OLED screens ([fdb9796](https://github.com/outerstudio/trayotp/commit/fdb9796a5f30b3c056d95f8b2bfefb84c7b79a3a))
+* **ui:** add a Support TrayOTP menu, an About window and sponsor links in the update dialog ([5dd2d54](https://github.com/outerstudio/trayotp/commit/5dd2d5406132239e1f559f399aabadf28625f430))
+* **ui:** shake the copied row, or its next code, and close 0.7 s later ([492fa08](https://github.com/outerstudio/trayotp/commit/492fa087e0579fce1ace4e901de8e8c50128ed21))
+
 ## [0.5.0](https://github.com/outerstudio/trayotp/compare/v0.4.0...v0.5.0) (2026-11-18)
 
 A new look: the app icon is now a flat lock inside a TOTP countdown ring, and the same countdown now runs in your menu bar.
