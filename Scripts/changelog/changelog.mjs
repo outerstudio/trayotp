@@ -7,6 +7,7 @@
 // An annotated tag's message (minus its subject line) is a hand-written intro, shown above the generated
 // list in both. Create it with `git tag -a vX.Y.Z -F notes.md --cleanup=verbatim` so # headings survive.
 // A lightweight tag has none.
+// The release notes (not CHANGELOG.md) end with the install steps from install.md, so tag messages don't repeat them.
 //
 // Only what users notice is listed: feat, fix, perf and revert. docs, ci, build, chore, refactor,
 // style and test commits are left out (the conventionalcommits preset hides them).
@@ -112,7 +113,8 @@ if (command === 'notes' && parse(tag ?? '')) {
   const compare = from
     ? `\n\n**Full Changelog**: https://github.com/outerstudio/trayotp/compare/${from.tag}...${version.tag}`
     : ''
-  process.stdout.write((body || 'No user-facing changes.') + (thanks ? '\n\n' + thanks : '') + compare + '\n')
+  const install = readFileSync(join(here, 'install.md'), 'utf8').trim()
+  process.stdout.write((body || 'No user-facing changes.') + '\n\n' + install + (thanks ? '\n\n' + thanks : '') + compare + '\n')
 } else if (command === 'file') {
   const stable = tags.filter(t => !t.pre.length).reverse()
   const sections = []
