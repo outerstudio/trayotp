@@ -174,6 +174,7 @@ final class AppState {
             lock()
         }
         panelWasClosed = false
+        refreshLaunchAtLogin()
         updateMenuBarRing()
         if isLocked {
             if hasMasterPassword {
@@ -1328,14 +1329,20 @@ final class AppState {
 
     // MARK: Launch at login
 
-    var launchAtLogin: Bool {
-        get { SMAppService.mainApp.status == .enabled }
-        set {
-            do {
-                if newValue { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
-            } catch {
-                Dialogs.error(error, title: String(localized: "Launch at login"))
-            }
+    /// Stored so SwiftUI re-renders; `SMAppService.status` can settle after `register()`, so it is re-read
+    /// after a change and whenever the panel opens.
+    private(set) var launchAtLogin = SMAppService.mainApp.status == .enabled
+
+    func refreshLaunchAtLogin() {
+        launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+        } catch {
+            Dialogs.error(error, title: String(localized: "Launch at login"))
         }
+        refreshLaunchAtLogin()
     }
 }
