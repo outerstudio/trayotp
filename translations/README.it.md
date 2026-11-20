@@ -38,6 +38,10 @@
   <img src="../docs/screenshots/panel.png" width="340" alt="Il pannello di TrayOTP sotto la sua icona nella barra dei menu: un campo di ricerca, token con nome, codice, account e codice successivo e i pulsanti Aggiungi, Blocca ed Esci">
 </p>
 
+<p align="center">
+  <img src="../docs/screenshots/deep-black.png" width="340" alt="Il pannello con il tema nero profondo: uno sfondo nero puro per gli schermi OLED">
+</p>
+
 > Questa traduzione potrebbe essere meno aggiornata del [README in inglese](../README.md). In caso di dubbio vale la versione inglese.
 
 ## Funzionalità
@@ -77,6 +81,14 @@ macOS non può verificare chi l’ha creato. Per aprirlo comunque:
 
 Basta farlo una volta per versione. Se preferisci non fidarti di una build scaricata,
 [compilala tu](#build-from-source) in circa un minuto.
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Impostazioni di Sistema → Privacy e sicurezza su macOS 15 e successivi, con il pulsante Apri comunque accanto all’app bloccata">
+</p>
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Finestra di macOS 14 Sonoma dopo clic destro → Apri, con i pulsanti Apri, Sposta nel Cestino e Annulla">
+</p>
 
 **Verificare il download (facoltativo):** ogni versione include un file `.sha256`. Nel Terminale:
 
@@ -253,10 +265,12 @@ Tutto nel menu **⋯**:
 |---|---|
 | **Richiedi sblocco** | Chiedi Touch ID o la password del Mac prima di mostrare i codici (attivo per impostazione predefinita). |
 | **Resta sbloccato ▸** | Per quanto TrayOTP resta sbloccato dopo l’ultimo utilizzo: ogni volta, da 1 minuto a 1 ora, **Fino a stop o blocco del Mac**, o un numero di minuti personalizzato. Si blocca sempre quando il Mac va in stop o lo schermo si blocca. |
-| **Imposta password principale…** | Proteggi la cassaforte con una tua password, digitata al posto di Touch ID (vedi [Sicurezza](#security)). |
+| **Imposta password principale…** | La password che digiti prima di esportare o eliminare token (vedi [Sicurezza](#security)). Una volta impostata, il menu offre Modifica, Rimuovi, **Sblocca con la password invece di Touch ID** e **Password dimenticata…** per cancellare tutti i token e ricominciare. |
+| **Promemoria password ▸** | Richiedere di nuovo la password ogni 7, 30 o 90 giorni (o un numero personalizzato), per non dimenticarla. 30 giorni per impostazione predefinita. |
 | **Imposta abbreviazione globale…** | Apri il pannello da qualsiasi app con la combinazione di tasti che preferisci (con ⌘, ⌃ o ⌥). |
 | **Mostra icona nella barra dei menu** | Disattiva per nascondere l’icona. L’abbreviazione globale (o riaprire TrayOTP dal Finder o da Launchpad) mostra allora il pannello in alto sullo schermo. |
 | **Chiudi dopo la copia** | Chiudi il pannello appena un codice viene copiato, così puoi incollarlo subito. |
+| **Tema nero profondo** | Sfondo del pannello nero puro invece del materiale traslucido, per gli schermi OLED. |
 | **Apri al login** | Avvia TrayOTP quando accedi. |
 | **Lingua ▸** | **Lingua di sistema** segue la lingua del Mac (inglese se TrayOTP non è tradotto in quella lingua), oppure scegli una delle traduzioni. TrayOTP si riavvia per cambiare. |
 
@@ -275,21 +289,38 @@ Fai clic su **Blocca** in fondo al pannello per bloccare subito.
 - La chiave di crittografia è una chiave casuale a 256 bit conservata nel **portachiavi di login**, mai accanto al file.
 - Con **Richiedi sblocco** attivo, la cassaforte viene decrittografata solo dopo Touch ID o la password del Mac, e i token
   decrittografati vengono rimossi dalla memoria quando si blocca di nuovo.
-- **Esportare** ed **eliminare un token** chiedono sempre di nuovo Touch ID, anche se TrayOTP è sbloccato.
+- **Esportare**, **eliminare un token** e **modificare la password principale** chiedono sempre di nuovo la tua password, anche se TrayOTP è sbloccato. Vedi [Password principale](#master-password).
 - Nulla lascia il tuo Mac, tranne un dominio che scegli di cercare con **Scarica icona dal sito web…**.
 - La fotocamera viene usata solo mentre è aperta la finestra **Scansiona codice QR**. I fotogrammi vengono letti in memoria e mai salvati.
   macOS chiede l’accesso alla fotocamera la prima volta, e potrebbe richiederlo dopo un aggiornamento (TrayOTP ha una firma ad hoc).
 
-### Password principale opzionale
+<a id="master-password"></a>
+### Password principale
 
-Con **⋯ → Imposta password principale…**, la chiave della cassaforte nel portachiavi viene a sua volta crittografata con una
-chiave derivata dalla tua password (scrypt con N=2¹⁷, r=8, p=1: circa 0,5 s e 128 MB per tentativo). Chi entra nel tuo
-portachiavi deve comunque indovinare la password. Da quel momento sblocchi con la password invece che con Touch ID.
+Touch ID permetterebbe a qualcuno di usare il tuo dito mentre dormi, quindi TrayOTP chiede una password che digiti tu.
+Dopo aver aggiunto o importato il primo token, TrayOTP ti chiede di impostare una **password principale**. Si trova davanti a:
 
-Impostare, modificare o rimuovere la password principale passa a una nuova chiave della cassaforte, così le vecchie copie del
-portachiavi (ad esempio in un backup di Time Machine) non possono più aprirla.
+- l’esportazione dei token (la password crittografa anche il file di backup per impostazione predefinita; puoi sceglierne un’altra a ogni esportazione),
+- l’eliminazione di un token (dopo averla digitata una volta, le eliminazioni successive entro 2 minuti non la richiedono di nuovo),
+- la visualizzazione di un singolo token come codice QR (clic destro → **Esporta…**, per aggiungerlo a un’altra app di autenticazione;
+  dopo aver digitato la password una volta, i codici QR successivi entro 3 minuti non la richiedono di nuovo),
+- la modifica o la rimozione della password.
 
-> **Se dimentichi la password principale, i token non possono essere recuperati.** Conserva un’esportazione crittografata in un luogo sicuro.
+Per impostazione predefinita non sostituisce Touch ID per aprire TrayOTP. Attiva **⋯ → Password principale → Sblocca con la
+password invece di Touch ID** e la chiave della cassaforte nel portachiavi viene a sua volta crittografata con una chiave
+derivata dalla stessa password (scrypt con N=2¹⁷, r=8, p=1: circa 0,5 s e 128 MB per tentativo). Chi entra nel tuo portachiavi
+deve comunque indovinare la password. Attivarla, disattivarla o modificare la password passa a una nuova chiave della
+cassaforte, così le vecchie copie del portachiavi (ad esempio in un backup di Time Machine) non possono più aprirla.
+
+**Se la dimentichi, non può essere recuperata.** Senza l’opzione di sblocco, l’unico modo per rientrare è
+**⋯ → Password principale → Password dimenticata…**, che cancella tutti i tuoi token. Con l’opzione, i token non possono
+essere recuperati affatto. Assicurati di poter accedere a ogni account in un altro modo (i suoi codici di backup o
+un’esportazione crittografata) prima di affidarti solo a TrayOTP. Il **Promemoria password** la richiede ogni tot giorni
+perché resti fresca nella memoria.
+
+Puoi saltarla digitando *Capisco il rischio*. Allora esportazioni ed eliminazioni chiedono solo Touch ID o la password del Mac,
+e chiunque sia davanti al tuo Mac sbloccato può esportare tutti i token. Lascia anche una falla: se l’hai saltata, chi apre
+TrayOTP per primo può impostare la password. Attivala più tardi con **⋯ → Imposta password principale…**.
 
 <a id="limitations"></a>
 ### Limitazioni
@@ -310,20 +341,17 @@ del repository anziché in una issue pubblica.
 <a id="troubleshooting"></a>
 ## Risoluzione dei problemi
 
-**“TrayOTP vuole usare il portachiavi” dopo un aggiornamento**
-macOS lo chiede di nuovo dopo ogni aggiornamento perché ogni versione è firmata separatamente. Inserisci la password del
-portachiavi di login (di solito quella del Mac) e scegli **Consenti sempre**. Se compare in un altro momento, vedi
-[Limitazioni](#limitations).
-
-**Launchpad mostra un’icona vuota**
-Launchpad elenca solo le app in `/Applications`. Se l’icona resta vuota dopo aver spostato lì l’app, esegui `killall Dock`.
-
-**Un codice QR non viene riconosciuto**
-Ritaglia lo screenshot più vicino al codice. Per Google Authenticator usa **Aggiungi → Scansiona codice QR con la fotocamera…**
-(vedi [Importazione ed esportazione](#import-and-export)).
-
-**“Password del backup errata”**
-Usa la password impostata quando il backup è stato esportato dall’altra app (o da TrayOTP), non la password del Mac.
+- **“TrayOTP vuole usare il portachiavi” dopo un aggiornamento**
+  - macOS lo chiede di nuovo dopo ogni aggiornamento perché ogni versione è firmata separatamente. Inserisci la password del
+    portachiavi di login (di solito quella del Mac) e scegli **Consenti sempre**. Se compare in un altro momento, vedi
+    [Limitazioni](#limitations).
+- **Launchpad mostra un’icona vuota**
+  - Launchpad elenca solo le app in `/Applications`. Se l’icona resta vuota dopo aver spostato lì l’app, esegui `killall Dock`.
+- **Un codice QR non viene riconosciuto**
+  - Ritaglia lo screenshot più vicino al codice. Per Google Authenticator usa **Aggiungi → Scansiona codice QR con la fotocamera…**
+    (vedi [Importazione ed esportazione](#import-and-export)).
+- **“Password del backup errata”**
+  - Usa la password impostata quando il backup è stato esportato dall’altra app (o da TrayOTP), non la password del Mac.
 
 ## Uso a proprio rischio
 
@@ -340,7 +368,8 @@ Perdere i codici 2FA può chiuderti fuori dai tuoi account, quindi non fare di T
 ## Supporto
 
 TrayOTP è gratuito. Se ti fa risparmiare tempo, puoi [offrirmi un caffè](https://buymeacoffee.com/garyyeap)
-(anche nel menu ⋯).
+(anche nel menu ⋯), oppure sostenermi con [Ko-fi](https://ko-fi.com/garyyeap), [Liberapay](https://liberapay.com/garyyeap) o
+[thanks.dev](https://thanks.dev/u/gh/garyyeap).
 
 ## Sviluppo
 

@@ -38,6 +38,10 @@
   <img src="../docs/screenshots/panel.png" width="340" alt="O painel do TrayOTP sob seu ícone na barra de menus: um campo de busca, tokens com nome, código, conta e próximo código e os botões Adicionar, Bloquear e Encerrar">
 </p>
 
+<p align="center">
+  <img src="../docs/screenshots/deep-black.png" width="340" alt="O painel com o tema preto profundo: um fundo preto puro para telas OLED">
+</p>
+
 > Esta tradução pode estar desatualizada em relação ao [README em inglês](../README.md). Em caso de dúvida, vale a versão em inglês.
 
 ## Recursos
@@ -77,6 +81,14 @@ o macOS não consegue verificar quem o criou. Para abri-lo mesmo assim:
 
 Isso só é necessário uma vez por versão. Se preferir não confiar em uma versão baixada,
 [compile você mesmo](#build-from-source) em cerca de um minuto.
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Ajustes do Sistema → Privacidade e Segurança no macOS 15 e posterior, com o botão Abrir Mesmo Assim ao lado do app bloqueado">
+</p>
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Caixa de diálogo do macOS 14 Sonoma após clicar com o botão direito → Abrir, com os botões Abrir, Mover para o Lixo e Cancelar">
+</p>
 
 **Verificar o download (opcional):** cada versão inclui um arquivo `.sha256`. No Terminal:
 
@@ -253,10 +265,12 @@ Tudo no menu **⋯**:
 |---|---|
 | **Exigir Desbloqueio** | Pedir o Touch ID ou a senha do Mac antes de mostrar os códigos (ativado por padrão). |
 | **Manter Desbloqueado ▸** | Quanto tempo o TrayOTP fica desbloqueado após o último uso: sempre bloquear, de 1 minuto a 1 hora, **Até o Mac repousar ou bloquear**, ou um número de minutos personalizado. Ele sempre bloqueia quando o Mac entra em repouso ou a tela é bloqueada. |
-| **Definir Senha Mestra…** | Proteger o cofre com uma senha sua, digitada no lugar do Touch ID (veja [Segurança](#security)). |
+| **Definir Senha Mestra…** | A senha que você digita antes de exportar ou apagar tokens (veja [Segurança](#security)). Depois de definida, o menu oferece Alterar, Remover, **Desbloquear com senha em vez do Touch ID** e **Esqueci a senha…** para apagar todos os tokens e começar de novo. |
+| **Lembrete de senha ▸** | Pedir a senha de novo a cada 7, 30 ou 90 dias (ou um número personalizado), para você não esquecê-la. 30 dias por padrão. |
 | **Definir Atalho Global…** | Abrir o painel de qualquer app com a combinação de teclas que você escolher (com ⌘, ⌃ ou ⌥). |
 | **Mostrar Ícone na Barra de Menus** | Desative para ocultar o ícone. O atalho global (ou abrir o TrayOTP de novo pelo Finder ou Launchpad) passa a mostrar o painel no topo da tela. |
 | **Fechar Após Copiar** | Fechar o painel assim que um código é copiado, para você colar na hora. |
+| **Tema preto profundo** | Fundo do painel preto puro em vez do material translúcido, para telas OLED. |
 | **Abrir no Login** | Iniciar o TrayOTP ao fazer login. |
 | **Idioma ▸** | **Idioma do Sistema** segue o idioma do Mac (inglês se o TrayOTP não tiver tradução para ele), ou escolha uma das traduções. O TrayOTP reinicia para trocar. |
 
@@ -275,21 +289,38 @@ Clique em **Bloquear** na parte de baixo do painel para bloquear na hora.
 - A chave de criptografia é uma chave aleatória de 256 bits guardada nas suas **Chaves de início de sessão**, nunca ao lado do arquivo.
 - Com **Exigir Desbloqueio** ativado, o cofre só é descriptografado após o Touch ID ou a senha do Mac, e os tokens
   descriptografados são descartados da memória quando ele bloqueia de novo.
-- **Exportar** e **apagar um token** sempre pedem o Touch ID de novo, mesmo com o TrayOTP desbloqueado.
+- **Exportar**, **apagar um token** e **alterar a senha mestra** sempre pedem sua senha de novo, mesmo com o TrayOTP desbloqueado. Veja [Senha mestra](#master-password).
 - Nada sai do seu Mac, exceto um domínio que você decida consultar com **Buscar Ícone do Site…**.
 - A câmera só é usada enquanto a janela **Escanear Código QR** está aberta. Os quadros são lidos na memória e nunca salvos.
   O macOS pede acesso à câmera na primeira vez e pode pedir de novo após uma atualização (o TrayOTP tem assinatura ad hoc).
 
-### Senha mestra opcional
+<a id="master-password"></a>
+### Senha mestra
 
-Com **⋯ → Definir Senha Mestra…**, a chave do cofre nas Chaves é ela própria criptografada com uma chave derivada da sua
-senha (scrypt com N=2¹⁷, r=8, p=1: cerca de 0,5 s e 128 MB por tentativa). Quem entrar nas suas Chaves ainda precisa
-adivinhar a senha. A partir daí você desbloqueia com a senha em vez do Touch ID.
+O Touch ID deixaria alguém usar seu dedo enquanto você dorme, então o TrayOTP pede uma senha que você digita.
+Depois que você adiciona ou importa o primeiro token, o TrayOTP pede que você defina uma **senha mestra**. Ela fica na frente de:
 
-Definir, alterar ou remover a senha mestra troca para uma nova chave do cofre, então cópias antigas das Chaves
-(por exemplo, em um backup do Time Machine) não conseguem mais abrir o cofre.
+- exportar seus tokens (a senha também criptografa o arquivo de backup por padrão; você pode escolher outra a cada exportação),
+- apagar um token (depois de digitá-la uma vez, novas exclusões em até 2 minutos não pedem de novo),
+- mostrar um único token como código QR (clique com o botão direito → **Exportar…**, para adicioná-lo a outro app autenticador;
+  depois de digitar a senha uma vez, novos códigos QR em até 3 minutos não pedem de novo),
+- alterar ou remover a senha.
 
-> **Se você esquecer a senha mestra, seus tokens não poderão ser recuperados.** Guarde uma exportação criptografada em um lugar seguro.
+Por padrão ela não substitui o Touch ID para abrir o TrayOTP. Ative **⋯ → Senha Mestra → Desbloquear com senha em vez do
+Touch ID** e a chave do cofre nas Chaves é ela própria criptografada com uma chave derivada da mesma senha (scrypt com N=2¹⁷,
+r=8, p=1: cerca de 0,5 s e 128 MB por tentativa). Quem entrar nas suas Chaves ainda precisa adivinhar a senha. Ativá-la,
+desativá-la ou alterá-la troca para uma nova chave do cofre, então cópias antigas das Chaves (por exemplo, em um backup do
+Time Machine) não conseguem mais abrir o cofre.
+
+**Se você a esquecer, ela não pode ser recuperada.** Sem a opção de desbloqueio, o único caminho de volta é
+**⋯ → Senha Mestra → Esqueci a senha…**, que apaga todos os seus tokens. Com ela, seus tokens não podem ser recuperados de
+forma alguma. Certifique-se de conseguir entrar em cada conta de outra forma (seus códigos de backup ou uma exportação
+criptografada) antes de depender só do TrayOTP. O **Lembrete de senha** pede a senha a cada tantos dias para que ela continue
+fresca na memória.
+
+Você pode pular digitando *Entendo o risco*. Então exportações e exclusões só pedem o Touch ID ou a senha do Mac, e qualquer
+pessoa diante do seu Mac desbloqueado pode exportar todos os seus tokens. Isso também deixa uma brecha: se você pulou, quem
+abrir o TrayOTP primeiro pode definir a senha. Ative depois em **⋯ → Definir Senha Mestra…**.
 
 <a id="limitations"></a>
 ### Limitações
@@ -310,20 +341,17 @@ do repositório, e não em uma issue pública.
 <a id="troubleshooting"></a>
 ## Solução de problemas
 
-**“TrayOTP deseja usar suas Chaves” após uma atualização**
-O macOS pergunta de novo após cada atualização porque cada versão é assinada separadamente. Digite a senha das suas Chaves de
-início de sessão (normalmente a senha do Mac) e escolha **Sempre Permitir**. Se aparecer em outro momento, veja
-[Limitações](#limitations).
-
-**O Launchpad mostra um ícone em branco**
-O Launchpad só lista apps em `/Applications`. Se o ícone continuar em branco depois de mover o app para lá, execute `killall Dock`.
-
-**Um código QR não é detectado**
-Recorte a captura mais perto do código. Para o Google Authenticator, use **Adicionar → Escanear Código QR com a Câmera…**
-(veja [Importar e exportar](#import-and-export)).
-
-**“Senha do backup incorreta”**
-Use a senha definida ao exportar o backup do outro app (ou do TrayOTP), não a senha do Mac.
+- **“TrayOTP deseja usar suas Chaves” após uma atualização**
+  - O macOS pergunta de novo após cada atualização porque cada versão é assinada separadamente. Digite a senha das suas Chaves de
+    início de sessão (normalmente a senha do Mac) e escolha **Sempre Permitir**. Se aparecer em outro momento, veja
+    [Limitações](#limitations).
+- **O Launchpad mostra um ícone em branco**
+  - O Launchpad só lista apps em `/Applications`. Se o ícone continuar em branco depois de mover o app para lá, execute `killall Dock`.
+- **Um código QR não é detectado**
+  - Recorte a captura mais perto do código. Para o Google Authenticator, use **Adicionar → Escanear Código QR com a Câmera…**
+    (veja [Importar e exportar](#import-and-export)).
+- **“Senha do backup incorreta”**
+  - Use a senha definida ao exportar o backup do outro app (ou do TrayOTP), não a senha do Mac.
 
 ## Use por sua conta e risco
 
@@ -340,7 +368,8 @@ Perder seus códigos 2FA pode trancar você fora das suas contas, então não de
 ## Apoio
 
 O TrayOTP é gratuito. Se ele economiza seu tempo, você pode [me pagar um café](https://buymeacoffee.com/garyyeap)
-(também no menu ⋯).
+(também no menu ⋯), ou apoiar via [Ko-fi](https://ko-fi.com/garyyeap), [Liberapay](https://liberapay.com/garyyeap) ou
+[thanks.dev](https://thanks.dev/u/gh/garyyeap).
 
 ## Desenvolvimento
 

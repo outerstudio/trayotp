@@ -38,6 +38,10 @@
   <img src="../docs/screenshots/panel.png" width="340" alt="El panel de TrayOTP bajo su icono de la barra de menús: un campo de búsqueda, tokens con nombre, código, cuenta y siguiente código y los botones Añadir, Bloquear y Salir">
 </p>
 
+<p align="center">
+  <img src="../docs/screenshots/deep-black.png" width="340" alt="El panel con el tema negro profundo: un fondo negro puro para pantallas OLED">
+</p>
+
 > Esta traducción puede ir por detrás del [README en inglés](../README.md). En caso de duda, prevalece la versión en inglés.
 
 ## Funciones
@@ -77,6 +81,14 @@ macOS no puede comprobar quién lo creó. Para abrirlo de todos modos:
 
 Solo hay que hacerlo una vez por versión. Si prefieres no fiarte de una versión descargada,
 [compílala tú mismo](#build-from-source) en un minuto aproximadamente.
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Ajustes del Sistema → Privacidad y seguridad en macOS 15 y posteriores, con el botón Abrir de todos modos junto a la app bloqueada">
+</p>
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Cuadro de diálogo de macOS 14 Sonoma tras clic derecho → Abrir, con los botones Abrir, Mover a la papelera y Cancelar">
+</p>
 
 **Comprobar la descarga (opcional):** cada versión incluye un archivo `.sha256`. En Terminal:
 
@@ -253,10 +265,12 @@ Todo está en el menú **⋯**:
 |---|---|
 | **Requerir desbloqueo** | Pedir Touch ID o la contraseña del Mac antes de mostrar los códigos (activado por defecto). |
 | **Seguir desbloqueado ▸** | Cuánto tiempo sigue desbloqueado TrayOTP tras su último uso: siempre bloquear, de 1 minuto a 1 hora, **Hasta que el Mac entre en reposo o se bloquee**, o un número de minutos personalizado. Siempre se bloquea cuando el Mac entra en reposo o se bloquea la pantalla. |
-| **Establecer contraseña maestra…** | Proteger la bóveda con una contraseña propia, que escribes en lugar de usar Touch ID (consulta [Seguridad](#security)). |
+| **Establecer contraseña maestra…** | La contraseña que escribes antes de exportar o eliminar tokens (consulta [Seguridad](#security)). Una vez establecida, el menú ofrece Cambiar, Eliminar, **Desbloquear con contraseña en lugar de Touch ID** y **Olvidé la contraseña…** para borrar todos los tokens y empezar de nuevo. |
+| **Recordatorio de contraseña ▸** | Volver a pedir la contraseña cada 7, 30 o 90 días (o un número personalizado), para que no se te olvide. 30 días por defecto. |
 | **Establecer atajo global…** | Abrir el panel desde cualquier app con la combinación de teclas que elijas (con ⌘, ⌃ u ⌥). |
 | **Mostrar icono en la barra de menús** | Desactívalo para ocultar el icono. El atajo global (o volver a abrir TrayOTP desde el Finder o Launchpad) muestra entonces el panel en la parte superior de la pantalla. |
 | **Cerrar después de copiar** | Cerrar el panel en cuanto se copia un código, para que puedas pegarlo enseguida. |
+| **Tema negro profundo** | Fondo del panel negro puro en lugar del material translúcido, para pantallas OLED. |
 | **Abrir al iniciar sesión** | Abrir TrayOTP al iniciar sesión. |
 | **Idioma ▸** | **Idioma del sistema** sigue el idioma de tu Mac (inglés si TrayOTP no está traducido a él), o elige una de las traducciones. TrayOTP se reinicia para cambiar. |
 
@@ -275,21 +289,37 @@ Haz clic en **Bloquear** en la parte inferior del panel para bloquear al instant
 - La clave de cifrado es una clave aleatoria de 256 bits guardada en tu **llavero de inicio de sesión**, nunca junto al archivo.
 - Con **Requerir desbloqueo** activado, la bóveda solo se descifra tras Touch ID o la contraseña del Mac, y los tokens
   descifrados se borran de la memoria cuando vuelve a bloquearse.
-- **Exportar** y **eliminar un token** siempre vuelven a pedir Touch ID, aunque TrayOTP esté desbloqueado.
+- **Exportar**, **eliminar un token** y **cambiar la contraseña maestra** siempre vuelven a pedir tu contraseña, aunque TrayOTP esté desbloqueado. Consulta [Contraseña maestra](#master-password).
 - Nada sale de tu Mac, salvo un dominio que decidas consultar con **Obtener icono del sitio web…**.
 - La cámara solo se usa mientras está abierta la ventana **Escanear código QR**. Las imágenes se leen en memoria y nunca se guardan.
   macOS pide acceso a la cámara la primera vez y puede volver a pedirlo tras una actualización (TrayOTP tiene firma ad hoc).
 
-### Contraseña maestra opcional
+<a id="master-password"></a>
+### Contraseña maestra
 
-Con **⋯ → Establecer contraseña maestra…**, la clave de la bóveda en el llavero se cifra a su vez con una clave derivada de tu
-contraseña (scrypt con N=2¹⁷, r=8, p=1: unos 0,5 s y 128 MB por intento). Quien entre en tu llavero aún tendrá que adivinar la
-contraseña. Desde entonces desbloqueas con la contraseña en lugar de Touch ID.
+Touch ID permitiría que alguien use tu dedo mientras duermes, así que TrayOTP pide una contraseña que escribes tú.
+Después de añadir o importar tu primer token, TrayOTP te pide establecer una **contraseña maestra**. Va por delante de:
 
-Establecer, cambiar o eliminar la contraseña maestra cambia a una clave de bóveda nueva, así que las copias antiguas del llavero
-(por ejemplo, en una copia de Time Machine) ya no pueden abrir la bóveda.
+- exportar tus tokens (la contraseña también cifra por defecto el archivo de copia; puedes elegir otra para cada exportación),
+- eliminar un token (después de escribirla una vez, las eliminaciones siguientes en 2 minutos no vuelven a pedirla),
+- mostrar un solo token como código QR (clic derecho → **Exportar…**, para añadirlo a otra app de autenticación;
+  después de escribir la contraseña una vez, los códigos QR siguientes en 3 minutos no vuelven a pedirla),
+- cambiar o eliminar la contraseña.
 
-> **Si olvidas la contraseña maestra, tus tokens no se pueden recuperar.** Guarda una exportación cifrada en un lugar seguro.
+Por defecto no sustituye a Touch ID para abrir TrayOTP. Activa **⋯ → Contraseña maestra → Desbloquear con contraseña en lugar
+de Touch ID** y la clave de la bóveda en el llavero se cifra con una clave derivada de la misma contraseña (scrypt con N=2¹⁷,
+r=8, p=1: unos 0,5 s y 128 MB por intento). Quien entre en tu llavero aún tendrá que adivinar la contraseña. Activarla,
+desactivarla o cambiar la contraseña cambia a una clave de bóveda nueva, así que las copias antiguas del llavero (por ejemplo,
+en una copia de Time Machine) ya no pueden abrir la bóveda.
+
+**Si la olvidas, no se puede recuperar.** Sin la opción de desbloqueo, la única forma de volver a entrar es
+**⋯ → Contraseña maestra → Olvidé la contraseña…**, que borra todos tus tokens. Con ella, tus tokens no se pueden recuperar
+en absoluto. Asegúrate de poder iniciar sesión en cada cuenta de otra forma (sus códigos de respaldo o una exportación cifrada)
+antes de depender solo de TrayOTP. El **Recordatorio de contraseña** la pide cada cierto número de días para que no se te olvide.
+
+Puedes omitirla escribiendo *Entiendo el riesgo*. Entonces las exportaciones y eliminaciones solo piden Touch ID o la contraseña
+del Mac, y cualquiera frente a tu Mac desbloqueado puede exportar todos tus tokens. También deja un hueco: si la omitiste,
+quien abra TrayOTP primero puede establecer la contraseña. Actívala más tarde con **⋯ → Establecer contraseña maestra…**.
 
 <a id="limitations"></a>
 ### Limitaciones
@@ -310,20 +340,17 @@ Establecer, cambiar o eliminar la contraseña maestra cambia a una clave de bóv
 <a id="troubleshooting"></a>
 ## Solución de problemas
 
-**«TrayOTP quiere usar tu llavero» tras una actualización**
-macOS vuelve a preguntar tras cada actualización porque cada versión se firma por separado. Introduce la contraseña de tu llavero
-de inicio de sesión (normalmente la del Mac) y elige **Permitir siempre**. Si aparece en cualquier otro momento, consulta
-[Limitaciones](#limitations).
-
-**Launchpad muestra un icono en blanco**
-Launchpad solo muestra las apps de `/Applications`. Si el icono sigue en blanco tras mover la app allí, ejecuta `killall Dock`.
-
-**No se detecta un código QR**
-Recorta la captura más cerca del código. Para Google Authenticator, usa **Añadir → Escanear código QR con la cámara…**
-(consulta [Importar y exportar](#import-and-export)).
-
-**«Contraseña de copia incorrecta»**
-Usa la contraseña que se definió al exportar la copia desde la otra app (o desde TrayOTP), no la contraseña del Mac.
+- **«TrayOTP quiere usar tu llavero» tras una actualización**
+  - macOS vuelve a preguntar tras cada actualización porque cada versión se firma por separado. Introduce la contraseña de tu llavero
+    de inicio de sesión (normalmente la del Mac) y elige **Permitir siempre**. Si aparece en cualquier otro momento, consulta
+    [Limitaciones](#limitations).
+- **Launchpad muestra un icono en blanco**
+  - Launchpad solo muestra las apps de `/Applications`. Si el icono sigue en blanco tras mover la app allí, ejecuta `killall Dock`.
+- **No se detecta un código QR**
+  - Recorta la captura más cerca del código. Para Google Authenticator, usa **Añadir → Escanear código QR con la cámara…**
+    (consulta [Importar y exportar](#import-and-export)).
+- **«Contraseña de copia incorrecta»**
+  - Usa la contraseña que se definió al exportar la copia desde la otra app (o desde TrayOTP), no la contraseña del Mac.
 
 ## Uso bajo tu responsabilidad
 
@@ -340,7 +367,8 @@ Perder tus códigos 2FA puede dejarte fuera de tus cuentas, así que no dejes qu
 ## Apoyo
 
 TrayOTP es gratuito. Si te ahorra tiempo, puedes [invitarme a un café](https://buymeacoffee.com/garyyeap)
-(también en el menú ⋯).
+(también en el menú ⋯) o apoyarme en [Ko-fi](https://ko-fi.com/garyyeap), [Liberapay](https://liberapay.com/garyyeap) o
+[thanks.dev](https://thanks.dev/u/gh/garyyeap).
 
 ## Desarrollo
 

@@ -79,8 +79,13 @@ macOS can't check who made it. To open it anyway:
 You only need to do this once per version. If you'd rather not trust a downloaded build,
 [build it yourself](#build-from-source) in about a minute.
 
-<!-- SCREENSHOT: docs/screenshots/open-anyway.png
-     System Settings → Privacy & Security with the "Open Anyway" button for TrayOTP highlighted. -->
+<p align="center">
+  <img src="docs/screenshots/open-anyway.png" width="480" alt="System Settings → Privacy & Security on macOS 15 and later, with the Open Anyway button next to the blocked app">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/open-anyway-sonoma.png" width="240" alt="macOS 14 Sonoma dialog shown after right-click → Open, with Open, Move to Trash and Cancel buttons">
+</p>
 
 **Checking the download (optional):** each release includes a `.sha256` file. In Terminal:
 
@@ -322,20 +327,17 @@ Found a security problem? Please report it privately through the repository's
 
 ## Troubleshooting
 
-**"TrayOTP wants to use your keychain" after an update**
-macOS asks again after each update because every release is signed separately. Enter your login keychain
-password (normally your Mac password) and choose **Always Allow**. If it appears at any other time, see
-[Limitations](#limitations).
-
-**Launchpad shows a blank icon**
-Launchpad only lists apps in `/Applications`. If the icon is still blank after moving the app there, run `killall Dock`.
-
-**A QR code isn't detected**
-Crop the screenshot closer to the code. For Google Authenticator, use **Add → Scan QR Code with Camera…** (see
-[Import and export](#import-and-export)).
-
-**"Wrong backup password"**
-Use the password set when the backup was exported from the other app (or TrayOTP), not your Mac password.
+- **"TrayOTP wants to use your keychain" after an update**
+  - macOS asks again after each update because every release is signed separately. Enter your login keychain
+    password (normally your Mac password) and choose **Always Allow**. If it appears at any other time, see
+    [Limitations](#limitations).
+- **Launchpad shows a blank icon**
+  - Launchpad only lists apps in `/Applications`. If the icon is still blank after moving the app there, run `killall Dock`.
+- **A QR code isn't detected**
+  - Crop the screenshot closer to the code. For Google Authenticator, use **Add → Scan QR Code with Camera…** (see
+    [Import and export](#import-and-export)).
+- **"Wrong backup password"**
+  - Use the password set when the backup was exported from the other app (or TrayOTP), not your Mac password.
 
 ## Use at your own risk
 

@@ -38,6 +38,10 @@
   <img src="../docs/screenshots/panel.png" width="340" alt="Das TrayOTP-Fenster unter seinem Menüleistensymbol: ein Suchfeld, Tokens mit Name, Code, Account und nächstem Code sowie die Tasten Hinzufügen, Sperren und Beenden">
 </p>
 
+<p align="center">
+  <img src="../docs/screenshots/deep-black.png" width="340" alt="Das Fenster mit dem Tiefschwarzen Design: ein rein schwarzer Hintergrund für OLED-Bildschirme">
+</p>
+
 > Diese Übersetzung kann hinter der [englischen README](../README.md) zurückliegen. Im Zweifel gilt die englische Fassung.
 
 ## Funktionen
@@ -77,6 +81,14 @@ daher kann macOS nicht prüfen, wer sie erstellt hat. So öffnest du sie trotzde
 
 Das ist nur einmal pro Version nötig. Wenn du einem heruntergeladenen Build nicht vertrauen möchtest,
 [baue sie selbst](#build-from-source) in etwa einer Minute.
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Systemeinstellungen → Datenschutz & Sicherheit ab macOS 15, mit der Taste „Dennoch öffnen“ neben der blockierten App">
+</p>
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Dialog unter macOS 14 Sonoma nach Rechtsklick → Öffnen, mit den Tasten „Öffnen“, „In den Papierkorb legen“ und „Abbrechen“">
+</p>
 
 **Download prüfen (optional):** Jede Version enthält eine `.sha256`-Datei. Im Terminal:
 
@@ -254,10 +266,12 @@ Alles im **⋯**-Menü:
 |---|---|
 | **Entsperren erforderlich** | Vor dem Anzeigen der Codes nach Touch ID oder dem Mac-Passwort fragen (standardmäßig an). |
 | **Entsperrt bleiben ▸** | Wie lange TrayOTP nach der letzten Verwendung entsperrt bleibt: jedes Mal sperren, 1 Minute bis 1 Stunde, **Bis der Mac schläft oder sperrt** oder eine eigene Anzahl Minuten. Es sperrt immer, wenn der Mac schläft oder der Bildschirm gesperrt wird. |
-| **Master-Passwort festlegen …** | Den Tresor mit einem eigenen Passwort schützen, das du statt Touch ID eingibst (siehe [Sicherheit](#security)). |
+| **Master-Passwort festlegen …** | Das Passwort, das du vor dem Exportieren oder Löschen von Tokens eingibst (siehe [Sicherheit](#security)). Sobald es festgelegt ist, bietet das Menü Ändern, Entfernen, **Mit Passwort statt Touch ID entsperren** und **Passwort vergessen …**, um alle Tokens zu löschen und neu anzufangen. |
+| **Passworterinnerung ▸** | Alle 7, 30 oder 90 Tage (oder eine eigene Anzahl) erneut nach dem Passwort fragen, damit du es nicht vergisst. Standardmäßig 30 Tage. |
 | **Globales Tastenkürzel festlegen …** | Das Fenster aus jeder App mit einer Tastenkombination deiner Wahl öffnen (braucht ⌘, ⌃ oder ⌥). |
 | **Menüleistensymbol anzeigen** | Ausschalten, um das Symbol auszublenden. Das globale Tastenkürzel (oder erneutes Öffnen von TrayOTP im Finder oder Launchpad) zeigt das Fenster dann oben auf dem Bildschirm. |
 | **Nach dem Kopieren schließen** | Das Fenster schließen, sobald ein Code kopiert ist, damit du ihn sofort einsetzen kannst. |
+| **Tiefschwarzes Design** | Rein schwarzer Fensterhintergrund statt des durchscheinenden Materials, für OLED-Bildschirme. |
 | **Beim Anmelden starten** | TrayOTP beim Anmelden starten. |
 | **Sprache ▸** | **Systemsprache** folgt der Sprache deines Mac (Englisch, wenn TrayOTP nicht in sie übersetzt ist), oder wähle eine der Übersetzungen. TrayOTP startet zum Wechseln neu. |
 
@@ -276,21 +290,39 @@ Klicke unten im Fenster auf **Sperren**, um sofort zu sperren.
 - Der Schlüssel ist ein zufälliger 256-Bit-Schlüssel in deinem **Anmeldeschlüsselbund**, nie neben der Datei.
 - Mit **Entsperren erforderlich** wird der Tresor erst nach Touch ID oder dem Mac-Passwort entschlüsselt, und die
   entschlüsselten Tokens werden beim erneuten Sperren aus dem Speicher entfernt.
-- **Exportieren** und **ein Token löschen** fragen immer erneut nach Touch ID, auch wenn TrayOTP entsperrt ist.
+- **Exportieren**, **ein Token löschen** und **das Master-Passwort ändern** fragen immer erneut nach deinem Passwort, auch wenn
+  TrayOTP entsperrt ist. Siehe [Master-Passwort](#master-password).
 - Nichts verlässt deinen Mac, außer einer Domain, die du mit **Symbol von Website laden …** nachschlägst.
 - Die Kamera wird nur verwendet, solange das Fenster **QR-Code scannen** offen ist. Bilder werden im Speicher gelesen und nie gesichert.
   macOS fragt beim ersten Mal nach dem Kamerazugriff und eventuell erneut nach einem Update (TrayOTP ist ad hoc signiert).
 
-### Optionales Master-Passwort
+<a id="master-password"></a>
+### Master-Passwort
 
-Mit **⋯ → Master-Passwort festlegen …** wird der Tresorschlüssel im Schlüsselbund selbst mit einem aus deinem Passwort
-abgeleiteten Schlüssel verschlüsselt (scrypt mit N=2¹⁷, r=8, p=1: etwa 0,5 s und 128 MB pro Versuch). Wer in deinen
-Schlüsselbund gelangt, muss trotzdem das Passwort erraten. Du entsperrst dann mit dem Passwort statt mit Touch ID.
+Touch ID ließe jemanden deinen Finger benutzen, während du schläfst, daher fragt TrayOTP nach einem Passwort, das du tippst.
+Nachdem du dein erstes Token hinzugefügt oder importiert hast, bittet TrayOTP dich, ein **Master-Passwort** festzulegen. Es steht vor:
 
-Festlegen, Ändern oder Entfernen des Master-Passworts wechselt zu einem neuen Tresorschlüssel, sodass alte Kopien des
+- dem Exportieren deiner Tokens (das Passwort verschlüsselt standardmäßig auch die Backup-Datei; für jeden Export kannst du ein anderes wählen),
+- dem Löschen eines Tokens (nachdem du es einmal getippt hast, fragen weitere Löschungen innerhalb von 2 Minuten nicht erneut),
+- dem Anzeigen eines einzelnen Tokens als QR-Code (Rechtsklick → **Exportieren…**, um es in einer anderen Authenticator-App hinzuzufügen;
+  nachdem du das Passwort einmal getippt hast, fragen weitere QR-Codes innerhalb von 3 Minuten nicht erneut),
+- dem Ändern oder Entfernen des Passworts.
+
+Standardmäßig ersetzt es Touch ID zum Öffnen von TrayOTP nicht. Schalte **⋯ → Master-Passwort → Mit Passwort statt Touch ID
+entsperren** ein, und der Tresorschlüssel im Schlüsselbund wird selbst mit einem aus demselben Passwort abgeleiteten Schlüssel
+verschlüsselt (scrypt mit N=2¹⁷, r=8, p=1: etwa 0,5 s und 128 MB pro Versuch). Wer in deinen Schlüsselbund gelangt, muss trotzdem
+das Passwort erraten. Ein-, Ausschalten oder Ändern des Passworts wechselt zu einem neuen Tresorschlüssel, sodass alte Kopien des
 Schlüsselbunds (etwa in einem Time-Machine-Backup) den Tresor danach nicht mehr öffnen können.
 
-> **Wenn du das Master-Passwort vergisst, können deine Tokens nicht wiederhergestellt werden.** Bewahre einen verschlüsselten Export sicher auf.
+**Wenn du es vergisst, kann es nicht wiederhergestellt werden.** Ohne die Entsperr-Option führt der einzige Weg zurück über
+**⋯ → Master-Passwort → Passwort vergessen …**, was alle deine Tokens löscht. Mit ihr können deine Tokens gar nicht
+wiederhergestellt werden. Stelle sicher, dass du dich bei jedem Account auf anderem Weg anmelden kannst (mit seinen Backup-Codes
+oder einem verschlüsselten Export), bevor du dich allein auf TrayOTP verlässt. Die **Passworterinnerung** fragt alle paar Tage
+nach dem Passwort, damit es dir geläufig bleibt.
+
+Du kannst es überspringen, indem du *Ich verstehe das Risiko* tippst. Dann fragen Exporte und Löschungen nur nach Touch ID oder
+dem Mac-Passwort, und jeder an deinem entsperrten Mac kann alle deine Tokens exportieren. Es hinterlässt auch eine Lücke: Wer
+TrayOTP zuerst öffnet, kann das Passwort festlegen. Schalte es später mit **⋯ → Master-Passwort festlegen …** ein.
 
 <a id="limitations"></a>
 ### Einschränkungen
@@ -312,20 +344,17 @@ Ein Sicherheitsproblem gefunden? Melde es bitte vertraulich über den
 <a id="troubleshooting"></a>
 ## Fehlerbehebung
 
-**„TrayOTP möchte deinen Schlüsselbund verwenden“ nach einem Update**
-macOS fragt nach jedem Update erneut, weil jede Version separat signiert ist. Gib das Passwort deines Anmeldeschlüsselbunds
-ein (normalerweise dein Mac-Passwort) und wähle **Immer erlauben**. Erscheint die Abfrage zu einem anderen Zeitpunkt, siehe
-[Einschränkungen](#limitations).
-
-**Launchpad zeigt ein leeres Symbol**
-Launchpad listet nur Apps in `/Applications`. Ist das Symbol nach dem Verschieben noch leer, führe `killall Dock` aus.
-
-**Ein QR-Code wird nicht erkannt**
-Schneide das Bildschirmfoto enger um den Code zu. Für Google Authenticator nutze **QR-Code mit Kamera scannen …**
-(siehe [Import und Export](#import-and-export)).
-
-**„Falsches Backup-Passwort“**
-Verwende das Passwort, das beim Export des Backups aus der anderen App (oder TrayOTP) festgelegt wurde, nicht dein Mac-Passwort.
+- **„TrayOTP möchte deinen Schlüsselbund verwenden“ nach einem Update**
+  - macOS fragt nach jedem Update erneut, weil jede Version separat signiert ist. Gib das Passwort deines Anmeldeschlüsselbunds
+    ein (normalerweise dein Mac-Passwort) und wähle **Immer erlauben**. Erscheint die Abfrage zu einem anderen Zeitpunkt, siehe
+    [Einschränkungen](#limitations).
+- **Launchpad zeigt ein leeres Symbol**
+  - Launchpad listet nur Apps in `/Applications`. Ist das Symbol nach dem Verschieben noch leer, führe `killall Dock` aus.
+- **Ein QR-Code wird nicht erkannt**
+  - Schneide das Bildschirmfoto enger um den Code zu. Für Google Authenticator nutze **QR-Code mit Kamera scannen …**
+    (siehe [Import und Export](#import-and-export)).
+- **„Falsches Backup-Passwort“**
+  - Verwende das Passwort, das beim Export des Backups aus der anderen App (oder TrayOTP) festgelegt wurde, nicht dein Mac-Passwort.
 
 ## Nutzung auf eigene Gefahr
 
@@ -342,7 +371,8 @@ Verlorene 2FA-Codes können dich aus deinen Accounts aussperren, lass TrayOTP al
 ## Unterstützung
 
 TrayOTP ist kostenlos. Wenn es dir Zeit spart, kannst du mir [einen Kaffee spendieren](https://buymeacoffee.com/garyyeap)
-(auch im ⋯-Menü).
+(auch im ⋯-Menü) oder über [Ko-fi](https://ko-fi.com/garyyeap), [Liberapay](https://liberapay.com/garyyeap) oder
+[thanks.dev](https://thanks.dev/u/gh/garyyeap) unterstützen.
 
 ## Entwicklung
 

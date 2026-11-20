@@ -38,6 +38,10 @@
   <img src="../docs/screenshots/panel.png" width="340" alt="Le panneau TrayOTP sous son icône de la barre des menus : un champ de recherche, des jetons avec nom, code, compte et code suivant, et les boutons Ajouter, Verrouiller et Quitter">
 </p>
 
+<p align="center">
+  <img src="../docs/screenshots/deep-black.png" width="340" alt="Le panneau avec le thème noir profond : un fond noir pur pour les écrans OLED">
+</p>
+
 > Cette traduction peut être en retard sur le [README anglais](../README.md). En cas de doute, la version anglaise fait foi.
 
 ## Fonctionnalités
@@ -77,6 +81,14 @@ macOS ne peut donc pas vérifier qui l’a créé. Pour l’ouvrir malgré tout 
 
 Il suffit de le faire une fois par version. Si vous préférez ne pas faire confiance à une version téléchargée,
 [compilez-la vous-même](#build-from-source) en une minute environ.
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Réglages Système → Confidentialité et sécurité sous macOS 15 et ultérieur, avec le bouton Ouvrir quand même à côté de l’app bloquée">
+</p>
+
+<p align="center">
+  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Dialogue de macOS 14 Sonoma après clic droit → Ouvrir, avec les boutons Ouvrir, Placer dans la corbeille et Annuler">
+</p>
 
 **Vérifier le téléchargement (facultatif) :** chaque version comprend un fichier `.sha256`. Dans Terminal :
 
@@ -254,10 +266,12 @@ Tout se trouve dans le menu **⋯** :
 |---|---|
 | **Exiger le déverrouillage** | Demander Touch ID ou le mot de passe du Mac avant d’afficher les codes (activé par défaut). |
 | **Rester déverrouillé ▸** | Durée pendant laquelle TrayOTP reste déverrouillé après sa dernière utilisation : à chaque fois, de 1 minute à 1 heure, **Jusqu’à la veille ou au verrouillage du Mac**, ou un nombre de minutes personnalisé. Il se verrouille toujours quand le Mac se met en veille ou que l’écran se verrouille. |
-| **Définir un mot de passe principal…** | Protéger le coffre avec votre propre mot de passe, saisi à la place de Touch ID (voir [Sécurité](#security)). |
+| **Définir un mot de passe principal…** | Le mot de passe que vous saisissez avant d’exporter ou de supprimer des jetons (voir [Sécurité](#security)). Une fois défini, le menu propose Modifier, Supprimer, **Déverrouiller avec le mot de passe au lieu de Touch ID** et **Mot de passe oublié…** pour effacer tous les jetons et repartir de zéro. |
+| **Rappel du mot de passe ▸** | Redemander le mot de passe tous les 7, 30 ou 90 jours (ou un nombre personnalisé), pour ne pas l’oublier. 30 jours par défaut. |
 | **Définir un raccourci global…** | Ouvrir le panneau depuis n’importe quelle app avec la combinaison de touches de votre choix (avec ⌘, ⌃ ou ⌥). |
 | **Afficher l’icône dans la barre des menus** | Désactivez pour masquer l’icône. Le raccourci global (ou rouvrir TrayOTP depuis le Finder ou le Launchpad) affiche alors le panneau en haut de l’écran. |
 | **Fermer après la copie** | Fermer le panneau dès qu’un code est copié, pour le coller immédiatement. |
+| **Thème noir profond** | Arrière-plan du panneau noir pur au lieu du matériau translucide, pour les écrans OLED. |
 | **Ouvrir à la connexion** | Lancer TrayOTP à l’ouverture de session. |
 | **Langue ▸** | **Langue du système** suit la langue de votre Mac (anglais si TrayOTP n’est pas traduit dans celle-ci), ou choisissez une des traductions. TrayOTP redémarre pour changer. |
 
@@ -276,21 +290,39 @@ Cliquez sur **Verrouiller** en bas du panneau pour verrouiller immédiatement.
 - La clé de chiffrement est une clé aléatoire de 256 bits conservée dans votre **trousseau de session**, jamais à côté du fichier.
 - Avec **Exiger le déverrouillage**, le coffre n’est déchiffré qu’après Touch ID ou le mot de passe du Mac, et les jetons
   déchiffrés sont retirés de la mémoire au verrouillage suivant.
-- **Exporter** et **supprimer un jeton** demandent toujours à nouveau Touch ID, même quand TrayOTP est déverrouillé.
+- **Exporter**, **supprimer un jeton** et **modifier le mot de passe principal** demandent toujours à nouveau votre mot de passe, même quand TrayOTP est déverrouillé. Voir [Mot de passe principal](#master-password).
 - Rien ne quitte votre Mac, sauf un domaine que vous choisissez de consulter avec **Récupérer l’icône du site web…**.
 - La caméra n’est utilisée que lorsque la fenêtre **Scanner un code QR** est ouverte. Les images sont lues en mémoire et jamais enregistrées.
   macOS demande l’accès à la caméra la première fois, et peut redemander après une mise à jour (TrayOTP est signé ad hoc).
 
-### Mot de passe principal facultatif
+<a id="master-password"></a>
+### Mot de passe principal
 
-Avec **⋯ → Définir un mot de passe principal…**, la clé du coffre dans le trousseau est elle-même chiffrée avec une clé dérivée
-de votre mot de passe (scrypt avec N=2¹⁷, r=8, p=1 : environ 0,5 s et 128 Mo par essai). Quelqu’un qui accède à votre trousseau
-doit encore deviner le mot de passe. Vous déverrouillez alors avec le mot de passe au lieu de Touch ID.
+Touch ID laisserait quelqu’un utiliser votre doigt pendant que vous dormez : TrayOTP demande donc un mot de passe que vous saisissez.
+Après l’ajout ou l’importation de votre premier jeton, TrayOTP vous invite à définir un **mot de passe principal**. Il protège :
 
-Définir, modifier ou supprimer le mot de passe principal fait passer à une nouvelle clé de coffre : les anciennes copies du
-trousseau (par exemple dans une sauvegarde Time Machine) ne peuvent plus ouvrir le coffre ensuite.
+- l’exportation de vos jetons (le mot de passe chiffre aussi le fichier de sauvegarde par défaut ; vous pouvez en choisir un autre à chaque exportation),
+- la suppression d’un jeton (une fois saisi, les suppressions suivantes dans les 2 minutes ne le redemandent pas),
+- l’affichage d’un seul jeton sous forme de code QR (clic droit → **Exporter…**, pour l’ajouter à une autre app d’authentification ;
+  une fois le mot de passe saisi, les codes QR suivants dans les 3 minutes ne le redemandent pas),
+- la modification ou la suppression du mot de passe.
 
-> **Si vous oubliez le mot de passe principal, vos jetons sont irrécupérables.** Conservez une exportation chiffrée en lieu sûr.
+Par défaut, il ne remplace pas Touch ID pour ouvrir TrayOTP. Activez **⋯ → Mot de passe principal → Déverrouiller avec le mot
+de passe au lieu de Touch ID** et la clé du coffre dans le trousseau est elle-même chiffrée avec une clé dérivée du même mot
+de passe (scrypt avec N=2¹⁷, r=8, p=1 : environ 0,5 s et 128 Mo par essai). Quelqu’un qui accède à votre trousseau doit encore
+deviner le mot de passe. L’activer, le désactiver ou modifier le mot de passe fait passer à une nouvelle clé de coffre : les
+anciennes copies du trousseau (par exemple dans une sauvegarde Time Machine) ne peuvent plus ouvrir le coffre ensuite.
+
+**Si vous l’oubliez, il est irrécupérable.** Sans l’option de déverrouillage, le seul moyen de rentrer est
+**⋯ → Mot de passe principal → Mot de passe oublié…**, qui efface tous vos jetons. Avec elle, vos jetons sont totalement
+irrécupérables. Assurez-vous de pouvoir vous connecter à chaque compte autrement (ses codes de secours ou une exportation
+chiffrée) avant de vous fier uniquement à TrayOTP. Le **Rappel du mot de passe** le redemande tous les quelques jours pour
+qu’il reste frais en mémoire.
+
+Vous pouvez l’ignorer en saisissant *Je comprends le risque*. Les exportations et suppressions ne demandent alors que Touch ID
+ou le mot de passe du Mac, et toute personne devant votre Mac déverrouillé peut exporter tous vos jetons. Cela laisse aussi une
+brèche : si vous l’avez ignoré, la première personne qui ouvre TrayOTP peut définir le mot de passe. Activez-le plus tard avec
+**⋯ → Définir un mot de passe principal…**.
 
 <a id="limitations"></a>
 ### Limites
@@ -311,20 +343,17 @@ du dépôt plutôt que dans une issue publique.
 <a id="troubleshooting"></a>
 ## Dépannage
 
-**« TrayOTP souhaite utiliser votre trousseau » après une mise à jour**
-macOS redemande après chaque mise à jour, car chaque version est signée séparément. Saisissez le mot de passe de votre trousseau
-de session (normalement celui de votre Mac) et choisissez **Toujours autoriser**. Si l’alerte apparaît à un autre moment, voir
-[Limites](#limitations).
-
-**Le Launchpad affiche une icône vide**
-Le Launchpad ne liste que les apps de `/Applications`. Si l’icône reste vide après y avoir déplacé l’app, exécutez `killall Dock`.
-
-**Un code QR n’est pas détecté**
-Recadrez la capture plus près du code. Pour Google Authenticator, utilisez **Ajouter → Scanner un code QR avec la caméra…**
-(voir [Importation et exportation](#import-and-export)).
-
-**« Mot de passe de sauvegarde incorrect »**
-Utilisez le mot de passe défini lors de l’exportation de la sauvegarde depuis l’autre app (ou TrayOTP), pas celui de votre Mac.
+- **« TrayOTP souhaite utiliser votre trousseau » après une mise à jour**
+  - macOS redemande après chaque mise à jour, car chaque version est signée séparément. Saisissez le mot de passe de votre trousseau
+    de session (normalement celui de votre Mac) et choisissez **Toujours autoriser**. Si l’alerte apparaît à un autre moment, voir
+    [Limites](#limitations).
+- **Le Launchpad affiche une icône vide**
+  - Le Launchpad ne liste que les apps de `/Applications`. Si l’icône reste vide après y avoir déplacé l’app, exécutez `killall Dock`.
+- **Un code QR n’est pas détecté**
+  - Recadrez la capture plus près du code. Pour Google Authenticator, utilisez **Ajouter → Scanner un code QR avec la caméra…**
+    (voir [Importation et exportation](#import-and-export)).
+- **« Mot de passe de sauvegarde incorrect »**
+  - Utilisez le mot de passe défini lors de l’exportation de la sauvegarde depuis l’autre app (ou TrayOTP), pas celui de votre Mac.
 
 ## Utilisation à vos risques
 
@@ -341,7 +370,8 @@ Perdre vos codes 2FA peut vous bloquer hors de vos comptes : ne faites pas de Tr
 ## Soutien
 
 TrayOTP est gratuit. S’il vous fait gagner du temps, vous pouvez [m’offrir un café](https://buymeacoffee.com/garyyeap)
-(aussi dans le menu ⋯).
+(aussi dans le menu ⋯), ou me soutenir via [Ko-fi](https://ko-fi.com/garyyeap), [Liberapay](https://liberapay.com/garyyeap) ou
+[thanks.dev](https://thanks.dev/u/gh/garyyeap).
 
 ## Développement
 
