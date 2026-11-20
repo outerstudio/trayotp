@@ -36,9 +36,6 @@
 
 <p align="center">
   <img src="../docs/screenshots/panel.png" width="340" alt="메뉴 막대 아이콘 아래의 TrayOTP 패널: 검색 필드, 이름·코드·계정·다음 코드가 표시된 토큰, 추가·잠금·종료 버튼">
-</p>
-
-<p align="center">
   <img src="../docs/screenshots/deep-black.png" width="340" alt="딥 블랙 테마의 패널: OLED 화면을 위한 완전한 검은색 배경">
 </p>
 
@@ -75,20 +72,10 @@
 **경고가 나타나는 이유:** TrayOTP는 오픈 소스이며 유료 Apple Developer 인증서로 서명되지 않았기 때문에
 macOS가 제작자를 확인할 수 없습니다. 그래도 열려면:
 
-- **macOS 15 Sequoia 이상:** 앱을 한 번 열고 경고를 닫은 다음
-  **시스템 설정 → 개인정보 보호 및 보안**으로 가서 아래로 스크롤하고 TrayOTP 옆의 **그래도 열기**를 클릭합니다.
-- **macOS 14 Sonoma:** **TrayOTP.app**을 오른쪽 클릭 → **열기** → **열기**.
+- Apple의 [확인되지 않은 개발자의 Mac 앱 열기](https://support.apple.com/ko-kr/guide/mac-help/mh40616/26/mac/26) 안내를 따르고, 페이지에서 사용 중인 macOS 버전을 선택하세요.
 
 버전마다 한 번만 하면 됩니다. 다운로드한 빌드를 신뢰하고 싶지 않다면
 약 1분 만에 [직접 빌드](#build-from-source)할 수 있습니다.
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway.png" width="480" alt="macOS 15 이상의 시스템 설정 → 개인정보 보호 및 보안. 차단된 앱 옆에 '확인 없이 열기' 버튼이 표시됨">
-</p>
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="macOS 14 Sonoma에서 오른쪽 클릭 → 열기 후 나타나는 대화상자: 열기, 휴지통으로 이동, 취소 버튼">
-</p>
 
 **다운로드 확인(선택 사항):** 각 릴리스에는 `.sha256` 파일이 포함되어 있습니다. 터미널에서:
 

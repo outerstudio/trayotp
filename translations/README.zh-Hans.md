@@ -36,9 +36,6 @@
 
 <p align="center">
   <img src="../docs/screenshots/panel.png" width="340" alt="菜单栏图标下方的 TrayOTP 面板：搜索栏、显示名称、验证码、账户和下一个验证码的令牌，以及添加、锁定和退出按钮">
-</p>
-
-<p align="center">
   <img src="../docs/screenshots/deep-black.png" width="340" alt="使用深黑主题的面板：为 OLED 屏幕准备的纯黑背景">
 </p>
 
@@ -75,20 +72,10 @@
 **为什么会有警告？** TrayOTP 是开源软件，没有使用付费的 Apple Developer 证书签名，因此
 macOS 无法确认开发者。要照常打开：
 
-- **macOS 15 Sequoia 及更高版本：** 先打开一次 App 并关闭警告，然后前往
-  **系统设置 → 隐私与安全性**，向下滚动，点按 TrayOTP 旁的**仍要打开**。
-- **macOS 14 Sonoma：** 右键点按 **TrayOTP.app** → **打开** → **打开**。
+- 请按照 Apple 的[打开来自身份不明开发者的 Mac App](https://support.apple.com/zh-cn/guide/mac-help/mh40616/26/mac/26)指南操作，并在页面上选择你的 macOS 版本。
 
 每个版本只需操作一次。如果你不想信任下载的版本，
 可以在大约一分钟内[自行构建](#build-from-source)。
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway.png" width="480" alt="macOS 15 及更高版本中的“系统设置 → 隐私与安全性”，被阻止的 App 旁有“仍要打开”按钮">
-</p>
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="macOS 14 Sonoma 中右键 → 打开 后出现的对话框，含“打开”“移到废纸篓”“取消”按钮">
-</p>
 
 **校验下载（可选）：** 每个版本都附带 `.sha256` 文件。在“终端”中运行：
 

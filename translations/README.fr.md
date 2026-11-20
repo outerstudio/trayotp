@@ -36,9 +36,6 @@
 
 <p align="center">
   <img src="../docs/screenshots/panel.png" width="340" alt="Le panneau TrayOTP sous son icône de la barre des menus : un champ de recherche, des jetons avec nom, code, compte et code suivant, et les boutons Ajouter, Verrouiller et Quitter">
-</p>
-
-<p align="center">
   <img src="../docs/screenshots/deep-black.png" width="340" alt="Le panneau avec le thème noir profond : un fond noir pur pour les écrans OLED">
 </p>
 
@@ -75,20 +72,10 @@
 **Pourquoi cet avertissement ?** TrayOTP est open source et n’est pas signé avec un certificat Apple Developer payant :
 macOS ne peut donc pas vérifier qui l’a créé. Pour l’ouvrir malgré tout :
 
-- **macOS 15 Sequoia et ultérieur :** ouvrez l’app une fois, fermez l’avertissement, puis allez dans
-  **Réglages Système → Confidentialité et sécurité**, faites défiler vers le bas et cliquez sur **Ouvrir quand même** à côté de TrayOTP.
-- **macOS 14 Sonoma :** clic droit sur **TrayOTP.app** → **Ouvrir** → **Ouvrir**.
+- Suivez le [guide d’Apple pour ouvrir une app d’un développeur inconnu](https://support.apple.com/fr-fr/guide/mac-help/mh40616/26/mac/26) et choisissez votre version de macOS sur cette page.
 
 Il suffit de le faire une fois par version. Si vous préférez ne pas faire confiance à une version téléchargée,
 [compilez-la vous-même](#build-from-source) en une minute environ.
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Réglages Système → Confidentialité et sécurité sous macOS 15 et ultérieur, avec le bouton Ouvrir quand même à côté de l’app bloquée">
-</p>
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Dialogue de macOS 14 Sonoma après clic droit → Ouvrir, avec les boutons Ouvrir, Placer dans la corbeille et Annuler">
-</p>
 
 **Vérifier le téléchargement (facultatif) :** chaque version comprend un fichier `.sha256`. Dans Terminal :
 

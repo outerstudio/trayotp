@@ -36,9 +36,6 @@
 
 <p align="center">
   <img src="../docs/screenshots/panel.png" width="340" alt="El panel de TrayOTP bajo su icono de la barra de menús: un campo de búsqueda, tokens con nombre, código, cuenta y siguiente código y los botones Añadir, Bloquear y Salir">
-</p>
-
-<p align="center">
   <img src="../docs/screenshots/deep-black.png" width="340" alt="El panel con el tema negro profundo: un fondo negro puro para pantallas OLED">
 </p>
 
@@ -75,20 +72,10 @@
 **¿Por qué el aviso?** TrayOTP es de código abierto y no está firmado con un certificado de pago de Apple Developer, así que
 macOS no puede comprobar quién lo creó. Para abrirlo de todos modos:
 
-- **macOS 15 Sequoia y posterior:** abre la app una vez, cierra el aviso y ve a
-  **Ajustes del Sistema → Privacidad y seguridad**, desplázate hacia abajo y haz clic en **Abrir igualmente** junto a TrayOTP.
-- **macOS 14 Sonoma:** clic derecho en **TrayOTP.app** → **Abrir** → **Abrir**.
+- Sigue la [guía de Apple para abrir una app de un desarrollador desconocido](https://support.apple.com/es-es/guide/mac-help/mh40616/26/mac/26) y elige tu versión de macOS en esa página.
 
 Solo hay que hacerlo una vez por versión. Si prefieres no fiarte de una versión descargada,
 [compílala tú mismo](#build-from-source) en un minuto aproximadamente.
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway.png" width="480" alt="Ajustes del Sistema → Privacidad y seguridad en macOS 15 y posteriores, con el botón Abrir de todos modos junto a la app bloqueada">
-</p>
-
-<p align="center">
-  <img src="../docs/screenshots/open-anyway-sonoma.png" width="240" alt="Cuadro de diálogo de macOS 14 Sonoma tras clic derecho → Abrir, con los botones Abrir, Mover a la papelera y Cancelar">
-</p>
 
 **Comprobar la descarga (opcional):** cada versión incluye un archivo `.sha256`. En Terminal:
 
