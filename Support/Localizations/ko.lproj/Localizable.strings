@@ -278,6 +278,7 @@
 "Other Apps" = "기타 앱";
 "otpauth Links (Plain Text)…" = "otpauth 링크(일반 텍스트)…";
 "Update to %@…" = "%@(으)로 업데이트…";
+"Downloading…" = "다운로드 중…";
 "Check for Updates…" = "업데이트 확인…";
 "Release Notes" = "릴리스 노트";
 "Version %@" = "버전 %@";

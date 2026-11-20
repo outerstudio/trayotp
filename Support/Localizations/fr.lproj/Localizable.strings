@@ -276,6 +276,7 @@
 "Other Apps" = "Autres apps";
 "otpauth Links (Plain Text)…" = "Liens otpauth (texte brut)…";
 "Update to %@…" = "Mettre à jour vers %@…";
+"Downloading…" = "Téléchargement…";
 "Check for Updates…" = "Rechercher des mises à jour…";
 "Release Notes" = "Notes de version";
 "Version %@" = "Version %@";

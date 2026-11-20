@@ -13,6 +13,8 @@ import OTPCore
 final class Updater {
     private(set) var available: Release?
     private(set) var isBusy = false
+    /// True only while an update downloads and installs, not during a mere check.
+    private(set) var isInstalling = false
 
     var checksAutomatically: Bool {
         didSet { UserDefaults.standard.set(checksAutomatically, forKey: Keys.auto) }
@@ -129,7 +131,8 @@ final class Updater {
                               button: String(localized: "Install and Relaunch"), releaseNotes: release.pageURL)
         else { return }
         isBusy = true
-        defer { isBusy = false }
+        isInstalling = true
+        defer { isBusy = false; isInstalling = false }
         do {
             let staged = try await download(release)
             try launchSwap(staged: staged)

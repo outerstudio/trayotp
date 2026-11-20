@@ -278,6 +278,7 @@
 "Other Apps" = "その他のアプリ";
 "otpauth Links (Plain Text)…" = "otpauthリンク（プレーンテキスト）…";
 "Update to %@…" = "%@にアップデート…";
+"Downloading…" = "ダウンロード中…";
 "Check for Updates…" = "アップデートを確認…";
 "Release Notes" = "リリースノート";
 "Version %@" = "バージョン %@";

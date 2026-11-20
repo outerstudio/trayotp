@@ -348,7 +348,14 @@ struct TokenListView: View {
                 Button {
                     Task { await state.updater.offerAvailable() }
                 } label: {
-                    Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
+                    if state.updater.isInstalling {
+                        HStack(spacing: 6) {
+                            ProgressView().controlSize(.small)
+                            Text("Downloading…")
+                        }
+                    } else {
+                        Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
+                    }
                 }
                 .disabled(state.updater.isBusy)
             }
@@ -513,7 +520,7 @@ struct SettingsMenu: View {
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
             Toggle("Deep Black Theme", isOn: $state.deepBlack)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
-                                                     set: { state.launchAtLogin = $0 }))
+                                                     set: { state.setLaunchAtLogin($0) }))
             Menu("Language") {
                 Picker("Language", selection: Binding(get: { state.language },
                                                       set: { code in afterMenu { state.language = code } })) {
