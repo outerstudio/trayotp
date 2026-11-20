@@ -82,6 +82,9 @@
   h1 { font-size: clamp(36px, 5.4vw, 58px); line-height: 1.06; letter-spacing: -.03em; margin: 0 0 20px; }
   .lede { font-size: 19px; color: var(--muted); max-width: 34em; margin: 0 0 30px; }
   .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+  .release-links { margin: -6px 0 22px; font-size: 14.5px; color: var(--muted); }
+  .release-links a { color: var(--muted); text-underline-offset: 3px; }
+  .release-links a:hover { color: var(--accent); }
   .facts { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0; margin: 0; list-style: none; font-size: 14px; color: var(--muted); }
   .facts li::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; vertical-align: middle; }
   .shot { border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); width: 100%; height: auto; }
@@ -189,6 +192,7 @@
           </a>
           <a class="btn" href="https://github.com/outerstudio/trayotp">View on GitHub</a>
         </div>
+        <p class="release-links">What's new: <a href="https://github.com/outerstudio/trayotp/releases/latest">release notes</a> · <a href="https://github.com/outerstudio/trayotp/blob/main/CHANGELOG.md">full changelog</a></p>
         <ul class="facts">
           <li>macOS 14 or later</li>
           <li>Apple silicon and Intel</li>
@@ -308,7 +312,7 @@
       <h2 id="install-h">Install in a minute.</h2>
       <p class="section-lede">Download the app from GitHub, or build it yourself.</p>
       <ol class="steps">
-        <li><b>Download</b><span>Get <code>TrayOTP-vX.Y.Z.zip</code> from the <a href="https://github.com/outerstudio/trayotp/releases/latest">latest release</a>.</span></li>
+        <li><b>Download</b><span>Get <code>TrayOTP-vX.Y.Z.zip</code> from the <a href="https://github.com/outerstudio/trayotp/releases/latest">latest release</a>, where the release notes are too.</span></li>
         <li><b>Move it to Applications</b><span>Unzip it and drag <b>TrayOTP.app</b> into your Applications folder.</span></li>
         <li><b>Open it</b><span>The first time, macOS says it can't verify the app. That's expected: see below.</span></li>
       </ol>
