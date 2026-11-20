@@ -164,7 +164,7 @@ TrayOTP n’inclut pas de logos de marques. Il lit à la place les packs d’ic�
 
 1. Téléchargez `aegis-icons.zip` depuis les [versions d’aegis-icons](https://github.com/aegis-icons/aegis-icons/releases)
    (ou tout autre pack compatible Aegis).
-2. **⋯ → Installer le pack d’icônes Aegis…** et choisissez le ZIP.
+2. **⋯ → Pack d’icônes → Installer le pack d’icônes Aegis…** et choisissez le ZIP.
 
 Les jetons reçoivent automatiquement une icône d’après leur émetteur ou leur nom (« Google Workspace » → Google).
 Pour le reste, clic droit sur un jeton :
@@ -178,7 +178,7 @@ Pour le reste, clic droit sur un jeton :
 | **Récupérer l’icône du site web…** | Télécharger le favicon du site (vous confirmez d’abord le domaine) |
 | **Retirer l’icône** | Revenir à l’icône automatique ou aux initiales colorées |
 
-Pour en définir plusieurs à la fois, **⋯ → Importer des icônes depuis un dossier…** associe les noms de fichiers image aux noms des jetons
+Pour en définir plusieurs à la fois, **⋯ → Pack d’icônes → Importer des icônes depuis un dossier…** associe les noms de fichiers image aux noms des jetons
 (`github.png` → GitHub). Une icône que vous avez choisie l’emporte toujours sur l’association automatique du pack.
 
 > **Confidentialité :** **Récupérer l’icône du site web…** télécharge le favicon via le service d’icônes de DuckDuckGo :

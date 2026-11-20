@@ -164,7 +164,7 @@ TrayOTP liefert keine Markenlogos mit. Stattdessen liest es Symbolpakete im
 
 1. Lade `aegis-icons.zip` von den [aegis-icons-Releases](https://github.com/aegis-icons/aegis-icons/releases)
    (oder ein anderes Aegis-kompatibles Paket).
-2. **⋯ → Aegis-Symbolpaket installieren …** und die ZIP-Datei wählen.
+2. **⋯ → Symbolpaket → Aegis-Symbolpaket installieren …** und die ZIP-Datei wählen.
 
 Tokens erhalten automatisch ein Symbol anhand von Aussteller oder Name („Google Workspace“ → Google).
 Für alles andere Rechtsklick auf ein Token:
@@ -178,7 +178,7 @@ Für alles andere Rechtsklick auf ein Token:
 | **Symbol von Website laden …** | Das Favicon der Website laden (du bestätigst zuerst die Domain) |
 | **Symbol entfernen** | Zurück zum automatischen Symbol oder zu farbigen Initialen |
 
-Um viele auf einmal festzulegen, ordnet **⋯ → Symbole aus Ordner importieren …** Bilddateinamen den Token-Namen zu
+Um viele auf einmal festzulegen, ordnet **⋯ → Symbolpaket → Symbole aus Ordner importieren …** Bilddateinamen den Token-Namen zu
 (`github.png` → GitHub). Ein selbst gewähltes Symbol hat immer Vorrang vor der automatischen Zuordnung des Pakets.
 
 > **Datenschutzhinweis:** **Symbol von Website laden …** lädt das Favicon über den Symboldienst von DuckDuckGo, daher

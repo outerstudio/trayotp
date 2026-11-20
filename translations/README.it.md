@@ -164,7 +164,7 @@ TrayOTP non include loghi di marchi. Legge invece pacchetti di icone nel
 
 1. Scarica `aegis-icons.zip` dalle [release di aegis-icons](https://github.com/aegis-icons/aegis-icons/releases)
    (o qualsiasi altro pacchetto compatibile con Aegis).
-2. **⋯ → Installa pacchetto di icone Aegis…** e scegli il file ZIP.
+2. **⋯ → Pacchetto di icone → Installa pacchetto di icone Aegis…** e scegli il file ZIP.
 
 I token ricevono automaticamente un’icona in base all’emittente o al nome (“Google Workspace” → Google).
 Per il resto, clic destro su un token:
@@ -178,7 +178,7 @@ Per il resto, clic destro su un token:
 | **Scarica icona dal sito web…** | Scarica la favicon del sito (prima confermi il dominio) |
 | **Rimuovi icona** | Torna all’icona automatica o alle iniziali colorate |
 
-Per impostarne molte insieme, **⋯ → Importa icone da cartella…** abbina i nomi dei file immagine ai nomi dei token
+Per impostarne molte insieme, **⋯ → Pacchetto di icone → Importa icone da cartella…** abbina i nomi dei file immagine ai nomi dei token
 (`github.png` → GitHub). Un’icona scelta da te ha sempre la precedenza sull’abbinamento automatico del pacchetto.
 
 > **Nota sulla privacy:** **Scarica icona dal sito web…** scarica la favicon tramite il servizio di icone di DuckDuckGo, quindi

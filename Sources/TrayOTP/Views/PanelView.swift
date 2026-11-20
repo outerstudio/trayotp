@@ -437,19 +437,22 @@ struct SettingsMenu: View {
         Menu {
             Button("New Group…") { afterMenu { state.newGroup() } }
             Divider()
-            if let pack = state.icons.pack {
-                Menu("Icon Pack: \(pack.name)") {
+            Menu("Icon Pack") {
+                if let pack = state.icons.pack {
+                    Text("Icon Pack: \(pack.name)")
                     Text("\(pack.icons.count) icons, version \(pack.version)")
+                    Divider()
                     Button("Replace…") { afterMenu { state.installIconPack() } }
                     Button("Remove") { state.icons.remove() }
+                } else {
+                    Button("Install Aegis Icon Pack…") { afterMenu { state.installIconPack() } }
                 }
-            } else {
-                Button("Install Aegis Icon Pack…") { afterMenu { state.installIconPack() } }
+                Divider()
+                Button("Import Icons from Folder…") {
+                    afterMenu { if let url = Dialogs.openFolder() { state.importIcons(from: url) } }
+                }
+                .disabled(state.tokens.isEmpty)
             }
-            Button("Import Icons from Folder…") {
-                afterMenu { if let url = Dialogs.openFolder() { state.importIcons(from: url) } }
-            }
-            .disabled(state.tokens.isEmpty)
             Divider()
             if state.hasPasswordGate {
                 Menu("Master Password") {

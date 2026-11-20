@@ -154,7 +154,7 @@ TrayOTP doesn't ship brand logos. Instead it reads icon packs in the
 
 1. Download `aegis-icons.zip` from [aegis-icons releases](https://github.com/aegis-icons/aegis-icons/releases)
    (or any other Aegis-compatible pack).
-2. **⋯ → Install Aegis Icon Pack…** and choose the ZIP.
+2. **⋯ → Icon Pack → Install Aegis Icon Pack…** and choose the ZIP.
 
 Tokens get an icon automatically by matching their issuer or name ("Google Workspace" → Google).
 For anything else, right-click a token:
@@ -168,7 +168,7 @@ For anything else, right-click a token:
 | **Fetch Icon from Website…** | Download the site's favicon (you confirm the domain first) |
 | **Remove Icon** | Go back to the automatic icon or colored initials |
 
-To set many at once, **⋯ → Import Icons from Folder…** matches image file names to token names
+To set many at once, **⋯ → Icon Pack → Import Icons from Folder…** matches image file names to token names
 (`github.png` → GitHub). An icon you chose always wins over the pack's automatic match.
 
 > **Privacy note:** **Fetch Icon from Website…** downloads the favicon through DuckDuckGo's icon service, so
