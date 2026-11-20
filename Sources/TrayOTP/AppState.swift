@@ -81,6 +81,17 @@ final class AppState {
     var clearsClipboard: Bool {
         didSet { UserDefaults.standard.set(clearsClipboard, forKey: Keys.clearsClipboard) }
     }
+    /// Days before the app suggests a fresh backup; 0 turns the reminder off.
+    var backupReminderDays: Int {
+        didSet { UserDefaults.standard.set(backupReminderDays, forKey: Keys.backupReminderDays) }
+    }
+    /// The folder **Back Up Now** writes to, chosen once.
+    private(set) var backupFolder: URL? {
+        didSet { UserDefaults.standard.set(backupFolder?.path, forKey: Keys.backupFolder) }
+    }
+    private(set) var lastBackup: Date? {
+        didSet { UserDefaults.standard.set(lastBackup, forKey: Keys.lastBackup) }
+    }
     /// Pure black panel background instead of the translucent material: OLED pixels switch off.
     var deepBlack: Bool {
         didSet { UserDefaults.standard.set(deepBlack, forKey: Keys.deepBlack) }
@@ -124,6 +135,7 @@ final class AppState {
     @ObservationIgnored private var nextAutoPrompt = Date.distantPast
     @ObservationIgnored private var passwordPromptActive = false
     @ObservationIgnored private var reminderSnoozedUntil = Date.distantPast
+    @ObservationIgnored private var backupSnoozedUntil = Date.distantPast
     /// When each `Grace` ends; every use pushes its end back (a debounce).
     @ObservationIgnored private var graceUntil: [Grace: Date] = [:]
     @ObservationIgnored private var switchToAlert = false
@@ -143,6 +155,10 @@ final class AppState {
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
         static let clearsClipboard = "clearsClipboard"
+        static let backupReminderDays = "backupReminderDays"
+        static let backupFolder = "backupFolder"
+        static let lastBackup = "lastBackup"
+        static let backupReminderSince = "backupReminderSince"
         static let deepBlack = "deepBlack"
         static let menuBarCountdown = "menuBarCountdown"
     }
@@ -150,7 +166,7 @@ final class AppState {
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
-                                     Keys.showsMenuBarIcon: true, Keys.clearsClipboard: true, Keys.passwordReminderDays: 30])
+                                     Keys.showsMenuBarIcon: true, Keys.clearsClipboard: true, Keys.backupReminderDays: 30, Keys.passwordReminderDays: 30])
         ungroupedExpanded = defaults.bool(forKey: Keys.ungroupedExpanded)
         requireAuth = defaults.bool(forKey: Keys.requireAuth)
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
@@ -161,6 +177,9 @@ final class AppState {
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
         clearsClipboard = defaults.bool(forKey: Keys.clearsClipboard)
+        backupReminderDays = defaults.integer(forKey: Keys.backupReminderDays)
+        backupFolder = defaults.string(forKey: Keys.backupFolder).map { URL(fileURLWithPath: $0, isDirectory: true) }
+        lastBackup = defaults.object(forKey: Keys.lastBackup) as? Date
         deepBlack = defaults.bool(forKey: Keys.deepBlack)
         menuBarCountdown = defaults.string(forKey: Keys.menuBarCountdown).flatMap(MenuBarCountdown.init(rawValue:))
             ?? .untilGraceEnds
@@ -471,6 +490,7 @@ final class AppState {
                 await promptPasswordSetup()
             } else {
                 await remindPassword()
+                await remindBackup()
             }
         }
     }
@@ -1206,25 +1226,79 @@ final class AppState {
         }
     }
 
+    /// The password an encrypted backup file is locked with: the master password just typed, or a new one.
+    /// Nil when the user cancels.
+    private func backupPassword(for format: BackupFormat, typedPassword: String?) -> String? {
+        let different = { Dialogs.password(title: String(localized: "Set a backup password"),
+                                           message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
+                                           confirm: true) }
+        guard let typedPassword else { return different() }
+        switch Dialogs.choice(title: String(localized: "Encrypt the backup"),
+                              message: String(localized: "The file will be encrypted with your master password. \(format.displayName) will ask for it when importing."),
+                              buttons: [String(localized: "Use Master Password"), String(localized: "Use a Different Password…"), String(localized: "Cancel")]) {
+        case 0: return typedPassword
+        case 1: return different()
+        default: return nil
+        }
+    }
+
+    // MARK: Backup
+
+    func chooseBackupFolder() {
+        if let url = Dialogs.chooseBackupFolder(current: backupFolder) { backupFolder = url }
+    }
+
+    /// Writes an encrypted Aegis backup into the backup folder (asked for the first time).
+    func backUpNow() {
+        Task {
+            guard !tokens.isEmpty,
+                  let auth = await authorize(String(localized: "back up all your secrets")) else { return }
+            if backupFolder == nil { chooseBackupFolder() }
+            guard let folder = backupFolder, let password = backupPassword(for: .aegis, typedPassword: auth.password) else { return }
+            let day = Date().formatted(.iso8601.year().month().day())
+            let url = folder.appendingPathComponent("TrayOTP-backup-\(day).json")
+            do {
+                let data = try Exporter.encode(.init(tokens: tokens, groups: groups), as: .aegis, password: password)
+                try data.write(to: url, options: .atomic)
+                try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+                lastBackup = Date()
+                showToast(String(localized: "Backup saved"))
+            } catch {
+                Dialogs.error(error, title: String(localized: "Backup failed"))
+            }
+        }
+    }
+
+    /// Suggests a backup when `backupReminderDays` have passed since the last one (or since first seen).
+    private func remindBackup() async {
+        guard !isLocked, !passwordPromptActive, !tokens.isEmpty, backupReminderDays > 0,
+              Date() >= backupSnoozedUntil
+        else { return }
+        let defaults = UserDefaults.standard
+        guard let last = lastBackup ?? defaults.object(forKey: Keys.backupReminderSince) as? Date else {
+            defaults.set(Date(), forKey: Keys.backupReminderSince)
+            return
+        }
+        let days = Int(Date().timeIntervalSince(last) / 86400)
+        guard days >= backupReminderDays else { return }
+        passwordPromptActive = true
+        defer { passwordPromptActive = false }
+        let state = lastBackup == nil ? String(localized: "You have not backed up your tokens yet.")
+                                      : String(localized: "Your last backup is \(days) days old.")
+        if Dialogs.confirm(title: String(localized: "Back up your tokens?"),
+                           message: state + " " + String(localized: "Cancel to be reminded again tomorrow."),
+                           button: String(localized: "Back Up Now")) {
+            backUpNow()
+        } else {
+            backupSnoozedUntil = Date().addingTimeInterval(86400)
+        }
+    }
+
     private func exportConfirmed(as format: BackupFormat, encrypted: Bool, typedPassword: String?) {
         var password: String?
-        if encrypted, let typedPassword {
-            switch Dialogs.choice(title: String(localized: "Encrypt the backup"),
-                                  message: String(localized: "The file will be encrypted with your master password. \(format.displayName) will ask for it when importing."),
-                                  buttons: [String(localized: "Use Master Password"), String(localized: "Use a Different Password…"), String(localized: "Cancel")]) {
-            case 0: password = typedPassword
-            case 1: password = Dialogs.password(title: String(localized: "Set a backup password"),
-                                                message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
-                                                confirm: true)
-                if password == nil { return }
-            default: return
-            }
-        } else if encrypted {
-            guard let p = Dialogs.password(title: String(localized: "Set a backup password"),
-                                           message: String(localized: "Choose a new password for this backup file. \(format.displayName) will ask for it when importing. It is not your Mac or Keychain password."),
-                                           confirm: true)
-            else { return }
-            password = p
+        if encrypted {
+            guard let chosen = backupPassword(for: format, typedPassword: typedPassword) else { return }
+            password = chosen
         } else {
             guard Dialogs.confirm(title: String(localized: "Export without encryption?"),
                                   message: String(localized: "Anyone who gets this file can generate your codes. Delete it once you have imported it into \(format.displayName)."),

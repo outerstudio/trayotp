@@ -58,6 +58,19 @@ enum Dialogs {
         return panel.runModal() == .OK ? panel.url : nil
     }
 
+    static func chooseBackupFolder(current: URL?) -> URL? {
+        prepare()
+        let panel = NSOpenPanel()
+        panel.title = String(localized: "Choose a folder for your backups")
+        panel.prompt = String(localized: "Choose Folder")
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = current
+        return panel.runModal() == .OK ? panel.url : nil
+    }
+
     static func saveFile(name: String, fileExtension: String, title: String) -> URL? {
         prepare()
         let panel = NSSavePanel()

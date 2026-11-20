@@ -179,7 +179,7 @@ To set many at once, **⋯ → Import Icons from Folder…** matches image file 
 **Import:** **Add → Import from File…**, then choose the file. TrayOTP detects the app and asks for the backup password if
 the file is encrypted. Anything that can't be imported is listed afterwards.
 
-**Export:** **⋯ → Export ▸**, then pick the app. TrayOTP asks for Touch ID first.
+**Export:** **⋯ → Backup & Export ▸ → Export to Another App ▸**, then pick the app. TrayOTP asks for Touch ID first.
 
 | App | Import | Export | Groups |
 |---|---|---|---|
@@ -208,7 +208,7 @@ one running Google Authenticator, used as a webcam (Continuity Camera). Or take 
 with another phone, get it onto your Mac (AirDrop, iCloud Photos, email…) and import it with
 **Add → Import from File…**: PNG, JPEG and HEIC all work.
 
-**To Google Authenticator:** **⋯ → Export → Google Authenticator (QR Codes)…** shows the accounts as QR codes,
+**To Google Authenticator:** **⋯ → Backup & Export → Export to Another App → Google Authenticator (QR Codes)…** shows the accounts as QR codes,
 10 per code. In Google Authenticator, open **⋮ → Transfer accounts → Import accounts** and scan each one. Google
 only takes 30-second codes with 6 or 8 digits, so other tokens (and Steam) are left out, and you're told which.
 The window hides from screenshots and screen sharing and closes when TrayOTP locks.
@@ -247,6 +247,7 @@ All in the **⋯** menu:
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
 | **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
 | **Clear Clipboard After 30 Seconds** | Remove a copied code from the clipboard after 30 seconds, but only if the clipboard still holds that code. On by default. |
+| **Backup & Export ▸** | One-click encrypted backup (Aegis format, so **Import from File…** restores it) into a folder you choose once, plus a reminder when the last backup is older than 7, 30 (default) or 90 days. **Restore from Backup…** opens the same file picker as **Add → Import from File…**. |
 | **Deep Black Theme** | Pure black panel background instead of the translucent material, for OLED screens. |
 | **Launch at Login** | Start TrayOTP when you log in. |
 | **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |
@@ -336,7 +337,7 @@ Losing your 2FA codes can lock you out of your accounts, so don't let TrayOTP be
 
 - Save each site's **recovery codes** when you set up 2FA.
 - Keep the token in a second app too, such as your phone (see the tip under [Adding a token](#adding-a-token)).
-- Export an encrypted backup now and then (**⋯ → Export → Aegis (Encrypted)**) and keep it somewhere safe.
+- Export an encrypted backup now and then (**⋯ → Backup & Export → Back Up Now**) and keep it somewhere safe.
 - After importing, check a few codes before deleting anything from your old app.
 
 ## Support

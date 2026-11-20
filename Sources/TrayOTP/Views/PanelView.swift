@@ -535,29 +535,51 @@ struct SettingsMenu: View {
                 .labelsHidden()
             }
             Divider()
-            Menu("Export") {
-                Section("2FAS") {
-                    Button("2FAS (Encrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: true) } }
-                    Button("2FAS (Unencrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: false) } }
+            Menu("Backup & Export") {
+                Button("Back Up Now") { afterMenu { state.backUpNow() } }
+                    .disabled(state.tokens.isEmpty)
+                if let last = state.lastBackup {
+                    Text("Last backup: \(last.formatted(.relative(presentation: .named)))")
+                } else {
+                    Text("No backup yet")
                 }
-                Section("Aegis") {
-                    Button("Aegis (Encrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: true) } }
-                    Button("Aegis (Unencrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: false) } }
+                Button("Restore from Backup…") { afterMenu { state.importBackup() } }
+                Button("Choose Backup Folder…") { afterMenu { state.chooseBackupFolder() } }
+                Divider()
+                Menu("Backup Reminder: \(AppState.reminderLabel(state.backupReminderDays))") {
+                    Picker("Backup Reminder", selection: $state.backupReminderDays) {
+                        ForEach(AppState.reminderPresets, id: \.self) { days in
+                            Text(AppState.reminderLabel(days)).tag(days)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
                 }
-                Section("Ente Auth") {
-                    Button("Ente Auth (Plain Text)…") { afterMenu { state.exportBackup(as: .ente, encrypted: false) } }
+                Divider()
+                Menu("Export to Another App") {
+                    Section("2FAS") {
+                        Button("2FAS (Encrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: true) } }
+                        Button("2FAS (Unencrypted)…") { afterMenu { state.exportBackup(as: .twoFAS, encrypted: false) } }
+                    }
+                    Section("Aegis") {
+                        Button("Aegis (Encrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: true) } }
+                        Button("Aegis (Unencrypted)…") { afterMenu { state.exportBackup(as: .aegis, encrypted: false) } }
+                    }
+                    Section("Ente Auth") {
+                        Button("Ente Auth (Plain Text)…") { afterMenu { state.exportBackup(as: .ente, encrypted: false) } }
+                    }
+                    Section("Google Authenticator") {
+                        Button("Google Authenticator (QR Codes)…") { afterMenu { state.exportToGoogle() } }
+                    }
+                    Section("Bitwarden") {
+                        Button("Bitwarden (JSON)…") { afterMenu { state.exportBackup(as: .bitwarden, encrypted: false) } }
+                    }
+                    Section("Other Apps") {
+                        Button("otpauth Links (Plain Text)…") { afterMenu { state.exportBackup(as: .linkList, encrypted: false) } }
+                    }
                 }
-                Section("Google Authenticator") {
-                    Button("Google Authenticator (QR Codes)…") { afterMenu { state.exportToGoogle() } }
-                }
-                Section("Bitwarden") {
-                    Button("Bitwarden (JSON)…") { afterMenu { state.exportBackup(as: .bitwarden, encrypted: false) } }
-                }
-                Section("Other Apps") {
-                    Button("otpauth Links (Plain Text)…") { afterMenu { state.exportBackup(as: .linkList, encrypted: false) } }
-                }
+                .disabled(state.tokens.isEmpty)
             }
-            .disabled(state.tokens.isEmpty)
             Divider()
             Button("Check for Updates…") { afterMenu { Task { await state.updater.checkInteractively() } } }
                 .disabled(state.updater.isBusy)

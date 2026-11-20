@@ -190,7 +190,7 @@ Pour en définir plusieurs à la fois, **⋯ → Importer des icônes depuis un 
 **Importer :** **Ajouter → Importer depuis un fichier…**, puis choisissez le fichier. TrayOTP détecte l’app et demande le mot de passe de la
 sauvegarde si le fichier est chiffré. Ce qui ne peut pas être importé est listé ensuite.
 
-**Exporter :** **⋯ → Exporter ▸**, puis choisissez l’app. TrayOTP demande d’abord Touch ID.
+**Exporter :** **⋯ → Sauvegarde et export ▸ → Exporter vers une autre app ▸**, puis choisissez l’app. TrayOTP demande d’abord Touch ID.
 
 | App | Importation | Exportation | Groupes |
 |---|---|---|---|
@@ -219,7 +219,7 @@ celui qui exécute Google Authenticator) utilisé comme webcam (Caméra de conti
 autre téléphone, transférez la photo sur votre Mac (AirDrop, Photos iCloud, e-mail…) et importez-la avec
 **Ajouter → Importer depuis un fichier…** : PNG, JPEG et HEIC fonctionnent.
 
-**Vers Google Authenticator :** **⋯ → Exporter → Google Authenticator (codes QR)…** affiche les comptes sous forme de codes QR,
+**Vers Google Authenticator :** **⋯ → Sauvegarde et export → Exporter vers une autre app → Google Authenticator (codes QR)…** affiche les comptes sous forme de codes QR,
 10 par code. Dans Google Authenticator, ouvrez **⋮ → Transférer des comptes → Importer des comptes** et scannez chacun d’eux.
 Google n’accepte que les codes de 30 secondes à 6 ou 8 chiffres : les autres jetons (et Steam) sont exclus, et vous savez lesquels.
 La fenêtre est masquée aux captures et au partage d’écran, et se ferme quand TrayOTP se verrouille.
@@ -259,6 +259,7 @@ Tout se trouve dans le menu **⋯** :
 | **Afficher l’icône dans la barre des menus** | Désactivez pour masquer l’icône. Le raccourci global (ou rouvrir TrayOTP depuis le Finder ou le Launchpad) affiche alors le panneau en haut de l’écran. |
 | **Fermer après la copie** | Fermer le panneau dès qu’un code est copié, pour le coller immédiatement. |
 | **Effacer le presse-papiers après 30 secondes** | Effacer un code copié du presse-papiers après 30 secondes (seulement s’il contient encore ce code). Activé par défaut. |
+| **Sauvegarde et export ▸** | Sauvegarde chiffrée en un clic (format Aegis, que **Importer depuis un fichier…** restaure) dans un dossier choisi une fois, avec un rappel quand la dernière sauvegarde date de plus de 7, 30 (par défaut) ou 90 jours. **Restaurer une sauvegarde…** ouvre le même sélecteur de fichier que **Ajouter → Importer depuis un fichier…**. |
 | **Thème noir profond** | Arrière-plan du panneau noir pur au lieu du matériau translucide, pour les écrans OLED. |
 | **Ouvrir à la connexion** | Lancer TrayOTP à l’ouverture de session. |
 | **Langue ▸** | **Langue du système** suit la langue de votre Mac (anglais si TrayOTP n’est pas traduit dans celle-ci), ou choisissez une des traductions. TrayOTP redémarre pour changer. |
@@ -352,7 +353,7 @@ Perdre vos codes 2FA peut vous bloquer hors de vos comptes : ne faites pas de Tr
 
 - Enregistrez les **codes de récupération** de chaque site lorsque vous configurez la 2FA.
 - Gardez aussi le jeton dans une deuxième app, par exemple sur votre téléphone (voir l’astuce dans [Ajouter un jeton](#adding-a-token)).
-- Exportez de temps en temps une sauvegarde chiffrée (**⋯ → Exporter → Aegis (chiffré)**) et conservez-la en lieu sûr.
+- Exportez de temps en temps une sauvegarde chiffrée (**⋯ → Sauvegarde et export → Sauvegarder maintenant**) et conservez-la en lieu sûr.
 - Après une importation, vérifiez quelques codes avant de supprimer quoi que ce soit de votre ancienne app.
 
 ## Soutien

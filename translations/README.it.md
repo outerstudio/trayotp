@@ -190,7 +190,7 @@ Per impostarne molte insieme, **⋯ → Importa icone da cartella…** abbina i 
 **Importare:** **Aggiungi → Importa da file…**, poi scegli il file. TrayOTP riconosce l’app e chiede la password del backup se
 il file è crittografato. Ciò che non può essere importato viene elencato alla fine.
 
-**Esportare:** **⋯ → Esporta ▸**, poi scegli l’app. TrayOTP chiede prima Touch ID.
+**Esportare:** **⋯ → Backup ed esportazione ▸ → Esporta in un’altra app ▸**, poi scegli l’app. TrayOTP chiede prima Touch ID.
 
 | App | Importazione | Esportazione | Gruppi |
 |---|---|---|---|
@@ -219,7 +219,7 @@ con Google Authenticator) usato come webcam (Fotocamera Continuity). Oppure foto
 telefono, porta la foto sul Mac (AirDrop, Foto di iCloud, e-mail…) e importala con
 **Aggiungi → Importa da file…**: PNG, JPEG e HEIC funzionano.
 
-**Verso Google Authenticator:** **⋯ → Esporta → Google Authenticator (codici QR)…** mostra gli account come codici QR,
+**Verso Google Authenticator:** **⋯ → Backup ed esportazione → Esporta in un’altra app → Google Authenticator (codici QR)…** mostra gli account come codici QR,
 10 per codice. In Google Authenticator apri **⋮ → Trasferisci account → Importa account** e scansionali uno per uno. Google
 accetta solo codici da 30 secondi con 6 o 8 cifre, quindi gli altri token (e Steam) vengono esclusi, e ti viene detto quali.
 La finestra è nascosta a screenshot e condivisione dello schermo e si chiude quando TrayOTP si blocca.
@@ -258,6 +258,7 @@ Tutto nel menu **⋯**:
 | **Mostra icona nella barra dei menu** | Disattiva per nascondere l’icona. L’abbreviazione globale (o riaprire TrayOTP dal Finder o da Launchpad) mostra allora il pannello in alto sullo schermo. |
 | **Chiudi dopo la copia** | Chiudi il pannello appena un codice viene copiato, così puoi incollarlo subito. |
 | **Cancella gli appunti dopo 30 secondi** | Cancella un codice copiato dagli appunti dopo 30 secondi (solo se contiene ancora quel codice). Attivo per impostazione predefinita. |
+| **Backup ed esportazione ▸** | Backup cifrato con un clic (formato Aegis, che **Importa da file…** ripristina) in una cartella scelta una volta, con un promemoria quando l’ultimo backup ha più di 7, 30 (predefinito) o 90 giorni. **Ripristina da backup…** apre lo stesso selettore di file di **Aggiungi → Importa da file…**. |
 | **Tema nero profondo** | Sfondo del pannello nero puro invece del materiale traslucido, per gli schermi OLED. |
 | **Apri al login** | Avvia TrayOTP quando accedi. |
 | **Lingua ▸** | **Lingua di sistema** segue la lingua del Mac (inglese se TrayOTP non è tradotto in quella lingua), oppure scegli una delle traduzioni. TrayOTP si riavvia per cambiare. |
@@ -350,7 +351,7 @@ Perdere i codici 2FA può chiuderti fuori dai tuoi account, quindi non fare di T
 
 - Salva i **codici di recupero** di ogni sito quando configuri la 2FA.
 - Tieni il token anche in una seconda app, ad esempio sul telefono (vedi il suggerimento in [Aggiungere un token](#adding-a-token)).
-- Esporta ogni tanto un backup crittografato (**⋯ → Esporta → Aegis (crittografato)**) e conservalo in un luogo sicuro.
+- Esporta ogni tanto un backup crittografato (**⋯ → Backup ed esportazione → Esegui backup ora**) e conservalo in un luogo sicuro.
 - Dopo l’importazione, controlla alcuni codici prima di eliminare qualcosa dalla vecchia app.
 
 ## Supporto
