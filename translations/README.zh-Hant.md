@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="選單列圖像下方的 TrayOTP 面板：搜尋欄位、顯示名稱、驗證碼、帳號和下一個驗證碼的代符，以及加入、鎖定和結束按鈕">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="使用深黑主題的面板：為 OLED 螢幕準備的純黑背景">
+  <img src="../docs/screenshots/panel.png" width="270" alt="選單列圖像下方的 TrayOTP 面板：搜尋欄位、顯示名稱、驗證碼、帳號和下一個驗證碼的代符，以及加入、鎖定和結束按鈕">
+  <img src="../docs/screenshots/light.png" width="270" alt="使用淺色主題的面板">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="使用深黑主題的面板：為 OLED 螢幕準備的純黑背景">
 </p>
 
 > 本譯文可能落後於[英文 README](../README.md)。如有出入，以英文版為準。

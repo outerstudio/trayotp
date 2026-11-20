@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/panel.png" width="340" alt="The TrayOTP panel under its menu bar icon: a search field, tokens showing name, code, account and next code, and Add, Lock and Quit buttons">
-  <img src="docs/screenshots/deep-black.png" width="340" alt="The panel with the Deep Black theme: a pure black background for OLED screens">
+  <img src="docs/screenshots/panel.png" width="270" alt="The TrayOTP panel under its menu bar icon: a search field, tokens showing name, code, account and next code, and Add, Lock and Quit buttons">
+  <img src="docs/screenshots/light.png" width="270" alt="The panel with the light theme, following a light Mac">
+  <img src="docs/screenshots/deep-black.png" width="270" alt="The panel with the Deep Black theme: a pure black background for OLED screens">
 </p>
 
 ## Features

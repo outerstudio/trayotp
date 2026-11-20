@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="메뉴 막대 아이콘 아래의 TrayOTP 패널: 검색 필드, 이름·코드·계정·다음 코드가 표시된 토큰, 추가·잠금·종료 버튼">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="딥 블랙 테마의 패널: OLED 화면을 위한 완전한 검은색 배경">
+  <img src="../docs/screenshots/panel.png" width="270" alt="메뉴 막대 아이콘 아래의 TrayOTP 패널: 검색 필드, 이름·코드·계정·다음 코드가 표시된 토큰, 추가·잠금·종료 버튼">
+  <img src="../docs/screenshots/light.png" width="270" alt="라이트 테마의 패널">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="딥 블랙 테마의 패널: OLED 화면을 위한 완전한 검은색 배경">
 </p>
 
 > 이 번역은 [영어 README](../README.md)보다 오래되었을 수 있습니다. 내용이 다르면 영어 버전이 우선합니다.

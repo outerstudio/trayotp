@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="Das TrayOTP-Fenster unter seinem Menüleistensymbol: ein Suchfeld, Tokens mit Name, Code, Account und nächstem Code sowie die Tasten Hinzufügen, Sperren und Beenden">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="Das Fenster mit dem Tiefschwarzen Design: ein rein schwarzer Hintergrund für OLED-Bildschirme">
+  <img src="../docs/screenshots/panel.png" width="270" alt="Das TrayOTP-Fenster unter seinem Menüleistensymbol: ein Suchfeld, Tokens mit Name, Code, Account und nächstem Code sowie die Tasten Hinzufügen, Sperren und Beenden">
+  <img src="../docs/screenshots/light.png" width="270" alt="Das Fenster mit dem hellen Design">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="Das Fenster mit dem Tiefschwarzen Design: ein rein schwarzer Hintergrund für OLED-Bildschirme">
 </p>
 
 > Diese Übersetzung kann hinter der [englischen README](../README.md) zurückliegen. Im Zweifel gilt die englische Fassung.

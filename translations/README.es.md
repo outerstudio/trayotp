@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="El panel de TrayOTP bajo su icono de la barra de menús: un campo de búsqueda, tokens con nombre, código, cuenta y siguiente código y los botones Añadir, Bloquear y Salir">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="El panel con el tema negro profundo: un fondo negro puro para pantallas OLED">
+  <img src="../docs/screenshots/panel.png" width="270" alt="El panel de TrayOTP bajo su icono de la barra de menús: un campo de búsqueda, tokens con nombre, código, cuenta y siguiente código y los botones Añadir, Bloquear y Salir">
+  <img src="../docs/screenshots/light.png" width="270" alt="El panel con el tema claro">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="El panel con el tema negro profundo: un fondo negro puro para pantallas OLED">
 </p>
 
 > Esta traducción puede ir por detrás del [README en inglés](../README.md). En caso de duda, prevalece la versión en inglés.

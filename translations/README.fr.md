@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="Le panneau TrayOTP sous son icône de la barre des menus : un champ de recherche, des jetons avec nom, code, compte et code suivant, et les boutons Ajouter, Verrouiller et Quitter">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="Le panneau avec le thème noir profond : un fond noir pur pour les écrans OLED">
+  <img src="../docs/screenshots/panel.png" width="270" alt="Le panneau TrayOTP sous son icône de la barre des menus : un champ de recherche, des jetons avec nom, code, compte et code suivant, et les boutons Ajouter, Verrouiller et Quitter">
+  <img src="../docs/screenshots/light.png" width="270" alt="Le panneau avec le thème clair">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="Le panneau avec le thème noir profond : un fond noir pur pour les écrans OLED">
 </p>
 
 > Cette traduction peut être en retard sur le [README anglais](../README.md). En cas de doute, la version anglaise fait foi.

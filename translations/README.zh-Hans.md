@@ -35,8 +35,9 @@
 </p>
 
 <p align="center">
-  <img src="../docs/screenshots/panel.png" width="340" alt="菜单栏图标下方的 TrayOTP 面板：搜索栏、显示名称、验证码、账户和下一个验证码的令牌，以及添加、锁定和退出按钮">
-  <img src="../docs/screenshots/deep-black.png" width="340" alt="使用深黑主题的面板：为 OLED 屏幕准备的纯黑背景">
+  <img src="../docs/screenshots/panel.png" width="270" alt="菜单栏图标下方的 TrayOTP 面板：搜索栏、显示名称、验证码、账户和下一个验证码的令牌，以及添加、锁定和退出按钮">
+  <img src="../docs/screenshots/light.png" width="270" alt="使用浅色主题的面板">
+  <img src="../docs/screenshots/deep-black.png" width="270" alt="使用深黑主题的面板：为 OLED 屏幕准备的纯黑背景">
 </p>
 
 > 本译文可能落后于[英文 README](../README.md)。如有出入，以英文版为准。
