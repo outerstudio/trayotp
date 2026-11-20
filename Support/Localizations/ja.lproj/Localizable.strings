@@ -379,6 +379,7 @@
 "Hide Codes: %@" = "コードを隠す：%@";
 "Hide Codes" = "コードを隠す";
 "Until Hover" = "ホバーするまで";
-"Until Click" = "クリックするまで";
 "Hide Panel from Screen Sharing" = "パネルを画面共有から隠す";
 "Always Hide Code" = "常にコードを隠す";
+"Click to Show for 5 Seconds" = "クリックで5秒間表示";
+"Click to Show for 10 Seconds" = "クリックで10秒間表示";

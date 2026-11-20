@@ -379,6 +379,7 @@
 "Hide Codes: %@" = "隱藏驗證碼：%@";
 "Hide Codes" = "隱藏驗證碼";
 "Until Hover" = "直到懸停";
-"Until Click" = "直到點按";
 "Hide Panel from Screen Sharing" = "在螢幕分享中隱藏面板";
 "Always Hide Code" = "一律隱藏驗證碼";
+"Click to Show for 5 Seconds" = "點按後顯示 5 秒";
+"Click to Show for 10 Seconds" = "點按後顯示 10 秒";

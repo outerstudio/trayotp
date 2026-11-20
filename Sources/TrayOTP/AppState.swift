@@ -78,7 +78,9 @@ final class AppState {
     }
     /// When codes are masked: `hover` and `click` hide every code until revealed that way.
     enum CodeHiding: String, CaseIterable {
-        case never, hover, click
+        case never, hover, click5
+        /// Stored as "click", the only click mode before the 5-second one existed.
+        case click10 = "click"
     }
     var codeHiding: CodeHiding {
         didSet {
@@ -90,10 +92,10 @@ final class AppState {
     var hidesFromScreenSharing: Bool {
         didSet { UserDefaults.standard.set(hidesFromScreenSharing, forKey: Keys.hidesFromScreenSharing) }
     }
-    /// Tokens whose masked code is showing after a click or copy; they hide again after `revealSeconds`.
+    /// Tokens whose masked code is showing after a click or copy; they hide again after `revealSeconds`: 5 s with Click to Show for 5 Seconds, else 10 s.
     private(set) var revealed: Set<UUID> = []
     @ObservationIgnored private var revealTasks: [UUID: Task<Void, Never>] = [:]
-    private static let revealSeconds = 10.0
+    private var revealSeconds: Double { codeHiding == .click5 ? 5 : 10 }
 
     /// Whether the token's code is masked unless revealed.
     func hidesCode(_ token: Token) -> Bool { codeHiding != .never || token.hidesCode == true }
@@ -101,8 +103,9 @@ final class AppState {
     func reveal(_ token: Token) {
         revealed.insert(token.id)
         revealTasks[token.id]?.cancel()
+        let seconds = revealSeconds
         revealTasks[token.id] = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(Self.revealSeconds))
+            try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             self?.revealed.remove(token.id)
             self?.revealTasks[token.id] = nil
@@ -125,7 +128,8 @@ final class AppState {
         switch mode {
         case .never: String(localized: "Never")
         case .hover: String(localized: "Until Hover")
-        case .click: String(localized: "Until Click")
+        case .click5: String(localized: "Click to Show for 5 Seconds")
+        case .click10: String(localized: "Click to Show for 10 Seconds")
         }
     }
 

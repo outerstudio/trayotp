@@ -379,6 +379,7 @@
 "Hide Codes: %@" = "Ocultar códigos: %@";
 "Hide Codes" = "Ocultar códigos";
 "Until Hover" = "Hasta pasar el cursor";
-"Until Click" = "Hasta hacer clic";
 "Hide Panel from Screen Sharing" = "Ocultar el panel al compartir pantalla";
 "Always Hide Code" = "Ocultar siempre el código";
+"Click to Show for 5 Seconds" = "Clic para mostrar 5 segundos";
+"Click to Show for 10 Seconds" = "Clic para mostrar 10 segundos";
