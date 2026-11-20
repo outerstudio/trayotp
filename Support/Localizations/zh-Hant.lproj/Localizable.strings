@@ -262,7 +262,6 @@
 "Until Locked" = "直到鎖定";
 "Close After Copying" = "拷貝後關閉";
 "Clear Clipboard After 30 Seconds" = "30 秒後清除剪貼板";
-"Deep Black Theme" = "深黑主題";
 "Launch at Login" = "登入時啟動";
 "Language" = "語言";
 "System Default" = "系統語言";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "一律隱藏驗證碼";
 "Click to Show for 5 Seconds" = "點按後顯示 5 秒";
 "Click to Show for 10 Seconds" = "點按後顯示 10 秒";
+"Theme: %@" = "主題：%@";
+"Theme" = "主題";
+"Match System" = "跟隨系統";
+"Light" = "淺色";
+"Dark" = "深色";
+"Deep Black" = "深黑";

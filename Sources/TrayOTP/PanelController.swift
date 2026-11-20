@@ -150,7 +150,6 @@ final class FloatingPanel: NSPanel {
         effect.material = .popover
         effect.blendingMode = .behindWindow
         effect.state = .active
-        effect.appearance = NSAppearance(named: .darkAqua)
         // The mask shapes the window shadow too; a layer corner radius alone leaves a square shadow edge.
         effect.maskImage = Self.roundedMask(radius: 12)
         effect.wantsLayer = true

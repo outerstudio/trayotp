@@ -125,13 +125,13 @@ struct IconAdjuster: View {
         let side = Self.previewSide
         let shape = layout.background == nil ? AnyShape(RoundedRectangle(cornerRadius: 10)) : AnyShape(Circle())
         return ZStack {
-            shape.fill(Color.white.opacity(0.08))
+            shape.fill(Color.primary.opacity(0.08))
             if let png, let large = IconImage.image(for: png) {
                 Image(nsImage: large).resizable().interpolation(.high)
             }
         }
         .frame(width: side, height: side)
-        .overlay(shape.stroke(Color.white.opacity(0.15)))
+        .overlay(shape.stroke(Color.primary.opacity(0.15)))
         .contentShape(shape)
         .gesture(
             DragGesture(minimumDistance: 1)
@@ -213,13 +213,13 @@ struct IconAdjuster: View {
                     Circle().fill(Color(red: Double(option.red) / 255, green: Double(option.green) / 255, blue: Double(option.blue) / 255))
                 } else {
                     // "None": a slashed outline.
-                    Circle().strokeBorder(Color.white.opacity(0.35))
+                    Circle().strokeBorder(Color.primary.opacity(0.35))
                     Rectangle().fill(Color.red.opacity(0.8)).frame(width: 1.5, height: 18).rotationEffect(.degrees(45))
                 }
             }
             .frame(width: 18, height: 18)
             .clipShape(Circle())
-            .overlay(Circle().strokeBorder(selected ? Color.accentColor : Color.white.opacity(0.2), lineWidth: selected ? 2 : 1).padding(-3))
+            .overlay(Circle().strokeBorder(selected ? Color.accentColor : Color.primary.opacity(0.2), lineWidth: selected ? 2 : 1).padding(-3))
             // The whole circle, ring included, takes clicks: "None" is otherwise see-through in the middle.
             .frame(width: 24, height: 24)
             .contentShape(Circle())

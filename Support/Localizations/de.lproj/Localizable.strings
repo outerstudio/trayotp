@@ -262,7 +262,6 @@
 "Until Locked" = "Bis zum Sperren";
 "Close After Copying" = "Nach dem Kopieren schließen";
 "Clear Clipboard After 30 Seconds" = "Zwischenablage nach 30 Sekunden leeren";
-"Deep Black Theme" = "Tiefschwarzes Design";
 "Launch at Login" = "Beim Anmelden starten";
 "2FAS (Encrypted)…" = "2FAS (verschlüsselt) …";
 "2FAS (Unencrypted)…" = "2FAS (unverschlüsselt) …";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "Code immer ausblenden";
 "Click to Show for 5 Seconds" = "Klick zeigt 5 Sekunden";
 "Click to Show for 10 Seconds" = "Klick zeigt 10 Sekunden";
+"Theme: %@" = "Design: %@";
+"Theme" = "Design";
+"Match System" = "Wie System";
+"Light" = "Hell";
+"Dark" = "Dunkel";
+"Deep Black" = "Tiefschwarz";

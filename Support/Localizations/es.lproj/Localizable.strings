@@ -262,7 +262,6 @@
 "Until Locked" = "Hasta que se bloquee";
 "Close After Copying" = "Cerrar después de copiar";
 "Clear Clipboard After 30 Seconds" = "Borrar el portapapeles tras 30 segundos";
-"Deep Black Theme" = "Tema negro profundo";
 "Launch at Login" = "Abrir al iniciar sesión";
 "2FAS (Encrypted)…" = "2FAS (cifrado)…";
 "2FAS (Unencrypted)…" = "2FAS (sin cifrar)…";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "Ocultar siempre el código";
 "Click to Show for 5 Seconds" = "Clic para mostrar 5 segundos";
 "Click to Show for 10 Seconds" = "Clic para mostrar 10 segundos";
+"Theme: %@" = "Tema: %@";
+"Theme" = "Tema";
+"Match System" = "Igual que el sistema";
+"Light" = "Claro";
+"Dark" = "Oscuro";
+"Deep Black" = "Negro profundo";

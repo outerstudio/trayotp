@@ -262,7 +262,6 @@
 "Until Locked" = "Até Bloquear";
 "Close After Copying" = "Fechar Após Copiar";
 "Clear Clipboard After 30 Seconds" = "Limpar a área de transferência após 30 segundos";
-"Deep Black Theme" = "Tema preto profundo";
 "Launch at Login" = "Abrir no Login";
 "Language" = "Idioma";
 "System Default" = "Idioma do Sistema";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "Sempre Ocultar o Código";
 "Click to Show for 5 Seconds" = "Clicar para Mostrar por 5 Segundos";
 "Click to Show for 10 Seconds" = "Clicar para Mostrar por 10 Segundos";
+"Theme: %@" = "Tema: %@";
+"Theme" = "Tema";
+"Match System" = "Seguir o Sistema";
+"Light" = "Claro";
+"Dark" = "Escuro";
+"Deep Black" = "Preto Profundo";

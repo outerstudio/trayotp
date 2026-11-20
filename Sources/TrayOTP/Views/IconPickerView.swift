@@ -37,7 +37,7 @@ struct IconPickerView: View {
             }
             .padding(.horizontal, 10)
             .frame(height: 30)
-            .background(Color.white.opacity(0.07), in: Capsule())
+            .background(Color.primary.opacity(0.07), in: Capsule())
 
             Card {
                 if results.isEmpty {

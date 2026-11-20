@@ -31,7 +31,7 @@ struct LockView: View {
                     .textFieldStyle(.plain)
                     .padding(.horizontal, 10)
                     .frame(height: 30)
-                    .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
+                    .background(Color.primary.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
                     .focused($passwordFocused)
                     .disabled(state.authInProgress)
                     .onSubmit(unlockWithPassword)

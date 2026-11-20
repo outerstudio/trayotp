@@ -144,9 +144,35 @@ final class AppState {
     private(set) var lastBackup: Date? {
         didSet { UserDefaults.standard.set(lastBackup, forKey: Keys.lastBackup) }
     }
-    /// Pure black panel background instead of the translucent material: OLED pixels switch off.
-    var deepBlack: Bool {
-        didSet { UserDefaults.standard.set(deepBlack, forKey: Keys.deepBlack) }
+    /// The panel's look: light or dark following the Mac, or fixed.
+    var appearance: Appearance {
+        didSet {
+            UserDefaults.standard.set(appearance.rawValue, forKey: Keys.appearance)
+            applyAppearance()
+        }
+    }
+    enum Appearance: String, CaseIterable {
+        case system, light, dark
+        /// Pure black panel background instead of the translucent material: OLED pixels switch off.
+        case deepBlack
+    }
+
+    static func appearanceLabel(_ appearance: Appearance) -> String {
+        switch appearance {
+        case .system: String(localized: "Match System")
+        case .light: String(localized: "Light")
+        case .dark: String(localized: "Dark")
+        case .deepBlack: String(localized: "Deep Black")
+        }
+    }
+
+    /// Sets the appearance of every window, so dialogs and the Updates window match the panel.
+    private func applyAppearance() {
+        NSApplication.shared.appearance = switch appearance {
+        case .system: nil
+        case .light: NSAppearance(named: .aqua)
+        case .dark, .deepBlack: NSAppearance(named: .darkAqua)
+        }
     }
     /// When the menu bar icon's ring stops counting down with the codes.
     var menuBarCountdown: MenuBarCountdown {
@@ -210,7 +236,8 @@ final class AppState {
         static let backupFolder = "backupFolder"
         static let lastBackup = "lastBackup"
         static let backupReminderSince = "backupReminderSince"
-        static let deepBlack = "deepBlack"
+        static let appearance = "appearance"
+        static let deepBlack = "deepBlack"  // legacy: became Appearance.deepBlack
         static let menuBarCountdown = "menuBarCountdown"
     }
 
@@ -237,13 +264,16 @@ final class AppState {
         backupReminderDays = defaults.integer(forKey: Keys.backupReminderDays)
         backupFolder = defaults.string(forKey: Keys.backupFolder).map { URL(fileURLWithPath: $0, isDirectory: true) }
         lastBackup = defaults.object(forKey: Keys.lastBackup) as? Date
-        deepBlack = defaults.bool(forKey: Keys.deepBlack)
+        appearance = defaults.string(forKey: Keys.appearance).flatMap(Appearance.init(rawValue:))
+            ?? (defaults.bool(forKey: Keys.deepBlack) ? .deepBlack : .system)
+        defaults.removeObject(forKey: Keys.deepBlack)
         menuBarCountdown = defaults.string(forKey: Keys.menuBarCountdown).flatMap(MenuBarCountdown.init(rawValue:))
             ?? .untilGraceEnds
         shortcut = Shortcut.load()
         if !GlobalHotKey.shared.register(shortcut) { shortcut = nil }
         // The shortcut is gone (or taken by another app): don't leave TrayOTP with no way in.
         if shortcut == nil { showsMenuBarIcon = true }
+        applyAppearance()
         observeSystemLock()
         updater.checkIfDue()
     }

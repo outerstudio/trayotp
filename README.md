@@ -250,7 +250,7 @@ All in the **⋯** menu:
 | **Hide Codes ▸** | Mask codes as dots until you act: **Never** (default), **Until Hover** (the pointer or the keyboard selection reveals a row), or a click: **Click to Show for 5 Seconds** or **Click to Show for 10 Seconds** (clicking a row copies its code and shows it for that long). Copying a hidden code also shows it. |
 | **Hide Panel from Screen Sharing** | Keep the panel out of screen shares, screenshots and recordings (your own screenshots too). |
 | **Backup & Export ▸** | One-click encrypted backup (Aegis format, so **Import from File…** restores it) into a folder you choose once, plus a reminder when the last backup is older than 7, 30 (default) or 90 days. **Restore from Backup…** opens the same file picker as **Add → Import from File…**. |
-| **Deep Black Theme** | Pure black panel background instead of the translucent material, for OLED screens. |
+| **Theme ▸** | **Match System** (default) follows your Mac's light or dark appearance. Pick **Light** or **Dark** to fix it, or **Deep Black** for a pure black panel instead of the translucent material, for OLED screens. It also applies to TrayOTP's own windows and dialogs. |
 | **Launch at Login** | Start TrayOTP when you log in. |
 | **Check for Updates…** | Opens a window with the current version, **Check Now**, **Check Automatically** (once a day, on by default) and the **Update Channel**: **Stable**, **Beta** or **Alpha**. A newer release also shows an **Update to …** button under Add / Lock / Quit. |
 | **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |

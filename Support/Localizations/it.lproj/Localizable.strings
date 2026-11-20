@@ -262,7 +262,6 @@
 "Until Locked" = "Fino al blocco";
 "Close After Copying" = "Chiudi dopo la copia";
 "Clear Clipboard After 30 Seconds" = "Cancella gli appunti dopo 30 secondi";
-"Deep Black Theme" = "Tema nero profondo";
 "Launch at Login" = "Apri al login";
 "Language" = "Lingua";
 "System Default" = "Lingua di sistema";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "Nascondi sempre il codice";
 "Click to Show for 5 Seconds" = "Clic per mostrare per 5 secondi";
 "Click to Show for 10 Seconds" = "Clic per mostrare per 10 secondi";
+"Theme: %@" = "Tema: %@";
+"Theme" = "Tema";
+"Match System" = "Come il sistema";
+"Light" = "Chiaro";
+"Dark" = "Scuro";
+"Deep Black" = "Nero profondo";

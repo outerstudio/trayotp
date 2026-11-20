@@ -262,7 +262,6 @@
 "Until Locked" = "ロックされるまで";
 "Close After Copying" = "コピー後に閉じる";
 "Clear Clipboard After 30 Seconds" = "30秒後にクリップボードを消去";
-"Deep Black Theme" = "ディープブラックテーマ";
 "Launch at Login" = "ログイン時に起動";
 "Language" = "言語";
 "System Default" = "システムの言語";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "常にコードを隠す";
 "Click to Show for 5 Seconds" = "クリックで5秒間表示";
 "Click to Show for 10 Seconds" = "クリックで10秒間表示";
+"Theme: %@" = "テーマ：%@";
+"Theme" = "テーマ";
+"Match System" = "システムに合わせる";
+"Light" = "ライト";
+"Dark" = "ダーク";
+"Deep Black" = "ディープブラック";

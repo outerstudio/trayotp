@@ -108,7 +108,7 @@ struct NextCode: View {
         .padding(.vertical, 5)
         .background {
             RoundedRectangle(cornerRadius: 7)
-                .fill(copied ? color.opacity(0.45) : Color.white.opacity(hovering ? 0.1 : 0))
+                .fill(copied ? color.opacity(0.45) : Color.primary.opacity(hovering ? 0.1 : 0))
         }
         .scaleEffect(copied ? 1.08 : 1)
         .animation(.spring(response: 0.25, dampingFraction: 0.55), value: copied)

@@ -8,9 +8,10 @@ enum Theme {
     static let maxListHeight: CGFloat = 5 * rowHeight + 20
     static let accent = Color(red: 0.96, green: 0.36, blue: 0.24)
 
-    static let cardFill = Color.white.opacity(0.05)
-    static let cardStroke = Color.white.opacity(0.08)
-    static let selection = Color.white.opacity(0.08)
+    static let panelTint = Color.black.opacity(0.18)
+    static let cardFill = Color.primary.opacity(0.05)
+    static let cardStroke = Color.primary.opacity(0.08)
+    static let selection = Color.primary.opacity(0.08)
 
     /// 2FAS badge color names → colors. Tokens without a badge take their icon's main color,
     /// or a stable color from their name when there's no icon or it has no clear color.
@@ -52,7 +53,7 @@ struct PanelButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 13, weight: .medium))
             .frame(maxWidth: .infinity, minHeight: 30)
-            .background(Color.white.opacity(configuration.isPressed ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: 8))
+            .background(Color.primary.opacity(configuration.isPressed ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.cardStroke))
             .contentShape(Rectangle())
     }

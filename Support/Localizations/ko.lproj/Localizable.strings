@@ -262,7 +262,6 @@
 "Until Locked" = "잠길 때까지";
 "Close After Copying" = "복사 후 닫기";
 "Clear Clipboard After 30 Seconds" = "30초 후 클립보드 지우기";
-"Deep Black Theme" = "딥 블랙 테마";
 "Launch at Login" = "로그인 시 실행";
 "Language" = "언어";
 "System Default" = "시스템 언어";
@@ -383,3 +382,9 @@
 "Always Hide Code" = "항상 코드 숨기기";
 "Click to Show for 5 Seconds" = "클릭하면 5초 동안 표시";
 "Click to Show for 10 Seconds" = "클릭하면 10초 동안 표시";
+"Theme: %@" = "테마: %@";
+"Theme" = "테마";
+"Match System" = "시스템과 동일";
+"Light" = "라이트";
+"Dark" = "다크";
+"Deep Black" = "딥 블랙";

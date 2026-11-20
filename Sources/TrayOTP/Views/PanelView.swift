@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 struct PanelView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.colorScheme) private var colorScheme
     /// Which window this is: the menu bar one or the floating one.
     let inMenuBar: Bool
     /// Whether the window is on screen. A closed panel is only ordered out and keeps its views,
@@ -54,8 +55,8 @@ struct PanelView: View {
             }
         }
         .frame(width: Theme.panelWidth)
-        .environment(\.colorScheme, .dark)
-        .background { if state.deepBlack { Color.black } }
+        // A dark tint over the blur keeps the panel dark whatever is behind it; Deep Black replaces the blur.
+        .background(state.appearance == .deepBlack ? Color.black : colorScheme == .dark ? Theme.panelTint : Color.clear)
         .environment(\.panelVisible, visible)
         .background(WindowSharing(hidden: state.hidesFromScreenSharing))
         .background(WindowFocusObserver(onVisibility: { visible = $0 }, onHide: { state.panelDidHide() }) {
@@ -196,7 +197,7 @@ struct TokenListView: View {
             }
             .padding(.horizontal, 10)
             .frame(height: 30)
-            .background(Color.white.opacity(0.07), in: Capsule())
+            .background(Color.primary.opacity(0.07), in: Capsule())
 
             SettingsMenu()
         }
@@ -527,7 +528,13 @@ struct SettingsMenu: View {
                 .labelsHidden()
             }
             Toggle("Hide Panel from Screen Sharing", isOn: $state.hidesFromScreenSharing)
-            Toggle("Deep Black Theme", isOn: $state.deepBlack)
+            Menu("Theme: \(AppState.appearanceLabel(state.appearance))") {
+                Picker("Theme", selection: $state.appearance) {
+                    ForEach(AppState.Appearance.allCases, id: \.self) { Text(AppState.appearanceLabel($0)).tag($0) }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.setLaunchAtLogin($0) }))
             Menu("Language") {
@@ -603,7 +610,7 @@ struct SettingsMenu: View {
         } label: {
             Image(systemName: "ellipsis")
                 .frame(width: 30, height: 30)
-                .background(Color.white.opacity(0.07), in: Circle())
+                .background(Color.primary.opacity(0.07), in: Circle())
                 .overlay(alignment: .topTrailing) {
                     if state.updater.available != nil {
                         Circle().fill(Color.accentColor).frame(width: 8, height: 8)
@@ -717,7 +724,7 @@ struct GroupHeader: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 12)
         .frame(height: Theme.groupHeaderHeight)
-        .background { Rectangle().fill(targeted ? Theme.accent.opacity(0.25) : Color.white.opacity(0.03)) }
+        .background { Rectangle().fill(targeted ? Theme.accent.opacity(0.25) : Color.primary.opacity(0.03)) }
         .contentShape(Rectangle())
         .dropDestination(for: String.self) { items, _ in
             guard canDrag, let first = items.first, let item = DragItem(first) else { return false }
