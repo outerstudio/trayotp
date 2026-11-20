@@ -19,7 +19,7 @@ final class IconSpinner {
 
     private static let key = "iconRotation"
     /// How long a turn takes; the lock screen's ring refills in the same time.
-    static let duration: TimeInterval = 0.9
+    nonisolated static let duration: TimeInterval = 0.9
 
     static var reduceMotion: Bool { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
 

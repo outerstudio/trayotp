@@ -141,9 +141,10 @@ struct TouchIDHost: NSViewRepresentable {
 
 /// The app icon on the lock screen, its ring draining like a 30-second code, then sweeping full
 /// again. While it refills it sometimes turns somewhere new (a full ring would hide the turn).
-/// With Reduce Motion it stays still, as shipped.
+/// With Reduce Motion it stays still, as shipped. It stops while the panel is closed.
 @MainActor
 struct LockIcon: View {
+    @Environment(\.panelVisible) private var visible
     let spinner: IconSpinner
     private static let period: TimeInterval = 30
 
@@ -151,7 +152,7 @@ struct LockIcon: View {
         if IconSpinner.reduceMotion {
             IconCanvas(rotation: spinner.rotation, remaining: 0.75)
         } else {
-            TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+            TimelineView(LockRingSchedule(period: Self.period, paused: !visible)) { context in
                 let time = context.date.timeIntervalSince1970
                 let phase = time.truncatingRemainder(dividingBy: Self.period), refill = IconSpinner.duration
                 IconCanvas(rotation: spinner.rotation,
@@ -159,6 +160,34 @@ struct LockIcon: View {
                                                      : 1 - (phase - refill) / (Self.period - refill))
                     .onChange(of: Int(time / Self.period)) { spinner.maybeTurn(chance: 1.0 / 3) }
             }
+        }
+    }
+}
+
+/// Frames for `LockIcon`, like `MenuBarRing`: 30 a second during the short refill, and while
+/// draining only at each 1.5° step of the ring (8 a second), which saves most of the redraws.
+/// Nothing while `paused`.
+private struct LockRingSchedule: TimelineSchedule {
+    let period: TimeInterval
+    let paused: Bool
+    private static let steps = 240.0
+
+    func entries(from start: Date, mode: TimelineScheduleMode) -> AnyIterator<Date> {
+        let refill = IconSpinner.duration, step = (period - refill) / Self.steps
+        var next: Date? = start
+        return AnyIterator {
+            defer {
+                next = paused ? nil : next.map { date in
+                    let time = date.timeIntervalSince1970
+                    let cycle = (time / period).rounded(.down) * period, phase = time - cycle
+                    if phase < refill { return date.addingTimeInterval(1.0 / 30) }
+                    let drained = ((phase - refill) / step).rounded(.down) + 1
+                    // Rounding can land on `date` itself at a step; never repeat a date.
+                    return Date(timeIntervalSince1970: max(min(cycle + refill + drained * step, cycle + period),
+                                                           time + 0.001))
+                }
+            }
+            return next
         }
     }
 }

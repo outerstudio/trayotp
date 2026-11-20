@@ -8,6 +8,9 @@ struct PanelView: View {
     @Environment(AppState.self) private var state
     /// Which window this is: the menu bar one or the floating one.
     let inMenuBar: Bool
+    /// Whether the window is on screen. A closed panel is only ordered out and keeps its views,
+    /// so the code countdowns pause on this rather than drawing for nobody.
+    @State private var visible = true
 
     var body: some View {
         // Both windows can exist, and a hidden one keeps running its views: its search field would take
@@ -53,7 +56,10 @@ struct PanelView: View {
         .frame(width: Theme.panelWidth)
         .environment(\.colorScheme, .dark)
         .background { if state.deepBlack { Color.black } }
-        .background(WindowFocusObserver(onHide: { state.panelDidHide() }) { state.panelDidOpen() })
+        .environment(\.panelVisible, visible)
+        .background(WindowFocusObserver(onVisibility: { visible = $0 }, onHide: { state.panelDidHide() }) {
+            state.panelDidOpen()
+        })
         .onExitCommand {
             if state.screen == .list { PanelController.shared.close() } else { state.screen = .list }
         }
@@ -738,25 +744,29 @@ func afterMenu(_ action: @escaping @MainActor () -> Void) {
 }
 
 /// Calls `onFocus` each time the hosting window becomes key, i.e. every time the panel opens,
-/// and `onHide` when the window goes off screen.
+/// and `onHide` when the window goes off screen. `onVisibility` follows the window on and off screen.
 struct WindowFocusObserver: NSViewRepresentable {
+    var onVisibility: ((Bool) -> Void)?
     var onHide: (() -> Void)?
     let onFocus: () -> Void
 
     func makeNSView(context: Context) -> ObserverView {
         let view = ObserverView()
         view.onFocus = onFocus
+        view.onVisibility = onVisibility
         view.onHide = onHide
         return view
     }
 
     func updateNSView(_ view: ObserverView, context: Context) {
         view.onFocus = onFocus
+        view.onVisibility = onVisibility
         view.onHide = onHide
     }
 
     final class ObserverView: NSView {
         var onFocus: (() -> Void)?
+        var onVisibility: ((Bool) -> Void)?
         var onHide: (() -> Void)?
         private var tokens: [NSObjectProtocol] = []
 
@@ -771,9 +781,24 @@ struct WindowFocusObserver: NSViewRepresentable {
             tokens.append(NotificationCenter.default.addObserver(
                 forName: NSWindow.didChangeOcclusionStateNotification, object: window, queue: .main
             ) { [weak self, weak window] _ in
-                if window?.occlusionState.contains(.visible) == false { self?.onHide?() }
+                let visible = window?.occlusionState.contains(.visible) == true
+                self?.onVisibility?(visible)
+                if !visible { self?.onHide?() }
             })
+            onVisibility?(window.occlusionState.contains(.visible))
             if window.isKeyWindow { onFocus?() }
         }
+    }
+}
+
+private struct PanelVisibleKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
+extension EnvironmentValues {
+    /// Whether the panel's window is on screen; see `PanelView.visible`.
+    var panelVisible: Bool {
+        get { self[PanelVisibleKey.self] }
+        set { self[PanelVisibleKey.self] = newValue }
     }
 }

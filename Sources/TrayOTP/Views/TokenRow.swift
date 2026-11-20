@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 struct TokenRow: View {
     @Environment(AppState.self) private var state
+    @Environment(\.panelVisible) private var visible
     let token: Token
     let isSelected: Bool
 
@@ -22,9 +23,9 @@ struct TokenRow: View {
                     .lineLimit(1)
                     .foregroundStyle(.secondary)
 
-                // Only the code and the ring tick. Ticking the whole row would rebuild its
-                // context menu every second and close open submenus.
-                TimelineView(.periodic(from: .now, by: 1)) { context in
+                // Only the code ticks, when it changes. Ticking the whole row would rebuild its
+                // context menu and close open submenus.
+                TimelineView(CodeSchedule(period: token.period, paused: !visible)) { context in
                     Text(token.code(at: context.date)?.otpGrouped ?? String(localized: "Invalid secret"))
                         .font(.system(size: 24, weight: .regular).monospacedDigit())
                                                 .contentTransition(.numericText())
@@ -59,14 +60,7 @@ struct TokenRow: View {
         .background {
             if token.kind != .hotp {
                 // Time left on the current code, as a translucent fill behind the whole row.
-                // Computed from the clock on every frame (no implicit animation), so every row
-                // shows the same fraction and a row scrolling into view doesn't animate in.
-                TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
-                    let period = Double(max(token.period, 1))
-                    let fraction = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                    Rectangle().fill(color.opacity(0.18))
-                        .scaleEffect(x: fraction, anchor: .leading)
-                }
+                CountdownFill(period: token.period, color: NSColor(color.opacity(0.18)))
             }
         }
         // An explicit Rectangle: a bare color background takes the Card's rounded container shape.
@@ -82,6 +76,7 @@ struct TokenRow: View {
 @MainActor
 struct NextCode: View {
     @Environment(AppState.self) private var state
+    @Environment(\.panelVisible) private var visible
     let token: Token
     let color: Color
     @State private var hovering = false
@@ -89,7 +84,7 @@ struct NextCode: View {
     var body: some View {
         let copied = state.copiedNext == token.id
 
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(CodeSchedule(period: token.period, paused: !visible)) { context in
             let next = context.date.addingTimeInterval(Double(token.period))
             VStack(alignment: .trailing, spacing: 1) {
                 Text(copied ? "copied" : "next")
@@ -113,6 +108,114 @@ struct NextCode: View {
         .modifier(Shake(token: token.id, next: true))
         .onTapGesture { state.copy(token, next: true) }
         .help("Click or press → to copy the next code")
+    }
+}
+
+/// Updates when TOTP codes of `period` seconds change (whole multiples of it since 1970), not every
+/// second; nothing while `paused`, e.g. while the panel is closed. Unpausing starts a new schedule,
+/// so the view catches up at once.
+struct CodeSchedule: TimelineSchedule {
+    let period: Int
+    let paused: Bool
+
+    func entries(from start: Date, mode: TimelineScheduleMode) -> AnyIterator<Date> {
+        let period = Double(max(period, 1))
+        var next: Date? = start
+        return AnyIterator {
+            defer {
+                next = paused ? nil : next.map {
+                    // Rounding can land on the date itself at a change; never repeat a date.
+                    let time = $0.timeIntervalSince1970
+                    return Date(timeIntervalSince1970: max(((time / period).rounded(.down) + 1) * period, time + 0.001))
+                }
+            }
+            return next
+        }
+    }
+}
+
+/// Time left on the current code, as a fill that shrinks to the left. Core Animation runs it in the
+/// render server: a SwiftUI fill redrawn on every frame redraws the whole panel, about 30 times a
+/// second for as long as the app runs (a closed panel is only ordered out). It is set from the
+/// clock, so every row shows the same fraction and a row scrolling into view doesn't animate in,
+/// and set again when the window comes back on screen or the Mac wakes, as the animation clock
+/// stops during sleep.
+struct CountdownFill: NSViewRepresentable {
+    let period: Int
+    let color: NSColor
+
+    func makeNSView(context: Context) -> FillView { FillView() }
+
+    func updateNSView(_ view: FillView, context: Context) {
+        view.update(period: TimeInterval(max(period, 1)), color: color.cgColor)
+    }
+
+    final class FillView: NSView {
+        private let fill = CALayer()
+        private var period: TimeInterval = 30
+        private var observers: [(NotificationCenter, NSObjectProtocol)] = []
+
+        override init(frame: NSRect) {
+            super.init(frame: frame)
+            wantsLayer = true
+            fill.anchorPoint = CGPoint(x: 0, y: 0.5)
+            layer?.addSublayer(fill)
+        }
+
+        required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+        deinit { observers.forEach { $0.0.removeObserver($0.1) } }
+
+        // Clicks and right-clicks belong to the row.
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        func update(period: TimeInterval, color: CGColor) {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            fill.backgroundColor = color
+            CATransaction.commit()
+            if period != self.period {
+                self.period = period
+                sync()
+            }
+        }
+
+        override func layout() {
+            super.layout()
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            fill.bounds = bounds
+            fill.position = CGPoint(x: bounds.minX, y: bounds.midY)
+            CATransaction.commit()
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            observers.forEach { $0.0.removeObserver($0.1) }
+            observers = []
+            guard let window else { return }
+            let resync: @Sendable (Notification) -> Void = { [weak self] _ in
+                MainActor.assumeIsolated { self?.sync() }
+            }
+            let center = NotificationCenter.default, workspace = NSWorkspace.shared.notificationCenter
+            observers.append((center, center.addObserver(
+                forName: NSWindow.didChangeOcclusionStateNotification, object: window, queue: .main, using: resync)))
+            observers.append((workspace, workspace.addObserver(
+                forName: NSWorkspace.didWakeNotification, object: nil, queue: .main, using: resync)))
+            sync()
+        }
+
+        /// (Re)starts the drain so it lines up with the clock.
+        private func sync() {
+            let phase = Date().timeIntervalSince1970.truncatingRemainder(dividingBy: period)
+            let drain = CABasicAnimation(keyPath: "transform.scale.x")
+            drain.fromValue = 1
+            drain.toValue = 0
+            drain.duration = period
+            drain.repeatCount = .infinity
+            drain.beginTime = fill.convertTime(CACurrentMediaTime(), from: nil) - phase
+            fill.add(drain, forKey: "drain")
+        }
     }
 }
 
