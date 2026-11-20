@@ -11,7 +11,9 @@ import OTPCore
 @MainActor
 @Observable
 final class Updater {
-    private(set) var available: Release?
+    private(set) var automaticUpdate: Release?
+    private var manualUpdate: Release?
+    var available: Release? { manualUpdate ?? automaticUpdate }
     private(set) var isBusy = false
     /// True only while an update downloads and installs, not during a mere check.
     private(set) var isInstalling = false
@@ -20,12 +22,16 @@ final class Updater {
         case upToDate
         case failed(String)
     }
-    /// What the last manual check found; nil before one, while one runs, or when it found an update.
+    /// What the last check found; nil before a check, during a check, or when a newer version exists.
     private(set) var checkResult: CheckResult?
     private(set) var lastChecked: Date? = UserDefaults.standard.object(forKey: Keys.lastCheck) as? Date
 
     var checksAutomatically: Bool {
-        didSet { UserDefaults.standard.set(checksAutomatically, forKey: Keys.auto) }
+        didSet {
+            guard checksAutomatically != oldValue else { return }
+            UserDefaults.standard.set(checksAutomatically, forKey: Keys.auto)
+            startAutomaticChecks()
+        }
     }
 
     /// Which releases are offered. Until one is chosen, the channel of the running build, so a
@@ -35,21 +41,27 @@ final class Updater {
             guard channel != oldValue else { return }
             UserDefaults.standard.set(channel.rawValue, forKey: Keys.channel)
             // An update found on the old channel may not belong to the new one.
-            available = nil
+            automaticUpdate = nil
+            manualUpdate = nil
             checkResult = nil
-            if checksAutomatically { Task { _ = try? await check() } }
+            startAutomaticChecks()
         }
     }
+
+    @ObservationIgnored private var automaticCheckTimer: Timer?
+    @ObservationIgnored private var skippedVersions = Set(UserDefaults.standard.stringArray(forKey: Keys.skippedVersions) ?? [])
 
     private enum Keys {
         static let auto = "checkUpdatesAutomatically"
         static let channel = "updateChannel"
         static let lastCheck = "lastUpdateCheck"
+        static let skippedVersions = "skippedUpdateVersions"
     }
 
     /// Newest first. /releases/latest skips pre-releases, so the beta and alpha channels need the list.
     private static let releasesURL = URL(string: "https://api.github.com/repos/outerstudio/trayotp/releases?per_page=30")!
     private static let checkInterval: TimeInterval = 24 * 60 * 60
+    private static let retryInterval: TimeInterval = 60 * 60
 
     private struct UpdateError: LocalizedError {
         let errorDescription: String?
@@ -74,54 +86,88 @@ final class Updater {
 
     // MARK: Check
 
-    /// Quiet check at launch, at most once a day.
-    func checkIfDue() {
-        guard checksAutomatically, currentVersion != nil else { return }
-        let last = UserDefaults.standard.object(forKey: Keys.lastCheck) as? Date ?? .distantPast
-        guard Date().timeIntervalSince(last) > Self.checkInterval else { return }
-        Task { _ = try? await check() }
+    /// Check at launch or after a settings change, then keep checking while the app runs.
+    func startAutomaticChecks() {
+        scheduleAutomaticCheck(after: 0)
     }
 
-    /// Window action: checks and records the outcome for the Updates window to show.
-    func checkNow() async {
-        guard !isBusy else { return }
-        checkResult = nil
-        do {
-            checkResult = try await check() == nil ? .upToDate : nil
-        } catch {
-            checkResult = .failed(error.localizedDescription)
+    private func scheduleAutomaticCheck(after delay: TimeInterval) {
+        automaticCheckTimer?.invalidate()
+        automaticCheckTimer = nil
+        guard checksAutomatically, currentVersion != nil else { return }
+        automaticCheckTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.checksAutomatically else { return }
+                if self.isBusy {
+                    self.scheduleAutomaticCheck(after: Self.retryInterval)
+                } else {
+                    await self.checkForUpdates(automatically: true)
+                }
+            }
         }
     }
 
-    /// Returns the newer release, if any, and remembers it in `available`.
-    private func check() async throws -> Release? {
+    /// An explicit request from the Updates window can offer a skipped release.
+    func checkNow() async {
+        await checkForUpdates(automatically: false)
+    }
+
+    private func checkForUpdates(automatically: Bool) async {
+        guard !isBusy else { return }
         isBusy = true
         defer { isBusy = false }
+        checkResult = nil
+        do {
+            let release = try await newestRelease()
+            if automatically {
+                automaticUpdate = release.flatMap { skippedVersions.contains($0.tag) ? nil : $0 }
+                if manualUpdate?.tag != release?.tag { manualUpdate = nil }
+            } else {
+                manualUpdate = release
+                if automaticUpdate?.tag != release?.tag { automaticUpdate = nil }
+            }
+            if release == nil { checkResult = .upToDate }
+            scheduleAutomaticCheck(after: Self.checkInterval)
+        } catch {
+            checkResult = .failed(error.localizedDescription)
+            scheduleAutomaticCheck(after: Self.retryInterval)
+        }
+    }
+
+    private func newestRelease() async throws -> Release? {
         var request = URLRequest(url: Self.releasesURL, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("TrayOTP", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard status == 200 else { throw UpdateError(String(localized: "GitHub answered with status \(status).")) }
+
+        // No releases yet is an empty list.
+        let releases = try JSONDecoder().decode([Release].self, from: data)
         let now = Date()
         UserDefaults.standard.set(now, forKey: Keys.lastCheck)
         lastChecked = now
 
-        // No releases yet is an empty list.
-        let releases = try JSONDecoder().decode([Release].self, from: data)
-        guard let current = currentVersion, let release = channel.newest(of: releases, after: current) else {
-            available = nil
-            return nil
-        }
-        available = release
-        return release
+        guard let current = currentVersion else { return nil }
+        return channel.newest(of: releases, after: current)
+    }
+
+    func skipAutomaticUpdate() {
+        guard !isBusy, let release = automaticUpdate else { return }
+        skippedVersions.insert(release.tag)
+        UserDefaults.standard.set(skippedVersions.sorted(), forKey: Keys.skippedVersions)
+        automaticUpdate = nil
     }
 
     // MARK: Install
 
     /// Menu action for "Update to vX…" once a check found a release.
     func offerAvailable() async {
-        if let release = available { await offer(release) }
+        if !isBusy, let release = available { await offer(release) }
+    }
+
+    func offerAutomaticUpdate() async {
+        if !isBusy, let release = automaticUpdate { await offer(release) }
     }
 
     private func offer(_ release: Release) async {

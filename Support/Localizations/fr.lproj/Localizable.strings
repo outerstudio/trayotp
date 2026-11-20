@@ -273,6 +273,7 @@
 "Other Apps" = "Autres apps";
 "otpauth Links (Plain Text)…" = "Liens otpauth (texte brut)…";
 "Update to %@…" = "Mettre à jour vers %@…";
+"Skip This Version" = "Ignorer cette version";
 "Downloading…" = "Téléchargement…";
 "Release Notes" = "Notes de version";
 "Version %@" = "Version %@";

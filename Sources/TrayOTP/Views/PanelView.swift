@@ -351,18 +351,21 @@ struct TokenListView: View {
                 } label: { Label("Lock", systemImage: "lock") }
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
             }
-            if let release = state.updater.available {
-                Button {
-                    Task { await state.updater.offerAvailable() }
-                } label: {
-                    if state.updater.isInstalling {
-                        HStack(spacing: 6) {
-                            ProgressView().controlSize(.small)
-                            Text("Downloading…")
+            if let release = state.updater.automaticUpdate {
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await state.updater.offerAutomaticUpdate() }
+                    } label: {
+                        if state.updater.isInstalling {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.small)
+                                Text("Downloading…")
+                            }
+                        } else {
+                            Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
                         }
-                    } else {
-                        Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
                     }
+                    Button("Skip This Version") { state.updater.skipAutomaticUpdate() }
                 }
                 .disabled(state.updater.isBusy)
             }
@@ -618,7 +621,7 @@ struct SettingsMenu: View {
                 .frame(width: 30, height: 30)
                 .background(Color.primary.opacity(0.07), in: Circle())
                 .overlay(alignment: .topTrailing) {
-                    if state.updater.available != nil {
+                    if state.updater.automaticUpdate != nil {
                         Circle().fill(Color.accentColor).frame(width: 8, height: 8)
                     }
                 }

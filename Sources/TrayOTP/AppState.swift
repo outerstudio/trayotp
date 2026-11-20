@@ -275,7 +275,6 @@ final class AppState {
         if shortcut == nil { showsMenuBarIcon = true }
         applyAppearance()
         observeSystemLock()
-        updater.checkIfDue()
     }
 
     // MARK: Lock
