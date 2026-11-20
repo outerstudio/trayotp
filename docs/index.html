@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrayOTP: two-factor codes in your Mac's menu bar</title>
+<meta name="description" content="TrayOTP keeps your two-factor codes one click away in the macOS menu bar. Encrypted, offline and open source. Imports from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden and more.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="app-icon.gif">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fbfaf9;
+    --bg-soft: #f2f0ee;
+    --card: #ffffff;
+    --text: #1b1a19;
+    --muted: #615d59;
+    --line: rgba(27, 26, 25, .12);
+    --accent: #e8472a;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(232, 71, 42, .1);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 18px 40px -12px rgba(30, 20, 10, .25);
+    --code-bg: #1b1a19;
+    --code-text: #f3efe9;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0f12;
+      --bg-soft: #14161a;
+      --card: #181a1f;
+      --text: #f1efec;
+      --muted: #a29e98;
+      --line: rgba(255, 255, 255, .1);
+      --accent: #f5603f;
+      --accent-ink: #1a0905;
+      --accent-soft: rgba(245, 96, 63, .14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 24px 48px -14px rgba(0, 0, 0, .8);
+      --code-bg: #0a0b0d;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  img, picture { display: block; max-width: 100%; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  kbd { font: 600 13px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; display: inline-block; min-width: 1.9em; padding: 4px 7px 5px; margin-inline: 1px; text-align: center; color: var(--text); background: var(--bg-soft); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; white-space: nowrap; }
+
+  .wrap { width: min(1080px, 100% - 40px); margin-inline: auto; }
+  .skip { position: absolute; left: -999px; top: 8px; background: var(--card); padding: 8px 12px; border-radius: 8px; z-index: 10; }
+  .skip:focus { left: 12px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* Navigation */
+  header.nav { position: sticky; top: 0; z-index: 5; backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--line); }
+  .nav .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; letter-spacing: -.01em; }
+  .brand img { width: 30px; height: 30px; border-radius: 7px; }
+  .nav nav { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+  .nav nav a { color: var(--muted); text-decoration: none; }
+  .nav nav a:hover { color: var(--text); }
+  @media (max-width: 640px) { .nav nav .opt { display: none; } }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 16px; text-decoration: none; border: 1px solid var(--line); background: var(--card); color: var(--text); transition: transform .15s ease, border-color .15s ease; }
+  .btn:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--text) 30%, transparent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: 0 8px 22px -8px var(--accent); }
+  .btn.primary:hover { border-color: transparent; filter: brightness(1.05); }
+
+  /* Hero */
+  .hero { padding: 72px 0 40px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 5px 12px; border-radius: 999px; margin-bottom: 20px; }
+  h1 { font-size: clamp(36px, 5.4vw, 58px); line-height: 1.06; letter-spacing: -.03em; margin: 0 0 20px; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 34em; margin: 0 0 30px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0; margin: 0; list-style: none; font-size: 14px; color: var(--muted); }
+  .facts li::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; vertical-align: middle; }
+  .shot { border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); width: 100%; height: auto; }
+  .hero .shot-wrap { width: min(340px, 100%); margin-inline: auto; }
+  @media (max-width: 860px) {
+    .hero { padding-top: 40px; }
+    .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* Sections */
+  section { padding: 76px 0; }
+  section.soft { background: var(--bg-soft); border-block: 1px solid var(--line); }
+  h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.12; letter-spacing: -.025em; margin: 0 0 14px; }
+  .section-lede { color: var(--muted); font-size: 18px; max-width: 38em; margin: 0 0 40px; text-wrap: balance; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .card .ico { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 16px; }
+  .card .ico svg { width: 22px; height: 22px; }
+
+  /* Gallery */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-items: start; }
+  .gallery figure { margin: 0; }
+  .gallery figcaption { margin-top: 14px; text-align: center; font-size: 15px; color: var(--muted); }
+  .gallery figcaption b { color: var(--text); display: block; font-size: 16px; }
+  @media (max-width: 760px) { .gallery { grid-template-columns: 1fr; } .gallery figure { max-width: 340px; margin-inline: auto; } }
+
+  /* Security */
+  .split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 36px; } }
+  .ticks { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 14px; }
+  .ticks li { position: relative; padding-left: 32px; }
+  .ticks li::before { content: ""; position: absolute; left: 0; top: .35em; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8472a' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 12px no-repeat; }
+  .note { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 16px 18px; font-size: 15.5px; color: var(--muted); }
+  .note b { color: var(--text); }
+
+  /* Install */
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 36px; display: grid; gap: 16px; }
+  .steps li { counter-increment: step; position: relative; padding: 20px 22px 20px 70px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+  .steps li::before { content: counter(step); position: absolute; left: 20px; top: 18px; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 700; display: grid; place-items: center; }
+  .steps li > b { display: block; font-size: 17px; }
+  .steps span { color: var(--muted); font-size: 15.5px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 18px 20px; border-radius: 12px; overflow-x: auto; font-size: 13.5px; line-height: 1.7; margin: 14px 0 0; }
+  .card a { color: var(--accent); }
+
+  /* Support */
+  .support { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .support { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .support { grid-template-columns: 1fr; } }
+  .support a { display: block; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; transition: transform .15s ease, border-color .15s ease; }
+  .support a:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .support b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .support span { color: var(--muted); font-size: 14.5px; }
+  .support-note { margin: 22px 0 0; color: var(--muted); font-size: 15.5px; }
+  .support-note a { color: var(--accent); }
+
+  /* Languages */
+  .langs { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+  .langs a { display: inline-block; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); text-decoration: none; font-size: 15px; }
+  .langs a:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer { padding: 48px 0 64px; color: var(--muted); font-size: 14.5px; border-top: 1px solid var(--line); }
+  footer .row { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; align-items: baseline; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  footer a { text-decoration: none; }
+  footer a:hover { color: var(--text); text-decoration: underline; }
+  footer p { margin: 18px 0 0; max-width: 60em; font-size: 13.5px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .support a { transition: none; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="app-icon.gif" alt="" width="30" height="30">TrayOTP</a>
+    <nav aria-label="Main">
+      <a class="opt" href="#features">Features</a>
+      <a class="opt" href="#security">Security</a>
+      <a href="#install">Install</a>
+      <a class="opt" href="#support">Support</a>
+      <a href="https://github.com/outerstudio/trayotp">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div id="top" class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Free · Open source · macOS</span>
+        <h1>Your two-factor codes, one click away.</h1>
+        <p class="lede">TrayOTP lives in the macOS menu bar. Click the icon, click a code, it's copied. Encrypted, offline, and no account to create.</p>
+        <div class="actions">
+          <a class="btn primary" href="https://github.com/outerstudio/trayotp/releases/latest">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+            Download for Mac
+          </a>
+          <a class="btn" href="https://github.com/outerstudio/trayotp">View on GitHub</a>
+        </div>
+        <ul class="facts">
+          <li>macOS 14 or later</li>
+          <li>Apple silicon and Intel</li>
+          <li>MIT licensed</li>
+          <li>TOTP, HOTP and Steam Guard</li>
+        </ul>
+      </div>
+      <div class="shot-wrap">
+        <picture>
+          <source srcset="screenshots/light.png" media="(prefers-color-scheme: light)">
+          <img class="shot" src="screenshots/panel.png" width="682" height="991" alt="The TrayOTP panel under its menu bar icon: a search field, a list of tokens with their codes and next codes, and Add, Lock and Quit buttons">
+        </picture>
+      </div>
+    </div>
+  </div>
+
+  <section id="features" aria-labelledby="features-h">
+    <div class="wrap">
+      <h2 id="features-h">Everything a menu bar authenticator should do.</h2>
+      <p class="section-lede">Small, native and quick, with the details that make a daily tool pleasant.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M16 6.5h2"/></svg></div>
+          <h3>Lives in the menu bar</h3>
+          <p>No Dock icon and no window to manage. Click the tray icon, click a code, and it's on your clipboard.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3>Next code preview</h3>
+          <p>The upcoming code sits beside each row, and a fill behind the row shows how long the current one has left.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></div>
+          <h3>Keyboard or mouse</h3>
+          <p>A global shortcut to open, type to search, <kbd>↩</kbd> to copy, <kbd>⌘↑</kbd> <kbd>⌘↓</kbd> to reorder, <kbd>Esc</kbd> to close.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></div>
+          <h3>Move in or out freely</h3>
+          <p>Import from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator, Stratum, andOTP, FreeOTP+, Raivo and password manager CSVs. Export to the main ones.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg></div>
+          <h3>Locked by default</h3>
+          <p>Touch ID or your Mac password before any code shows. Add an optional master password for exports and deletes.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12s3.5-6.5 9-6.5S21 12 21 12s-3.5 6.5-9 6.5S3 12 3 12z"/><circle cx="12" cy="12" r="2.6"/></svg></div>
+          <h3>Hide codes until you need them</h3>
+          <p>Mask codes until you hover or click, hide chosen tokens always, and keep the panel out of screen sharing.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z"/></svg></div>
+          <h3>Encrypted backups, with a nudge</h3>
+          <p>One click saves an encrypted backup to a folder you choose, and TrayOTP reminds you when it's getting old.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="11" height="14" rx="2"/><path d="M5 7v11a2 2 0 002 2h8"/></svg></div>
+          <h3>Tidy clipboard</h3>
+          <p>Copied codes are hidden from clipboard managers and cleared after 30 seconds, if you haven't copied something else.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z" fill="currentColor"/></svg></div>
+          <h3>Light, dark or Deep Black</h3>
+          <p>Follows your Mac by default. Pick a theme yourself, or go pure black for OLED screens.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="soft" aria-labelledby="looks-h">
+    <div class="wrap">
+      <h2 id="looks-h">At home on any Mac.</h2>
+      <p class="section-lede">The same panel in every theme. Service icons come from icon packs you install yourself, or pick your own.</p>
+      <div class="gallery">
+        <figure>
+          <img class="shot" src="screenshots/panel.png" width="682" height="991" loading="lazy" alt="The panel in the dark theme">
+          <figcaption><b>Dark</b>Translucent, over whatever is behind it</figcaption>
+        </figure>
+        <figure>
+          <img class="shot" src="screenshots/light.png" width="682" height="989" loading="lazy" alt="The panel in the light theme">
+          <figcaption><b>Light</b>Follows your Mac's appearance</figcaption>
+        </figure>
+        <figure>
+          <img class="shot" src="screenshots/deep-black.png" width="682" height="991" loading="lazy" alt="The panel in the Deep Black theme">
+          <figcaption><b>Deep Black</b>Pure black for OLED screens</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="security" aria-labelledby="security-h">
+    <div class="wrap split">
+      <div>
+        <h2 id="security-h">Private and encrypted, and honest about its limits.</h2>
+        <p class="section-lede" style="margin-bottom:24px">Your secrets stay on your Mac.<br>There is no account, no sync and no analytics.</p>
+        <ul class="ticks">
+          <li><b>AES-256-GCM</b> encryption, in a file only your user account can read.</li>
+          <li>The key is a random 256-bit key in your <b>login keychain</b>, never next to the file.</li>
+          <li>Decrypted only after Touch ID or your Mac password, and dropped from memory when it locks.</li>
+          <li><b>Exporting</b> and <b>deleting</b> tokens ask for your password again, even while unlocked.</li>
+          <li>Nothing leaves your Mac, except a domain you choose to look up for a site's icon.</li>
+        </ul>
+        <div class="note">
+          <b>Your seeds are only as safe as your Mac.</b> Turn on FileVault, encrypt your Time Machine backups, and use a strong login password.
+          Found a security problem? Report it privately through the repository's <a href="https://github.com/outerstudio/trayotp/security">Security tab</a>.
+        </div>
+      </div>
+      <picture>
+        <img class="shot" src="screenshots/lock-screen.png" width="680" height="626" loading="lazy" alt="The locked panel: TrayOTP is locked, with the Touch ID prompt and Use Password and Quit buttons">
+      </picture>
+    </div>
+  </section>
+
+  <section id="install" class="soft" aria-labelledby="install-h">
+    <div class="wrap">
+      <h2 id="install-h">Install in a minute.</h2>
+      <p class="section-lede">Download the app from GitHub, or build it yourself.</p>
+      <ol class="steps">
+        <li><b>Download</b><span>Get <code>TrayOTP-vX.Y.Z.zip</code> from the <a href="https://github.com/outerstudio/trayotp/releases/latest">latest release</a>.</span></li>
+        <li><b>Move it to Applications</b><span>Unzip it and drag <b>TrayOTP.app</b> into your Applications folder.</span></li>
+        <li><b>Open it</b><span>The first time, macOS says it can't verify the app. That's expected: see below.</span></li>
+      </ol>
+      <div class="cols">
+        <div class="card">
+          <h3>Why does macOS warn me?</h3>
+          <p>TrayOTP is open source and isn't signed with a paid Apple Developer certificate, so macOS can't check who made it.
+          Follow <a href="https://support.apple.com/en-us/guide/mac-help/mh40616/26/mac/26">Apple's guide to opening an app from an unknown developer</a>.
+          You only need to do this once per version.</p>
+        </div>
+        <div class="card">
+          <h3>Rather not trust a download?</h3>
+          <p>Build it yourself with Apple's Command Line Tools. Apps you build yourself open without a warning. Each release also has a <code>.sha256</code> file to check the download.</p>
+        </div>
+      </div>
+      <pre aria-label="Build from source"><code>git clone https://github.com/outerstudio/trayotp.git
+cd trayotp
+make release                  # builds build/TrayOTP.app
+cp -R build/TrayOTP.app /Applications/</code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="langs-h">
+    <div class="wrap">
+      <h2 id="langs-h">In your language.</h2>
+      <p class="section-lede">The app follows your Mac's language, or you can pick one in the menu. The guide is translated too.</p>
+      <ul class="langs">
+        <li><a href="https://github.com/outerstudio/trayotp#readme">English</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.de.md">Deutsch</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.es.md">Español</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.fr.md">Français</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.it.md">Italiano</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.ja.md">日本語</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.ko.md">한국어</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.pt-BR.md">Português (Brasil)</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.zh-Hans.md">简体中文</a></li>
+        <li><a href="https://github.com/outerstudio/trayotp/blob/main/translations/README.zh-Hant.md">繁體中文</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="support" class="soft" aria-labelledby="support-h">
+    <div class="wrap">
+      <h2 id="support-h">TrayOTP is free and open source.</h2>
+      <p class="section-lede">If it saves you time, you can help keep it going.<br>There's no paid tier and nothing in the app nags you for it.</p>
+      <div class="support">
+        <a href="https://buymeacoffee.com/garyyeap"><b>Buy me a coffee</b><span>A one-off thank-you</span></a>
+        <a href="https://ko-fi.com/garyyeap"><b>Ko-fi</b><span>Leave a tip on Ko-fi</span></a>
+        <a href="https://liberapay.com/garyyeap"><b>Liberapay</b><span>Recurring donations</span></a>
+        <a href="https://thanks.dev/u/gh/garyyeap"><b>thanks.dev</b><span>Sponsor through thanks.dev</span></a>
+      </div>
+      <p class="support-note">Can't chip in? <a href="https://github.com/outerstudio/trayotp">Star the project on GitHub</a>, tell a friend, or report a bug. That helps too.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <strong style="color:var(--text)">TrayOTP</strong>
+      <nav aria-label="Footer">
+        <a href="https://github.com/outerstudio/trayotp">GitHub</a>
+        <a href="https://github.com/outerstudio/trayotp/releases">Releases</a>
+        <a href="https://github.com/outerstudio/trayotp/blob/main/LICENSE">MIT license</a>
+        <a href="#support">Support</a>
+      </nav>
+    </div>
+    <p>© 2026 outerstudio.com. TrayOTP is not affiliated with 2FAS, Aegis, Ente, Google, Bitwarden, Proton or any other app it imports from, nor with any service whose logo it displays. Logos are trademarks of their respective owners.</p>
+  </div>
+</footer>
+</body>
+</html>
