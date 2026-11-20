@@ -162,9 +162,7 @@
 "Next" = "下一个";
 "Done" = "完成";
 "QR code %lld of %lld" = "二维码 %1$lld / %2$lld";
-"TrayOTP is up to date" = "TrayOTP 已是最新版本";
 "You have the latest version (%@)." = "你使用的是最新版本（%@）。";
-"Could not check for updates" = "无法检查更新";
 "GitHub answered with status %lld." = "GitHub 返回状态 %lld。";
 "TrayOTP %@ is available; you have %@." = "TrayOTP %1$@ 已推出；你当前的版本是 %2$@。";
 "Update available" = "有可用更新";
@@ -279,7 +277,6 @@
 "otpauth Links (Plain Text)…" = "otpauth 链接（纯文本）…";
 "Update to %@…" = "更新到 %@…";
 "Downloading…" = "正在下载…";
-"Check for Updates…" = "检查更新…";
 "Release Notes" = "发行说明";
 "Version %@" = "版本 %@";
 "Enjoying TrayOTP? Help keep it going." = "喜欢 TrayOTP 吗？帮助它继续前行。";
@@ -372,3 +369,10 @@
 "Restore from Backup…" = "从备份恢复…";
 "Until I Lock It" = "直到我手动锁定";
 "Icon Pack" = "图标包";
+"Check for Updates…" = "检查更新…";
+"Updates" = "更新";
+"Check Now" = "立即检查";
+"Checking…" = "正在检查…";
+"TrayOTP %@ is available." = "TrayOTP %@ 可用。";
+"Last checked: %@" = "上次检查：%@";
+"Could not check for updates" = "无法检查更新";

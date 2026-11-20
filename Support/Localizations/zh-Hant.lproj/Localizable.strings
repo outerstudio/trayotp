@@ -162,9 +162,7 @@
 "Next" = "下一個";
 "Done" = "完成";
 "QR code %lld of %lld" = "QR 碼 %1$lld / %2$lld";
-"TrayOTP is up to date" = "TrayOTP 已是最新版本";
 "You have the latest version (%@)." = "你使用的是最新版本（%@）。";
-"Could not check for updates" = "無法檢查更新";
 "GitHub answered with status %lld." = "GitHub 回傳狀態 %lld。";
 "TrayOTP %@ is available; you have %@." = "TrayOTP %1$@ 已推出；你目前的版本是 %2$@。";
 "Update available" = "有可用的更新";
@@ -279,7 +277,6 @@
 "otpauth Links (Plain Text)…" = "otpauth 連結（純文字）⋯";
 "Update to %@…" = "更新到 %@⋯";
 "Downloading…" = "正在下載…";
-"Check for Updates…" = "檢查更新⋯";
 "Release Notes" = "版本說明";
 "Version %@" = "版本 %@";
 "Enjoying TrayOTP? Help keep it going." = "喜歡 TrayOTP 嗎？幫助它持續前行。";
@@ -372,3 +369,10 @@
 "Restore from Backup…" = "從備份還原…";
 "Until I Lock It" = "直到我手動鎖定";
 "Icon Pack" = "圖像包";
+"Check for Updates…" = "檢查更新⋯";
+"Updates" = "更新";
+"Check Now" = "立即檢查";
+"Checking…" = "正在檢查⋯";
+"TrayOTP %@ is available." = "TrayOTP %@ 可用。";
+"Last checked: %@" = "上次檢查：%@";
+"Could not check for updates" = "無法檢查更新";

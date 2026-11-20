@@ -278,6 +278,21 @@ enum Dialogs {
         aboutWindow?.makeKeyAndOrderFront(nil)
     }
 
+    private static var updatesWindow: NSWindow?
+
+    static func updates(_ updater: Updater) {
+        prepare()
+        if updatesWindow == nil {
+            let window = NSWindow(contentViewController: NSHostingController(rootView: UpdatesView(updater: updater)))
+            window.styleMask = [.titled, .closable]
+            window.title = String(localized: "Updates")
+            window.isReleasedWhenClosed = false
+            window.center()
+            updatesWindow = window
+        }
+        updatesWindow?.makeKeyAndOrderFront(nil)
+    }
+
     static func info(title: String, message: String) {
         prepare()
         let alert = NSAlert()

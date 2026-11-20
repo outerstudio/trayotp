@@ -260,6 +260,7 @@ Tutto nel menu **⋯**:
 | **Backup ed esportazione ▸** | Backup cifrato con un clic (formato Aegis, che **Importa da file…** ripristina) in una cartella scelta una volta, con un promemoria quando l’ultimo backup ha più di 7, 30 (predefinito) o 90 giorni. **Ripristina da backup…** apre lo stesso selettore di file di **Aggiungi → Importa da file…**. |
 | **Tema nero profondo** | Sfondo del pannello nero puro invece del materiale traslucido, per gli schermi OLED. |
 | **Apri al login** | Avvia TrayOTP quando accedi. |
+| **Verifica aggiornamenti…** | Apre una finestra con la versione attuale, **Verifica ora**, **Verifica automaticamente** (una volta al giorno, attivo per impostazione predefinita) e il **Canale di aggiornamento**: **Stabile**, **Beta** o **Alpha**. Una versione più recente mostra anche un pulsante **Aggiorna a ……** sotto Aggiungi / Blocca / Esci. |
 | **Lingua ▸** | **Lingua di sistema** segue la lingua del Mac (inglese se TrayOTP non è tradotto in quella lingua), oppure scegli una delle traduzioni. TrayOTP si riavvia per cambiare. |
 
 Fai clic su **Blocca** in fondo al pannello per bloccare subito.

@@ -162,9 +162,7 @@
 "Next" = "次へ";
 "Done" = "完了";
 "QR code %lld of %lld" = "QRコード %1$lld / %2$lld";
-"TrayOTP is up to date" = "TrayOTPは最新です";
 "You have the latest version (%@)." = "最新バージョン（%@）を使用しています。";
-"Could not check for updates" = "アップデートを確認できませんでした";
 "GitHub answered with status %lld." = "GitHubがステータス%lldを返しました。";
 "TrayOTP %@ is available; you have %@." = "TrayOTP %1$@が利用可能です。現在のバージョンは%2$@です。";
 "Update available" = "アップデートがあります";
@@ -279,7 +277,6 @@
 "otpauth Links (Plain Text)…" = "otpauthリンク（プレーンテキスト）…";
 "Update to %@…" = "%@にアップデート…";
 "Downloading…" = "ダウンロード中…";
-"Check for Updates…" = "アップデートを確認…";
 "Release Notes" = "リリースノート";
 "Version %@" = "バージョン %@";
 "Enjoying TrayOTP? Help keep it going." = "TrayOTP を気に入っていただけましたか？ 開発の継続にご協力ください。";
@@ -372,3 +369,10 @@
 "Restore from Backup…" = "バックアップから復元…";
 "Until I Lock It" = "手動でロックするまで";
 "Icon Pack" = "アイコンパック";
+"Check for Updates…" = "アップデートを確認…";
+"Updates" = "アップデート";
+"Check Now" = "今すぐ確認";
+"Checking…" = "確認中…";
+"TrayOTP %@ is available." = "TrayOTP %@ が利用可能です。";
+"Last checked: %@" = "最終確認：%@";
+"Could not check for updates" = "アップデートを確認できませんでした";

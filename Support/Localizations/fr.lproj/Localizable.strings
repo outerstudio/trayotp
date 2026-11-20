@@ -162,9 +162,7 @@
 "Next" = "Suivant";
 "Done" = "Terminé";
 "QR code %lld of %lld" = "Code QR %1$lld sur %2$lld";
-"TrayOTP is up to date" = "TrayOTP est à jour";
 "You have the latest version (%@)." = "Vous avez la dernière version (%@).";
-"Could not check for updates" = "Impossible de rechercher les mises à jour";
 "GitHub answered with status %lld." = "GitHub a répondu avec le statut %lld.";
 "TrayOTP %@ is available; you have %@." = "TrayOTP %1$@ est disponible ; vous avez %2$@.";
 "Update available" = "Mise à jour disponible";
@@ -277,7 +275,6 @@
 "otpauth Links (Plain Text)…" = "Liens otpauth (texte brut)…";
 "Update to %@…" = "Mettre à jour vers %@…";
 "Downloading…" = "Téléchargement…";
-"Check for Updates…" = "Rechercher des mises à jour…";
 "Release Notes" = "Notes de version";
 "Version %@" = "Version %@";
 "Enjoying TrayOTP? Help keep it going." = "TrayOTP vous plaît ? Aidez-le à continuer.";
@@ -372,3 +369,10 @@
 "Restore from Backup…" = "Restaurer une sauvegarde…";
 "Until I Lock It" = "Jusqu’à ce que je verrouille";
 "Icon Pack" = "Pack d’icônes";
+"Check for Updates…" = "Rechercher des mises à jour…";
+"Updates" = "Mises à jour";
+"Check Now" = "Rechercher maintenant";
+"Checking…" = "Recherche…";
+"TrayOTP %@ is available." = "TrayOTP %@ est disponible.";
+"Last checked: %@" = "Dernière recherche : %@";
+"Could not check for updates" = "Impossible de rechercher des mises à jour";

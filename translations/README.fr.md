@@ -261,6 +261,7 @@ Tout se trouve dans le menu **⋯** :
 | **Sauvegarde et export ▸** | Sauvegarde chiffrée en un clic (format Aegis, que **Importer depuis un fichier…** restaure) dans un dossier choisi une fois, avec un rappel quand la dernière sauvegarde date de plus de 7, 30 (par défaut) ou 90 jours. **Restaurer une sauvegarde…** ouvre le même sélecteur de fichier que **Ajouter → Importer depuis un fichier…**. |
 | **Thème noir profond** | Arrière-plan du panneau noir pur au lieu du matériau translucide, pour les écrans OLED. |
 | **Ouvrir à la connexion** | Lancer TrayOTP à l’ouverture de session. |
+| **Rechercher des mises à jour…** | Ouvre une fenêtre avec la version actuelle, **Rechercher maintenant**, **Rechercher automatiquement** (une fois par jour, activé par défaut) et le **Canal de mise à jour** : **Stable**, **Bêta** ou **Alpha**. Une version plus récente affiche aussi un bouton **Mettre à jour vers ……** sous Ajouter / Verrouiller / Quitter. |
 | **Langue ▸** | **Langue du système** suit la langue de votre Mac (anglais si TrayOTP n’est pas traduit dans celle-ci), ou choisissez une des traductions. TrayOTP redémarre pour changer. |
 
 Cliquez sur **Verrouiller** en bas du panneau pour verrouiller immédiatement.

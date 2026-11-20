@@ -16,6 +16,14 @@ final class Updater {
     /// True only while an update downloads and installs, not during a mere check.
     private(set) var isInstalling = false
 
+    enum CheckResult: Equatable {
+        case upToDate
+        case failed(String)
+    }
+    /// What the last manual check found; nil before one, while one runs, or when it found an update.
+    private(set) var checkResult: CheckResult?
+    private(set) var lastChecked: Date? = UserDefaults.standard.object(forKey: Keys.lastCheck) as? Date
+
     var checksAutomatically: Bool {
         didSet { UserDefaults.standard.set(checksAutomatically, forKey: Keys.auto) }
     }
@@ -28,6 +36,7 @@ final class Updater {
             UserDefaults.standard.set(channel.rawValue, forKey: Keys.channel)
             // An update found on the old channel may not belong to the new one.
             available = nil
+            checkResult = nil
             if checksAutomatically { Task { _ = try? await check() } }
         }
     }
@@ -73,18 +82,14 @@ final class Updater {
         Task { _ = try? await check() }
     }
 
-    /// Menu action: checks, then offers the update or says there is none.
-    func checkInteractively() async {
+    /// Window action: checks and records the outcome for the Updates window to show.
+    func checkNow() async {
         guard !isBusy else { return }
+        checkResult = nil
         do {
-            if let release = try await check() {
-                await offer(release)
-            } else {
-                Dialogs.info(title: String(localized: "TrayOTP is up to date"),
-                             message: String(localized: "You have the latest version (\(currentVersion?.description ?? "?"))."))
-            }
+            checkResult = try await check() == nil ? .upToDate : nil
         } catch {
-            Dialogs.error(error, title: String(localized: "Could not check for updates"))
+            checkResult = .failed(error.localizedDescription)
         }
     }
 
@@ -98,7 +103,9 @@ final class Updater {
         let (data, response) = try await URLSession.shared.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard status == 200 else { throw UpdateError(String(localized: "GitHub answered with status \(status).")) }
-        UserDefaults.standard.set(Date(), forKey: Keys.lastCheck)
+        let now = Date()
+        UserDefaults.standard.set(now, forKey: Keys.lastCheck)
+        lastChecked = now
 
         // No releases yet is an empty list.
         let releases = try JSONDecoder().decode([Release].self, from: data)

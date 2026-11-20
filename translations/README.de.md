@@ -261,6 +261,7 @@ Alles im **⋯**-Menü:
 | **Backup & Export ▸** | Verschlüsseltes Backup mit einem Klick (Aegis-Format, **Aus Datei importieren…** stellt es wieder her) in einen einmal gewählten Ordner, plus eine Erinnerung, wenn das letzte Backup älter als 7, 30 (Standard) oder 90 Tage ist. **Aus Backup wiederherstellen…** öffnet dieselbe Dateiauswahl wie **Hinzufügen → Aus Datei importieren …**. |
 | **Tiefschwarzes Design** | Rein schwarzer Fensterhintergrund statt des durchscheinenden Materials, für OLED-Bildschirme. |
 | **Beim Anmelden starten** | TrayOTP beim Anmelden starten. |
+| **Nach Updates suchen …** | Öffnet ein Fenster mit der aktuellen Version, **Jetzt prüfen**, **Automatisch suchen** (einmal täglich, standardmäßig an) und dem **Update-Kanal**: **Stabil**, **Beta** oder **Alpha**. Eine neuere Version zeigt außerdem eine Schaltfläche **Auf … aktualisieren …** unter Hinzufügen / Sperren / Beenden. |
 | **Sprache ▸** | **Systemsprache** folgt der Sprache deines Mac (Englisch, wenn TrayOTP nicht in sie übersetzt ist), oder wähle eine der Übersetzungen. TrayOTP startet zum Wechseln neu. |
 
 Klicke unten im Fenster auf **Sperren**, um sofort zu sperren.

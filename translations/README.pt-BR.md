@@ -260,6 +260,7 @@ Tudo no menu **⋯**:
 | **Backup e Exportação ▸** | Backup criptografado com um clique (formato Aegis; **Importar de arquivo…** restaura) em uma pasta escolhida uma vez, com um lembrete quando o último backup passar de 7, 30 (padrão) ou 90 dias. **Restaurar do backup…** abre o mesmo seletor de arquivos que **Adicionar → Importar de Arquivo…**. |
 | **Tema preto profundo** | Fundo do painel preto puro em vez do material translúcido, para telas OLED. |
 | **Abrir no Login** | Iniciar o TrayOTP ao fazer login. |
+| **Verificar Atualizações…** | Abre uma janela com a versão atual, **Verificar Agora**, **Verificar Automaticamente** (uma vez por dia, ativado por padrão) e o **Canal de Atualização**: **Estável**, **Beta** ou **Alfa**. Uma versão mais nova também mostra um botão **Atualizar para ……** abaixo de Adicionar / Bloquear / Sair. |
 | **Idioma ▸** | **Idioma do Sistema** segue o idioma do Mac (inglês se o TrayOTP não tiver tradução para ele), ou escolha uma das traduções. O TrayOTP reinicia para trocar. |
 
 Clique em **Bloquear** na parte de baixo do painel para bloquear na hora.

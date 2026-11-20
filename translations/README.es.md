@@ -260,6 +260,7 @@ Todo está en el menú **⋯**:
 | **Copia y exportación ▸** | Copia cifrada con un clic (formato Aegis; **Importar desde archivo…** la restaura) en una carpeta que eliges una vez, y un aviso cuando la última copia tiene más de 7, 30 (por defecto) o 90 días. **Restaurar desde copia…** abre el mismo selector de archivos que **Añadir → Importar desde archivo…**. |
 | **Tema negro profundo** | Fondo del panel negro puro en lugar del material translúcido, para pantallas OLED. |
 | **Abrir al iniciar sesión** | Abrir TrayOTP al iniciar sesión. |
+| **Buscar actualizaciones…** | Abre una ventana con la versión actual, **Buscar ahora**, **Buscar automáticamente** (una vez al día, activado por defecto) y el **Canal de actualizaciones**: **Estable**, **Beta** o **Alfa**. Si hay una versión más reciente, también aparece un botón **Actualizar a ……** bajo Añadir / Bloquear / Salir. |
 | **Idioma ▸** | **Idioma del sistema** sigue el idioma de tu Mac (inglés si TrayOTP no está traducido a él), o elige una de las traducciones. TrayOTP se reinicia para cambiar. |
 
 Haz clic en **Bloquear** en la parte inferior del panel para bloquear al instante.
