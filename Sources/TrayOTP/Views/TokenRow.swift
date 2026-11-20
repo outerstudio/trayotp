@@ -74,7 +74,7 @@ struct TokenRow: View {
         // An explicit Rectangle: a bare color background takes the Card's rounded container shape.
         .background { if isSelected { Rectangle().fill(Theme.selection) } }
         .contentShape(Rectangle())
-        .onHover { hovering = $0 }
+        .overlay(HoverTracker { hovering = $0 })
         // A copy wiggles the row (or just its next code) for about 0.7 s.
         .modifier(Shake(token: token.id, next: false))
     }
@@ -291,5 +291,58 @@ private extension String {
     /// The same text with every character but the spaces turned into dots, so the layout doesn't move.
     func masked(unless shown: Bool) -> String {
         shown ? self : String(map { $0 == " " ? " " : "•" })
+    }
+}
+
+/// Reports whether the pointer is over the view. SwiftUI's `onHover` misses the exit when a menu opens
+/// and closes over the row, leaving it "hovered" for good; this tracks with `.activeAlways` and checks the
+/// real pointer position again on every update.
+private struct HoverTracker: NSViewRepresentable {
+    let onChange: (Bool) -> Void
+
+    func makeNSView(context: Context) -> TrackerView {
+        let view = TrackerView()
+        view.onChange = onChange
+        return view
+    }
+
+    func updateNSView(_ view: TrackerView, context: Context) {
+        view.onChange = onChange
+        DispatchQueue.main.async { view.sync() }
+    }
+
+    final class TrackerView: NSView {
+        var onChange: ((Bool) -> Void)?
+        private var inside = false
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            trackingAreas.forEach(removeTrackingArea)
+            addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                                           owner: self, userInfo: nil))
+            sync()
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            sync()
+        }
+
+        override func mouseEntered(with event: NSEvent) { set(true) }
+        override func mouseExited(with event: NSEvent) { set(false) }
+
+        /// Sets the state from where the pointer really is.
+        func sync() {
+            guard let window, window.isVisible else { set(false); return }
+            set(bounds.contains(convert(window.mouseLocationOutsideOfEventStream, from: nil)))
+        }
+
+        private func set(_ value: Bool) {
+            guard value != inside else { return }
+            inside = value
+            onChange?(value)
+        }
     }
 }
