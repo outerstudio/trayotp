@@ -85,6 +85,8 @@ struct TokenListView: View {
     @Environment(AppState.self) private var state
     @State private var search = ""
     @State private var selection = 0
+    /// The selection last moved with the arrow keys; a click selects a row too but isn't this.
+    @State private var arrowSelected = false
     /// A collapsed section the keyboard selection walked into. Shown open until the selection
     /// leaves it; unlike a click on the header, this isn't saved.
     @State private var peeked: String?
@@ -167,8 +169,9 @@ struct TokenListView: View {
             }
         }
         // The window is reused, so onAppear doesn't run again: refocus search on every open.
-        .background(WindowFocusObserver(onHide: { onScreen = false; focus = nil }) {
+        .background(WindowFocusObserver(onHide: { onScreen = false; focus = nil; arrowSelected = false }) {
             onScreen = true
+            arrowSelected = false
             DispatchQueue.main.async { focus = .search; select(0) }
         })
         .onChange(of: state.focusRequest) {
@@ -177,7 +180,7 @@ struct TokenListView: View {
             select(0)
         }
         .onChange(of: search) { select(0) }
-        .onChange(of: focus) { if focus != .list { peeked = nil } }
+        .onChange(of: focus) { if focus != .list { peeked = nil; arrowSelected = false } }
     }
 
     private var header: some View {
@@ -227,11 +230,13 @@ struct TokenListView: View {
                                 }
                                 ForEach(section.visible) { token in
                                     let index = items.firstIndex { $0.id == token.id } ?? -1
-                                    TokenRow(token: token, isSelected: focus == .list && index == selection)
+                                    TokenRow(token: token, isSelected: focus == .list && index == selection,
+                                             keyboardSelected: arrowSelected)
                                         .id(token.id)
                                         .onTapGesture { state.copy(token) }
                                         // Any click, including on the next code, selects the row like ↑/↓.
                                         .simultaneousGesture(TapGesture().onEnded {
+                                            arrowSelected = false
                                             select(index)
                                             focus = .list
                                         })
@@ -375,6 +380,7 @@ struct TokenListView: View {
     private func moveSelection(_ delta: Int) {
         let count = filtered.count
         guard count > 0 else { return }
+        arrowSelected = true
         select(min(max(selection + delta, 0), count - 1))
     }
 

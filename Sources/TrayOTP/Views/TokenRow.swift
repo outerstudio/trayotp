@@ -7,13 +7,15 @@ struct TokenRow: View {
     @Environment(\.panelVisible) private var visible
     let token: Token
     let isSelected: Bool
+    /// The selection came from the arrow keys, not a click, so Until Hover shows it like a pointer would.
+    var keyboardSelected = false
     @State private var hovering = false
 
     /// Whether the code shows: not hidden, revealed by a click or copy, or (Until Hover) under the pointer
     /// or the keyboard selection. A token that hides on its own while the global setting is Never reveals by click.
     private var shown: Bool {
         !state.hidesCode(token) || state.revealed.contains(token.id)
-            || (state.codeHiding == .hover && (hovering || isSelected))
+            || (state.codeHiding == .hover && (hovering || (isSelected && keyboardSelected)))
     }
 
     var body: some View {
