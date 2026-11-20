@@ -257,6 +257,7 @@ Todo está en el menú **⋯**:
 | **Establecer atajo global…** | Abrir el panel desde cualquier app con la combinación de teclas que elijas (con ⌘, ⌃ u ⌥). |
 | **Mostrar icono en la barra de menús** | Desactívalo para ocultar el icono. El atajo global (o volver a abrir TrayOTP desde el Finder o Launchpad) muestra entonces el panel en la parte superior de la pantalla. |
 | **Cerrar después de copiar** | Cerrar el panel en cuanto se copia un código, para que puedas pegarlo enseguida. |
+| **Borrar el portapapeles tras 30 segundos** | Borrar un código copiado del portapapeles a los 30 segundos (solo si sigue siendo ese código). Activado por defecto. |
 | **Tema negro profundo** | Fondo del panel negro puro en lugar del material translúcido, para pantallas OLED. |
 | **Abrir al iniciar sesión** | Abrir TrayOTP al iniciar sesión. |
 | **Idioma ▸** | **Idioma del sistema** sigue el idioma de tu Mac (inglés si TrayOTP no está traducido a él), o elige una de las traducciones. TrayOTP se reinicia para cambiar. |

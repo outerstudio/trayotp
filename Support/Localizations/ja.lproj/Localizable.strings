@@ -264,6 +264,7 @@
 "Until Stay Unlocked Ends" = "「ロック解除を保つ」が終わるまで";
 "Until Locked" = "ロックされるまで";
 "Close After Copying" = "コピー後に閉じる";
+"Clear Clipboard After 30 Seconds" = "30秒後にクリップボードを消去";
 "Deep Black Theme" = "ディープブラックテーマ";
 "Launch at Login" = "ログイン時に起動";
 "Language" = "言語";

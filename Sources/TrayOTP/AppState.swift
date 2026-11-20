@@ -77,6 +77,10 @@ final class AppState {
     var closesAfterCopy: Bool {
         didSet { UserDefaults.standard.set(closesAfterCopy, forKey: Keys.closesAfterCopy) }
     }
+    /// Clear a copied code from the clipboard after 30 seconds, if the clipboard still holds it.
+    var clearsClipboard: Bool {
+        didSet { UserDefaults.standard.set(clearsClipboard, forKey: Keys.clearsClipboard) }
+    }
     /// Pure black panel background instead of the translucent material: OLED pixels switch off.
     var deepBlack: Bool {
         didSet { UserDefaults.standard.set(deepBlack, forKey: Keys.deepBlack) }
@@ -138,6 +142,7 @@ final class AppState {
         static let ungroupedExpanded = "ungroupedExpanded"
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
+        static let clearsClipboard = "clearsClipboard"
         static let deepBlack = "deepBlack"
         static let menuBarCountdown = "menuBarCountdown"
     }
@@ -145,7 +150,7 @@ final class AppState {
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
-                                     Keys.showsMenuBarIcon: true, Keys.passwordReminderDays: 30])
+                                     Keys.showsMenuBarIcon: true, Keys.clearsClipboard: true, Keys.passwordReminderDays: 30])
         ungroupedExpanded = defaults.bool(forKey: Keys.ungroupedExpanded)
         requireAuth = defaults.bool(forKey: Keys.requireAuth)
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
@@ -155,6 +160,7 @@ final class AppState {
         passwordReminderDays = defaults.integer(forKey: Keys.passwordReminderDays)
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
+        clearsClipboard = defaults.bool(forKey: Keys.clearsClipboard)
         deepBlack = defaults.bool(forKey: Keys.deepBlack)
         menuBarCountdown = defaults.string(forKey: Keys.menuBarCountdown).flatMap(MenuBarCountdown.init(rawValue:))
             ?? .untilGraceEnds
@@ -720,7 +726,7 @@ final class AppState {
     func copy(_ token: Token, next: Bool = false) {
         let date = next ? Date().addingTimeInterval(Double(token.period)) : Date()
         guard let code = token.code(at: date) else { return }
-        Clipboard.copy(code)
+        Clipboard.copy(code, clearAfter: clearsClipboard ? 30 : nil)
         touch()
         if closesAfterCopy {
             // Shake the row first so the copy is visible, then close.

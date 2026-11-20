@@ -518,6 +518,7 @@ struct SettingsMenu: View {
             }
             .disabled(!state.showsMenuBarIcon)
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
+            Toggle("Clear Clipboard After 30 Seconds", isOn: $state.clearsClipboard)
             Toggle("Deep Black Theme", isOn: $state.deepBlack)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.setLaunchAtLogin($0) }))

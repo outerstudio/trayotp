@@ -258,6 +258,7 @@ Tout se trouve dans le menu **⋯** :
 | **Définir un raccourci global…** | Ouvrir le panneau depuis n’importe quelle app avec la combinaison de touches de votre choix (avec ⌘, ⌃ ou ⌥). |
 | **Afficher l’icône dans la barre des menus** | Désactivez pour masquer l’icône. Le raccourci global (ou rouvrir TrayOTP depuis le Finder ou le Launchpad) affiche alors le panneau en haut de l’écran. |
 | **Fermer après la copie** | Fermer le panneau dès qu’un code est copié, pour le coller immédiatement. |
+| **Effacer le presse-papiers après 30 secondes** | Effacer un code copié du presse-papiers après 30 secondes (seulement s’il contient encore ce code). Activé par défaut. |
 | **Thème noir profond** | Arrière-plan du panneau noir pur au lieu du matériau translucide, pour les écrans OLED. |
 | **Ouvrir à la connexion** | Lancer TrayOTP à l’ouverture de session. |
 | **Langue ▸** | **Langue du système** suit la langue de votre Mac (anglais si TrayOTP n’est pas traduit dans celle-ci), ou choisissez une des traductions. TrayOTP redémarre pour changer. |

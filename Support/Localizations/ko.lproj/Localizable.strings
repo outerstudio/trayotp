@@ -264,6 +264,7 @@
 "Until Stay Unlocked Ends" = "'잠금 해제 유지'가 끝날 때까지";
 "Until Locked" = "잠길 때까지";
 "Close After Copying" = "복사 후 닫기";
+"Clear Clipboard After 30 Seconds" = "30초 후 클립보드 지우기";
 "Deep Black Theme" = "딥 블랙 테마";
 "Launch at Login" = "로그인 시 실행";
 "Language" = "언어";

@@ -246,6 +246,7 @@ All in the **⋯** menu:
 | **Set Global Shortcut…** | Open the panel from any app with a key combination of your choice (needs ⌘, ⌃ or ⌥). |
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
 | **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
+| **Clear Clipboard After 30 Seconds** | Remove a copied code from the clipboard after 30 seconds, but only if the clipboard still holds that code. On by default. |
 | **Deep Black Theme** | Pure black panel background instead of the translucent material, for OLED screens. |
 | **Launch at Login** | Start TrayOTP when you log in. |
 | **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |

@@ -258,6 +258,7 @@ Alles im **⋯**-Menü:
 | **Globales Tastenkürzel festlegen …** | Das Fenster aus jeder App mit einer Tastenkombination deiner Wahl öffnen (braucht ⌘, ⌃ oder ⌥). |
 | **Menüleistensymbol anzeigen** | Ausschalten, um das Symbol auszublenden. Das globale Tastenkürzel (oder erneutes Öffnen von TrayOTP im Finder oder Launchpad) zeigt das Fenster dann oben auf dem Bildschirm. |
 | **Nach dem Kopieren schließen** | Das Fenster schließen, sobald ein Code kopiert ist, damit du ihn sofort einsetzen kannst. |
+| **Zwischenablage nach 30 Sekunden leeren** | Kopierte Codes nach 30 Sekunden aus der Zwischenablage löschen (nur wenn dort noch derselbe Code liegt). Standardmäßig an. |
 | **Tiefschwarzes Design** | Rein schwarzer Fensterhintergrund statt des durchscheinenden Materials, für OLED-Bildschirme. |
 | **Beim Anmelden starten** | TrayOTP beim Anmelden starten. |
 | **Sprache ▸** | **Systemsprache** folgt der Sprache deines Mac (Englisch, wenn TrayOTP nicht in sie übersetzt ist), oder wähle eine der Übersetzungen. TrayOTP startet zum Wechseln neu. |

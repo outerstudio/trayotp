@@ -257,6 +257,7 @@ Tutto nel menu **⋯**:
 | **Imposta abbreviazione globale…** | Apri il pannello da qualsiasi app con la combinazione di tasti che preferisci (con ⌘, ⌃ o ⌥). |
 | **Mostra icona nella barra dei menu** | Disattiva per nascondere l’icona. L’abbreviazione globale (o riaprire TrayOTP dal Finder o da Launchpad) mostra allora il pannello in alto sullo schermo. |
 | **Chiudi dopo la copia** | Chiudi il pannello appena un codice viene copiato, così puoi incollarlo subito. |
+| **Cancella gli appunti dopo 30 secondi** | Cancella un codice copiato dagli appunti dopo 30 secondi (solo se contiene ancora quel codice). Attivo per impostazione predefinita. |
 | **Tema nero profondo** | Sfondo del pannello nero puro invece del materiale traslucido, per gli schermi OLED. |
 | **Apri al login** | Avvia TrayOTP quando accedi. |
 | **Lingua ▸** | **Lingua di sistema** segue la lingua del Mac (inglese se TrayOTP non è tradotto in quella lingua), oppure scegli una delle traduzioni. TrayOTP si riavvia per cambiare. |

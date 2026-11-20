@@ -257,6 +257,7 @@ Tudo no menu **⋯**:
 | **Definir Atalho Global…** | Abrir o painel de qualquer app com a combinação de teclas que você escolher (com ⌘, ⌃ ou ⌥). |
 | **Mostrar Ícone na Barra de Menus** | Desative para ocultar o ícone. O atalho global (ou abrir o TrayOTP de novo pelo Finder ou Launchpad) passa a mostrar o painel no topo da tela. |
 | **Fechar Após Copiar** | Fechar o painel assim que um código é copiado, para você colar na hora. |
+| **Limpar a área de transferência após 30 segundos** | Apagar um código copiado da área de transferência após 30 segundos (só se ela ainda contiver esse código). Ativado por padrão. |
 | **Tema preto profundo** | Fundo do painel preto puro em vez do material translúcido, para telas OLED. |
 | **Abrir no Login** | Iniciar o TrayOTP ao fazer login. |
 | **Idioma ▸** | **Idioma do Sistema** segue o idioma do Mac (inglês se o TrayOTP não tiver tradução para ele), ou escolha uma das traduções. O TrayOTP reinicia para trocar. |

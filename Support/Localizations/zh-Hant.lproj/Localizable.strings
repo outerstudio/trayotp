@@ -264,6 +264,7 @@
 "Until Stay Unlocked Ends" = "直到「保持解鎖」結束";
 "Until Locked" = "直到鎖定";
 "Close After Copying" = "拷貝後關閉";
+"Clear Clipboard After 30 Seconds" = "30 秒後清除剪貼板";
 "Deep Black Theme" = "深黑主題";
 "Launch at Login" = "登入時啟動";
 "Language" = "語言";

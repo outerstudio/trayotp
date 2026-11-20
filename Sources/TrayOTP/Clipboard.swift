@@ -7,13 +7,14 @@ enum Clipboard {
     private static let concealed = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
     private static var ourChangeCount: Int?
 
-    static func copy(_ text: String, clearAfter seconds: Double = 30) {
+    static func copy(_ text: String, clearAfter seconds: Double? = 30) {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(text, forType: .string)
         pb.setString("", forType: concealed)
         let change = pb.changeCount
         ourChangeCount = change
+        guard let seconds else { return }
         Task {
             try? await Task.sleep(for: .seconds(seconds))
             if pb.changeCount == change { pb.clearContents() }
