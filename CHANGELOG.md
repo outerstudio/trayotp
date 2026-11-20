@@ -2,6 +2,47 @@
 
 User-facing changes in each release. Pre-releases are listed on the [Releases](https://github.com/outerstudio/trayotp/releases) page.
 
+## [0.7.0](https://github.com/outerstudio/trayotp/compare/v0.6.0...v0.7.0) (2026-11-21)
+
+What's new
+
+- Hide codes until you need them. ⋯ → Hide Codes masks every code as dots until you hover over a row, or click it to copy it and show it for 5 or 10 seconds. Right-click a token → Always Hide Code keeps one masked even when the setting is Never. Copying a hidden code also shows it, so you can check what you copied. Hide Panel from Screen Sharing keeps the panel out of screen shares, screenshots and recordings.
+- Light theme. ⋯ → Theme: Match System (the default), Light, Dark or Deep Black. It also applies to TrayOTP's own windows and dialogs. Deep Black moved into this menu from a checkbox; if you had it on, you stay on it.
+- One-click encrypted backups. ⋯ → Backup & Export → Back Up Now saves an encrypted backup (Aegis format) to a folder you choose once. TrayOTP reminds you when the last backup is older than 7, 30 (the default) or 90 days. Restore from Backup… reads it back. The old Export list is now Export to Another App, in the same menu.
+- Clipboard clearing is a setting. Copied codes are still removed from the clipboard after 30 seconds, only if you haven't copied something else. You can now turn that off with Clear Clipboard After 30 Seconds.
+- Until I Lock It. Require Unlock is gone. Stay Unlocked has a new option, Until I Lock It, which keeps TrayOTP unlocked, even through sleep, until you click Lock. If you had Require Unlock off, you are moved to this option, and you now unlock with Touch ID once each time TrayOTP starts.
+- Updates window. Check for Updates… opens a window with your version, Check Now and its result, the automatic-check switch and the update channel. While an update installs, the Update to … button shows a spinner and "Downloading…".
+- One Icon Pack menu. The icon pack and Import Icons from Folder… are now together under ⋯ → Icon Pack.
+- Smaller fixes. The Launch at Login checkmark updates right away, and the panel no longer redraws while it is closed.
+
+### Features
+
+* add a Clear Clipboard After 30 Seconds toggle, on by default ([f4dd89b](https://github.com/outerstudio/trayotp/commit/f4dd89bb7f8f353f1f466985c4abf18ed2d672df))
+* add a light theme and a Theme menu that follows the system, with a dark tint over the dark blur ([8375563](https://github.com/outerstudio/trayotp/commit/8375563627afc0b8905df57f55da871e68208c0e))
+* add encrypted backup with reminder and restore, merged with Export into Backup & Export ([79973b8](https://github.com/outerstudio/trayotp/commit/79973b8a8f4f380151ee7a555d8565402f939f42))
+* hide codes until hover or click, with a per-token override and a screen-sharing exclusion ([a71a20a](https://github.com/outerstudio/trayotp/commit/a71a20ae507d306f5347e40335fb9ea56c066e9b))
+* merge the icon pack and icon import items into one Icon Pack menu ([8f5882b](https://github.com/outerstudio/trayotp/commit/8f5882b87e4a616f71bbd67c2569943090da18cb))
+* merge the update items into an Updates window ([bbc207f](https://github.com/outerstudio/trayotp/commit/bbc207f251845bbffead6146f00b17b5e047819c))
+* offer 5 and 10 second reveal times for click-to-show ([a0b6864](https://github.com/outerstudio/trayotp/commit/a0b6864f4f1f5f5af11c39f16f400547f8ca6b15))
+* replace Require Unlock with an Until I Lock It stay-unlocked option ([e51980f](https://github.com/outerstudio/trayotp/commit/e51980f1b81c45d57d165f99a840eceabc31872d))
+* show a spinner and "Downloading…" on the update button while installing ([f32483c](https://github.com/outerstudio/trayotp/commit/f32483c8122201fe0a8298bd8d218668ba3b05aa))
+
+### Bug Fixes
+
+* only reveal a selected row in Until Hover when selected by the arrow keys ([4de9fc2](https://github.com/outerstudio/trayotp/commit/4de9fc235f3fff2e0d4f3562d0a6bda5f864bad3))
+* refresh the Launch at Login checkmark after toggling and when the panel opens ([ce76479](https://github.com/outerstudio/trayotp/commit/ce76479f4202ade7e4ffa539dfca4f712435c99e))
+* stop a row staying revealed after a menu closes over it ([f41614e](https://github.com/outerstudio/trayotp/commit/f41614ef2ad37bc2298b2e43efbed3f1a2549214))
+
+### Performance Improvements
+
+* stop redrawing the panel while it is closed ([27c9529](https://github.com/outerstudio/trayotp/commit/27c952900c6a80dbd51630ec4570af3ef6287a0d))
+
+Install
+
+Download TrayOTP.zip below, unzip it and move TrayOTP to Applications. It's a universal build for Apple silicon and Intel. Builds are ad-hoc signed, not notarized, so on first launch use System Settings → Privacy & Security → Open Anyway. Existing vaults carry over.
+
+**Full Changelog**: https://github.com/outerstudio/trayotp/compare/v0.6.0...v0.7.0
+
 ## [0.6.0](https://github.com/outerstudio/trayotp/compare/v0.5.0...v0.6.0) (2026-11-20)
 
 A safer vault: exporting or deleting tokens now needs a master password you type, and you can export a single token as a QR code.
