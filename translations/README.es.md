@@ -121,6 +121,7 @@ Las apps que compilas tú se abren sin ningún aviso.
   **↑** desde la primera fila vuelve al campo de búsqueda.
 - En los tokens basados en contador (HOTP), clic derecho → **Siguiente código** para avanzar el contador.
 - **Editar un token:** clic derecho → **Editar…** para cambiar el nombre del servicio y la cuenta. El código sigue siendo el mismo.
+- **Ocultar siempre el código de un token:** clic derecho → **Ocultar siempre el código**. Sigue oculto incluso con **Ocultar códigos** en **Nunca**, hasta que hagas clic en él.
 - **Cerrar después de copiar**, en el menú ⋯, cierra el panel tras cada copia para que puedas pegar enseguida.
 - Los códigos copiados se ocultan a los gestores de portapapeles y se borran del portapapeles a los 30 segundos.
 
@@ -257,6 +258,8 @@ Todo está en el menú **⋯**:
 | **Mostrar icono en la barra de menús** | Desactívalo para ocultar el icono. El atajo global (o volver a abrir TrayOTP desde el Finder o Launchpad) muestra entonces el panel en la parte superior de la pantalla. |
 | **Cerrar después de copiar** | Cerrar el panel en cuanto se copia un código, para que puedas pegarlo enseguida. |
 | **Borrar el portapapeles tras 30 segundos** | Borrar un código copiado del portapapeles a los 30 segundos (solo si sigue siendo ese código). Activado por defecto. |
+| **Ocultar códigos ▸** | Enmascara los códigos con puntos hasta que actúes: **Nunca** (por defecto), **Hasta pasar el cursor** (el puntero o la selección con el teclado muestra una fila) o **Hasta hacer clic** (al hacer clic en una fila se copia su código y se muestra 10 segundos). Copiar un código oculto también lo muestra. |
+| **Ocultar el panel al compartir pantalla** | Mantiene el panel fuera de las pantallas compartidas, capturas y grabaciones (también de tus propias capturas). |
 | **Copia y exportación ▸** | Copia cifrada con un clic (formato Aegis; **Importar desde archivo…** la restaura) en una carpeta que eliges una vez, y un aviso cuando la última copia tiene más de 7, 30 (por defecto) o 90 días. **Restaurar desde copia…** abre el mismo selector de archivos que **Añadir → Importar desde archivo…**. |
 | **Tema negro profundo** | Fondo del panel negro puro en lugar del material translúcido, para pantallas OLED. |
 | **Abrir al iniciar sesión** | Abrir TrayOTP al iniciar sesión. |

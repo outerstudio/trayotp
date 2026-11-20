@@ -376,3 +376,9 @@
 "TrayOTP %@ is available." = "O TrayOTP %@ está disponível.";
 "Last checked: %@" = "Última verificação: %@";
 "Could not check for updates" = "Não foi possível verificar atualizações";
+"Hide Codes: %@" = "Ocultar Códigos: %@";
+"Hide Codes" = "Ocultar Códigos";
+"Until Hover" = "Até Passar o Mouse";
+"Until Click" = "Até Clicar";
+"Hide Panel from Screen Sharing" = "Ocultar Painel no Compartilhamento de Tela";
+"Always Hide Code" = "Sempre Ocultar o Código";

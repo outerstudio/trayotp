@@ -7,6 +7,14 @@ struct TokenRow: View {
     @Environment(\.panelVisible) private var visible
     let token: Token
     let isSelected: Bool
+    @State private var hovering = false
+
+    /// Whether the code shows: not hidden, revealed by a click or copy, or (Until Hover) under the pointer
+    /// or the keyboard selection. A token that hides on its own while the global setting is Never reveals by click.
+    private var shown: Bool {
+        !state.hidesCode(token) || state.revealed.contains(token.id)
+            || (state.codeHiding == .hover && (hovering || isSelected))
+    }
 
     var body: some View {
         // A chosen icon wins over the icon pack's automatic match.
@@ -26,9 +34,9 @@ struct TokenRow: View {
                 // Only the code ticks, when it changes. Ticking the whole row would rebuild its
                 // context menu and close open submenus.
                 TimelineView(CodeSchedule(period: token.period, paused: !visible)) { context in
-                    Text(token.code(at: context.date)?.otpGrouped ?? String(localized: "Invalid secret"))
+                    Text(token.code(at: context.date)?.otpGrouped.masked(unless: shown) ?? String(localized: "Invalid secret"))
                         .font(.system(size: 24, weight: .regular).monospacedDigit())
-                                                .contentTransition(.numericText())
+                        .contentTransition(.numericText())
                 }
                 if let subtitle = token.subtitle {
                     Text(subtitle)
@@ -48,7 +56,7 @@ struct TokenRow: View {
                     .help("Counter-based code. Right-click → Next code.")
             } else {
                 // The upcoming code, like Ente Auth.
-                NextCode(token: token, color: color)
+                NextCode(token: token, color: color, shown: shown)
             }
         }
         .padding(.horizontal, 12)
@@ -66,6 +74,7 @@ struct TokenRow: View {
         // An explicit Rectangle: a bare color background takes the Card's rounded container shape.
         .background { if isSelected { Rectangle().fill(Theme.selection) } }
         .contentShape(Rectangle())
+        .onHover { hovering = $0 }
         // A copy wiggles the row (or just its next code) for about 0.7 s.
         .modifier(Shake(token: token.id, next: false))
     }
@@ -79,6 +88,7 @@ struct NextCode: View {
     @Environment(\.panelVisible) private var visible
     let token: Token
     let color: Color
+    let shown: Bool
     @State private var hovering = false
 
     var body: some View {
@@ -89,7 +99,7 @@ struct NextCode: View {
             VStack(alignment: .trailing, spacing: 1) {
                 Text(copied ? "copied" : "next")
                     .font(.system(size: 10, weight: copied ? .semibold : .regular))
-                Text(token.code(at: next)?.otpGrouped ?? "")
+                Text(token.code(at: next)?.otpGrouped.masked(unless: shown) ?? "")
                     .font(.system(size: 13).monospacedDigit())
             }
             .foregroundStyle(copied ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
@@ -274,5 +284,12 @@ private struct Shake: ViewModifier {
                     }
                 }
             }
+    }
+}
+
+private extension String {
+    /// The same text with every character but the spaces turned into dots, so the layout doesn't move.
+    func masked(unless shown: Bool) -> String {
+        shown ? self : String(map { $0 == " " ? " " : "•" })
     }
 }

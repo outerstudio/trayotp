@@ -376,3 +376,9 @@
 "TrayOTP %@ is available." = "TrayOTP %@ が利用可能です。";
 "Last checked: %@" = "最終確認：%@";
 "Could not check for updates" = "アップデートを確認できませんでした";
+"Hide Codes: %@" = "コードを隠す：%@";
+"Hide Codes" = "コードを隠す";
+"Until Hover" = "ホバーするまで";
+"Until Click" = "クリックするまで";
+"Hide Panel from Screen Sharing" = "パネルを画面共有から隠す";
+"Always Hide Code" = "常にコードを隠す";

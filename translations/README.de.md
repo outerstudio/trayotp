@@ -121,6 +121,7 @@ Selbst gebaute Apps öffnen sich ohne Warnung.
   **↑** in der obersten Zeile führt zurück ins Suchfeld.
 - Bei zählerbasierten (HOTP) Tokens: Rechtsklick → **Nächster Code**, um den Zähler weiterzuschalten.
 - **Token bearbeiten:** Rechtsklick → **Bearbeiten …**, um Dienstname und Account zu ändern. Der Code bleibt gleich.
+- **Den Code eines Tokens immer ausblenden:** Rechtsklick → **Code immer ausblenden**. Er bleibt auch bei **Codes ausblenden** auf **Nie** verborgen, bis du ihn anklickst.
 - **Nach dem Kopieren schließen** im ⋯-Menü schließt das Fenster nach jedem Kopieren, sodass du sofort einsetzen kannst.
 - Kopierte Codes sind vor Zwischenablage-Managern verborgen und werden nach 30 Sekunden aus der Zwischenablage gelöscht.
 
@@ -258,6 +259,8 @@ Alles im **⋯**-Menü:
 | **Menüleistensymbol anzeigen** | Ausschalten, um das Symbol auszublenden. Das globale Tastenkürzel (oder erneutes Öffnen von TrayOTP im Finder oder Launchpad) zeigt das Fenster dann oben auf dem Bildschirm. |
 | **Nach dem Kopieren schließen** | Das Fenster schließen, sobald ein Code kopiert ist, damit du ihn sofort einsetzen kannst. |
 | **Zwischenablage nach 30 Sekunden leeren** | Kopierte Codes nach 30 Sekunden aus der Zwischenablage löschen (nur wenn dort noch derselbe Code liegt). Standardmäßig an. |
+| **Codes ausblenden ▸** | Codes als Punkte maskieren, bis du etwas tust: **Nie** (Standard), **Bis zum Darüberfahren** (Mauszeiger oder Tastaturauswahl zeigt eine Zeile) oder **Bis zum Klicken** (ein Klick auf eine Zeile kopiert den Code und zeigt ihn 10 Sekunden lang). Auch beim Kopieren eines verborgenen Codes wird er sichtbar. |
+| **Fenster vor Bildschirmfreigabe verbergen** | Hält das Fenster aus Bildschirmfreigaben, Screenshots und Aufnahmen heraus (auch aus deinen eigenen Screenshots). |
 | **Backup & Export ▸** | Verschlüsseltes Backup mit einem Klick (Aegis-Format, **Aus Datei importieren…** stellt es wieder her) in einen einmal gewählten Ordner, plus eine Erinnerung, wenn das letzte Backup älter als 7, 30 (Standard) oder 90 Tage ist. **Aus Backup wiederherstellen…** öffnet dieselbe Dateiauswahl wie **Hinzufügen → Aus Datei importieren …**. |
 | **Tiefschwarzes Design** | Rein schwarzer Fensterhintergrund statt des durchscheinenden Materials, für OLED-Bildschirme. |
 | **Beim Anmelden starten** | TrayOTP beim Anmelden starten. |

@@ -376,3 +376,9 @@
 "TrayOTP %@ is available." = "TrayOTP %@을(를) 사용할 수 있습니다.";
 "Last checked: %@" = "마지막 확인: %@";
 "Could not check for updates" = "업데이트를 확인할 수 없습니다";
+"Hide Codes: %@" = "코드 숨기기: %@";
+"Hide Codes" = "코드 숨기기";
+"Until Hover" = "가리킬 때까지";
+"Until Click" = "클릭할 때까지";
+"Hide Panel from Screen Sharing" = "화면 공유에서 패널 숨기기";
+"Always Hide Code" = "항상 코드 숨기기";

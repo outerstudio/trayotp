@@ -76,6 +76,59 @@ final class AppState {
     var clearsClipboard: Bool {
         didSet { UserDefaults.standard.set(clearsClipboard, forKey: Keys.clearsClipboard) }
     }
+    /// When codes are masked: `hover` and `click` hide every code until revealed that way.
+    enum CodeHiding: String, CaseIterable {
+        case never, hover, click
+    }
+    var codeHiding: CodeHiding {
+        didSet {
+            UserDefaults.standard.set(codeHiding.rawValue, forKey: Keys.codeHiding)
+            hideAllCodes()
+        }
+    }
+    /// Keeps the panel out of screen sharing, screenshots and recordings.
+    var hidesFromScreenSharing: Bool {
+        didSet { UserDefaults.standard.set(hidesFromScreenSharing, forKey: Keys.hidesFromScreenSharing) }
+    }
+    /// Tokens whose masked code is showing after a click or copy; they hide again after `revealSeconds`.
+    private(set) var revealed: Set<UUID> = []
+    @ObservationIgnored private var revealTasks: [UUID: Task<Void, Never>] = [:]
+    private static let revealSeconds = 10.0
+
+    /// Whether the token's code is masked unless revealed.
+    func hidesCode(_ token: Token) -> Bool { codeHiding != .never || token.hidesCode == true }
+
+    func reveal(_ token: Token) {
+        revealed.insert(token.id)
+        revealTasks[token.id]?.cancel()
+        revealTasks[token.id] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.revealSeconds))
+            guard !Task.isCancelled else { return }
+            self?.revealed.remove(token.id)
+            self?.revealTasks[token.id] = nil
+        }
+    }
+
+    func hideAllCodes() {
+        revealTasks.values.forEach { $0.cancel() }
+        revealTasks = [:]
+        revealed = []
+    }
+
+    func setHidesCode(_ token: Token, _ hides: Bool) {
+        guard let i = tokens.firstIndex(where: { $0.id == token.id }) else { return }
+        tokens[i].hidesCode = hides ? true : nil
+        persist()
+    }
+
+    static func codeHidingLabel(_ mode: CodeHiding) -> String {
+        switch mode {
+        case .never: String(localized: "Never")
+        case .hover: String(localized: "Until Hover")
+        case .click: String(localized: "Until Click")
+        }
+    }
+
     /// Days before the app suggests a fresh backup; 0 turns the reminder off.
     var backupReminderDays: Int {
         didSet { UserDefaults.standard.set(backupReminderDays, forKey: Keys.backupReminderDays) }
@@ -147,6 +200,8 @@ final class AppState {
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
         static let clearsClipboard = "clearsClipboard"
+        static let codeHiding = "codeHiding"
+        static let hidesFromScreenSharing = "hidesFromScreenSharing"
         static let backupReminderDays = "backupReminderDays"
         static let backupFolder = "backupFolder"
         static let lastBackup = "lastBackup"
@@ -173,6 +228,8 @@ final class AppState {
         showsMenuBarIcon = defaults.bool(forKey: Keys.showsMenuBarIcon)
         closesAfterCopy = defaults.bool(forKey: Keys.closesAfterCopy)
         clearsClipboard = defaults.bool(forKey: Keys.clearsClipboard)
+        codeHiding = defaults.string(forKey: Keys.codeHiding).flatMap(CodeHiding.init(rawValue:)) ?? .never
+        hidesFromScreenSharing = defaults.bool(forKey: Keys.hidesFromScreenSharing)
         backupReminderDays = defaults.integer(forKey: Keys.backupReminderDays)
         backupFolder = defaults.string(forKey: Keys.backupFolder).map { URL(fileURLWithPath: $0, isDirectory: true) }
         lastBackup = defaults.object(forKey: Keys.lastBackup) as? Date
@@ -290,6 +347,7 @@ final class AppState {
         screen = .list
         Clipboard.clearIfOurs()
         QRCodeWindow.closeAll()
+        hideAllCodes()
         iconDraft = nil
         // Now and then the icon's ring turns somewhere new, as a small surprise.
         iconSpinner.maybeTurn(chance: 0.25)
@@ -692,6 +750,7 @@ final class AppState {
     private func panelDidClose() {
         if !panelWasClosed { touch() }
         panelWasClosed = true
+        hideAllCodes()
         updateMenuBarRing()
     }
 
@@ -741,6 +800,8 @@ final class AppState {
         let date = next ? Date().addingTimeInterval(Double(token.period)) : Date()
         guard let code = token.code(at: date) else { return }
         Clipboard.copy(code, clearAfter: clearsClipboard ? 30 : nil)
+        // One click copies and shows the code, so a hidden one can be checked.
+        if hidesCode(token) { reveal(token) }
         touch()
         if closesAfterCopy {
             // Shake the row first so the copy is visible, then close.

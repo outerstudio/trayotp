@@ -57,6 +57,7 @@ struct PanelView: View {
         .environment(\.colorScheme, .dark)
         .background { if state.deepBlack { Color.black } }
         .environment(\.panelVisible, visible)
+        .background(WindowSharing(hidden: state.hidesFromScreenSharing))
         .background(WindowFocusObserver(onVisibility: { visible = $0 }, onHide: { state.panelDidHide() }) {
             state.panelDidOpen()
         })
@@ -283,6 +284,7 @@ struct TokenListView: View {
         Divider()
         Button("Edit…") { afterMenu { state.edit(token) } }
         Button("Export…") { afterMenu { state.showQRCode(token) } }
+        Toggle("Always Hide Code", isOn: Binding(get: { token.hidesCode == true }, set: { state.setHidesCode(token, $0) }))
         Menu("Move to Group") {
             Picker("Move to Group", selection: Binding(get: { token.groupId }, set: { state.move(token, to: $0) })) {
                 Text("Ungrouped").tag(String?.none)
@@ -517,6 +519,14 @@ struct SettingsMenu: View {
             .disabled(!state.showsMenuBarIcon)
             Toggle("Close After Copying", isOn: $state.closesAfterCopy)
             Toggle("Clear Clipboard After 30 Seconds", isOn: $state.clearsClipboard)
+            Menu("Hide Codes: \(AppState.codeHidingLabel(state.codeHiding))") {
+                Picker("Hide Codes", selection: $state.codeHiding) {
+                    ForEach(AppState.CodeHiding.allCases, id: \.self) { Text(AppState.codeHidingLabel($0)).tag($0) }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
+            Toggle("Hide Panel from Screen Sharing", isOn: $state.hidesFromScreenSharing)
             Toggle("Deep Black Theme", isOn: $state.deepBlack)
             Toggle("Launch at Login", isOn: Binding(get: { state.launchAtLogin },
                                                      set: { state.setLaunchAtLogin($0) }))
@@ -807,6 +817,20 @@ struct WindowFocusObserver: NSViewRepresentable {
             onVisibility?(window.occlusionState.contains(.visible))
             if window.isKeyWindow { onFocus?() }
         }
+    }
+}
+
+/// Keeps the hosting window out of screen sharing, screenshots and recordings while `hidden`.
+struct WindowSharing: NSViewRepresentable {
+    let hidden: Bool
+
+    func makeNSView(context: Context) -> SharingView { SharingView() }
+    func updateNSView(_ view: SharingView, context: Context) { view.excluded = hidden }
+
+    final class SharingView: NSView {
+        var excluded = false { didSet { apply() } }
+        override func viewDidMoveToWindow() { super.viewDidMoveToWindow(); apply() }
+        private func apply() { window?.sharingType = excluded ? .none : .readOnly }
     }
 }
 

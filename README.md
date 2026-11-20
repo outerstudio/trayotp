@@ -114,6 +114,7 @@ Apps you build yourself open without any warning.
   **↑** from the top row goes back to the search field.
 - For counter-based (HOTP) tokens, right-click → **Next Code** to advance the counter.
 - **Edit a token:** right-click it → **Edit…** to change its service name and account. The code stays the same.
+- **Always hide a token's code:** right-click it → **Always Hide Code**. It stays masked even when **Hide Codes** is **Never**, until you click it.
 - **Close After Copying** in the ⋯ menu closes the panel after each copy, so you can paste right away.
 - Copied codes are hidden from clipboard managers and cleared from the clipboard after 30 seconds.
 
@@ -246,6 +247,8 @@ All in the **⋯** menu:
 | **Show Menu Bar Icon** | Turn off to hide the tray icon. The global shortcut (or opening TrayOTP again from Finder or Launchpad) then shows the panel near the top of the screen. |
 | **Close After Copying** | Close the panel as soon as a code is copied, so you can paste it right away. |
 | **Clear Clipboard After 30 Seconds** | Remove a copied code from the clipboard after 30 seconds, but only if the clipboard still holds that code. On by default. |
+| **Hide Codes ▸** | Mask codes as dots until you act: **Never** (default), **Until Hover** (the pointer or the keyboard selection reveals a row) or **Until Click** (clicking a row copies its code and shows it for 10 seconds). Copying a hidden code also shows it. |
+| **Hide Panel from Screen Sharing** | Keep the panel out of screen shares, screenshots and recordings (your own screenshots too). |
 | **Backup & Export ▸** | One-click encrypted backup (Aegis format, so **Import from File…** restores it) into a folder you choose once, plus a reminder when the last backup is older than 7, 30 (default) or 90 days. **Restore from Backup…** opens the same file picker as **Add → Import from File…**. |
 | **Deep Black Theme** | Pure black panel background instead of the translucent material, for OLED screens. |
 | **Launch at Login** | Start TrayOTP when you log in. |

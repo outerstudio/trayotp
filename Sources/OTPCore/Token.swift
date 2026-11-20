@@ -39,6 +39,8 @@ public struct Token: Codable, Identifiable, Hashable, Sendable {
     public var icon: Data?
     /// The `TokenGroup.id` this token belongs to; nil = ungrouped.
     public var groupId: String?
+    /// Always mask this token's code until it is revealed, whatever the global Hide Codes setting says.
+    public var hidesCode: Bool?
 
     public init(
         id: UUID = UUID(),
@@ -54,7 +56,8 @@ public struct Token: Codable, Identifiable, Hashable, Sendable {
         color: String? = nil,
         extra: JSONValue? = nil,
         icon: Data? = nil,
-        groupId: String? = nil
+        groupId: String? = nil,
+        hidesCode: Bool? = nil
     ) {
         self.id = id
         self.name = name
@@ -70,6 +73,7 @@ public struct Token: Codable, Identifiable, Hashable, Sendable {
         self.extra = extra
         self.icon = icon
         self.groupId = groupId
+        self.hidesCode = hidesCode
     }
 
     public var isValid: Bool {

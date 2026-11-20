@@ -121,6 +121,7 @@ Le app che compili tu si aprono senza alcun avviso.
   **↑** dalla prima riga torna al campo di ricerca.
 - Per i token basati su contatore (HOTP), clic destro → **Codice successivo** per far avanzare il contatore.
 - **Modificare un token:** clic destro → **Modifica…** per cambiare nome del servizio e account. Il codice resta lo stesso.
+- **Nascondere sempre il codice di un token:** clic destro → **Nascondi sempre il codice**. Resta nascosto anche con **Nascondi codici** su **Mai**, finché non lo clicchi.
 - **Chiudi dopo la copia** nel menu ⋯ chiude il pannello dopo ogni copia, così puoi incollare subito.
 - I codici copiati sono nascosti ai gestori degli appunti e cancellati dagli appunti dopo 30 secondi.
 
@@ -257,6 +258,8 @@ Tutto nel menu **⋯**:
 | **Mostra icona nella barra dei menu** | Disattiva per nascondere l’icona. L’abbreviazione globale (o riaprire TrayOTP dal Finder o da Launchpad) mostra allora il pannello in alto sullo schermo. |
 | **Chiudi dopo la copia** | Chiudi il pannello appena un codice viene copiato, così puoi incollarlo subito. |
 | **Cancella gli appunti dopo 30 secondi** | Cancella un codice copiato dagli appunti dopo 30 secondi (solo se contiene ancora quel codice). Attivo per impostazione predefinita. |
+| **Nascondi codici ▸** | Maschera i codici con dei puntini finché non agisci: **Mai** (predefinito), **Fino al passaggio del mouse** (il puntatore o la selezione da tastiera mostra una riga) o **Fino al clic** (un clic su una riga copia il codice e lo mostra per 10 secondi). Anche copiare un codice nascosto lo mostra. |
+| **Nascondi il pannello dalla condivisione schermo** | Tiene il pannello fuori da condivisioni dello schermo, screenshot e registrazioni (anche dai tuoi screenshot). |
 | **Backup ed esportazione ▸** | Backup cifrato con un clic (formato Aegis, che **Importa da file…** ripristina) in una cartella scelta una volta, con un promemoria quando l’ultimo backup ha più di 7, 30 (predefinito) o 90 giorni. **Ripristina da backup…** apre lo stesso selettore di file di **Aggiungi → Importa da file…**. |
 | **Tema nero profondo** | Sfondo del pannello nero puro invece del materiale traslucido, per gli schermi OLED. |
 | **Apri al login** | Avvia TrayOTP quando accedi. |

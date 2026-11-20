@@ -121,6 +121,7 @@ Apps compilados por você abrem sem nenhum aviso.
   **↑** na primeira linha volta ao campo de busca.
 - Em tokens baseados em contador (HOTP), clique com o botão direito → **Próximo Código** para avançar o contador.
 - **Editar um token:** clique com o botão direito → **Editar…** para mudar o nome do serviço e a conta. O código continua o mesmo.
+- **Sempre ocultar o código de um token:** clique com o botão direito → **Sempre Ocultar o Código**. Ele continua oculto mesmo com **Ocultar Códigos** em **Nunca**, até você clicar nele.
 - **Fechar Após Copiar**, no menu ⋯, fecha o painel após cada cópia para você colar na hora.
 - Códigos copiados ficam ocultos para gerenciadores de área de transferência e são apagados dela após 30 segundos.
 
@@ -257,6 +258,8 @@ Tudo no menu **⋯**:
 | **Mostrar Ícone na Barra de Menus** | Desative para ocultar o ícone. O atalho global (ou abrir o TrayOTP de novo pelo Finder ou Launchpad) passa a mostrar o painel no topo da tela. |
 | **Fechar Após Copiar** | Fechar o painel assim que um código é copiado, para você colar na hora. |
 | **Limpar a área de transferência após 30 segundos** | Apagar um código copiado da área de transferência após 30 segundos (só se ela ainda contiver esse código). Ativado por padrão. |
+| **Ocultar Códigos ▸** | Mascara os códigos com pontos até você agir: **Nunca** (padrão), **Até Passar o Mouse** (o ponteiro ou a seleção pelo teclado mostra uma linha) ou **Até Clicar** (clicar em uma linha copia o código e o mostra por 10 segundos). Copiar um código oculto também o mostra. |
+| **Ocultar Painel no Compartilhamento de Tela** | Mantém o painel fora de compartilhamentos de tela, capturas e gravações (inclusive das suas próprias capturas). |
 | **Backup e Exportação ▸** | Backup criptografado com um clique (formato Aegis; **Importar de arquivo…** restaura) em uma pasta escolhida uma vez, com um lembrete quando o último backup passar de 7, 30 (padrão) ou 90 dias. **Restaurar do backup…** abre o mesmo seletor de arquivos que **Adicionar → Importar de Arquivo…**. |
 | **Tema preto profundo** | Fundo do painel preto puro em vez do material translúcido, para telas OLED. |
 | **Abrir no Login** | Iniciar o TrayOTP ao fazer login. |

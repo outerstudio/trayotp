@@ -121,6 +121,7 @@ Les apps que vous compilez vous-même s’ouvrent sans avertissement.
   **↑** depuis la première ligne ramène au champ de recherche.
 - Pour les jetons basés sur un compteur (HOTP), clic droit → **Code suivant** pour avancer le compteur.
 - **Modifier un jeton :** clic droit → **Modifier…** pour changer le nom du service et le compte. Le code reste le même.
+- **Toujours masquer le code d’un jeton :** clic droit → **Toujours masquer le code**. Il reste masqué même quand **Masquer les codes** est sur **Jamais**, jusqu’à ce que vous cliquiez dessus.
 - **Fermer après la copie** dans le menu ⋯ ferme le panneau après chaque copie, pour coller immédiatement.
 - Les codes copiés sont masqués aux gestionnaires de presse-papiers et effacés du presse-papiers après 30 secondes.
 
@@ -258,6 +259,8 @@ Tout se trouve dans le menu **⋯** :
 | **Afficher l’icône dans la barre des menus** | Désactivez pour masquer l’icône. Le raccourci global (ou rouvrir TrayOTP depuis le Finder ou le Launchpad) affiche alors le panneau en haut de l’écran. |
 | **Fermer après la copie** | Fermer le panneau dès qu’un code est copié, pour le coller immédiatement. |
 | **Effacer le presse-papiers après 30 secondes** | Effacer un code copié du presse-papiers après 30 secondes (seulement s’il contient encore ce code). Activé par défaut. |
+| **Masquer les codes ▸** | Masque les codes par des points jusqu’à votre action : **Jamais** (par défaut), **Jusqu’au survol** (le pointeur ou la sélection au clavier révèle une ligne) ou **Jusqu’au clic** (cliquer sur une ligne copie son code et l’affiche 10 secondes). Copier un code masqué l’affiche aussi. |
+| **Masquer le panneau lors du partage d’écran** | Garde le panneau hors des partages d’écran, captures et enregistrements (y compris vos propres captures). |
 | **Sauvegarde et export ▸** | Sauvegarde chiffrée en un clic (format Aegis, que **Importer depuis un fichier…** restaure) dans un dossier choisi une fois, avec un rappel quand la dernière sauvegarde date de plus de 7, 30 (par défaut) ou 90 jours. **Restaurer une sauvegarde…** ouvre le même sélecteur de fichier que **Ajouter → Importer depuis un fichier…**. |
 | **Thème noir profond** | Arrière-plan du panneau noir pur au lieu du matériau translucide, pour les écrans OLED. |
 | **Ouvrir à la connexion** | Lancer TrayOTP à l’ouverture de session. |
