@@ -239,8 +239,7 @@ All in the **⋯** menu:
 
 | Setting | What it does |
 |---|---|
-| **Require Unlock** | Ask for Touch ID or your Mac password before showing codes (on by default). |
-| **Stay Unlocked ▸** | How long TrayOTP stays unlocked after you last used it: every time, 1 minute to 1 hour, **Until Mac Sleeps or Locks**, or a custom number of minutes. It always locks when your Mac sleeps or the screen locks. |
+| **Stay Unlocked ▸** | How long TrayOTP stays unlocked after you last used it: every time, 1 minute to 1 hour, **Until Mac Sleeps or Locks**, **Until I Lock It**, or a custom number of minutes. It locks when your Mac sleeps or the screen locks, except with **Until I Lock It**, which stays unlocked until you click Lock. |
 | **Set Master Password…** | The password you type before exporting or deleting tokens (see [Security](#security)). Once set, the menu offers Change, Remove, **Unlock with Password Instead of Touch ID**, and **Forgot Password…** to erase all tokens and start again. |
 | **Password Reminder ▸** | Ask for the password again every 7, 30 or 90 days (or a custom number), so you don't forget it. 30 days by default. |
 | **Set Global Shortcut…** | Open the panel from any app with a key combination of your choice (needs ⌘, ⌃ or ⌥). |
@@ -264,7 +263,7 @@ Click **Lock** at the bottom of the panel to lock right away.
 
 - Tokens are stored encrypted (**AES-256-GCM**) on your Mac, in a file only your user account can read.
 - The encryption key is a random 256-bit key kept in your **login keychain**, never next to the file.
-- With **Require Unlock** on, the vault is decrypted only after Touch ID or your Mac password, and the decrypted
+- The vault is decrypted only after Touch ID or your Mac password, and the decrypted
   tokens are dropped from memory when it locks again.
 - **Exporting**, **deleting a token** and **changing the master password** always ask for your password again, even while
   TrayOTP is unlocked. See [Master password](#master-password).

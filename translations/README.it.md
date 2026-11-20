@@ -250,8 +250,7 @@ Tutto nel menu **⋯**:
 
 | Impostazione | Cosa fa |
 |---|---|
-| **Richiedi sblocco** | Chiedi Touch ID o la password del Mac prima di mostrare i codici (attivo per impostazione predefinita). |
-| **Resta sbloccato ▸** | Per quanto TrayOTP resta sbloccato dopo l’ultimo utilizzo: ogni volta, da 1 minuto a 1 ora, **Fino a stop o blocco del Mac**, o un numero di minuti personalizzato. Si blocca sempre quando il Mac va in stop o lo schermo si blocca. |
+| **Resta sbloccato ▸** | Per quanto TrayOTP resta sbloccato dopo l’ultimo utilizzo: ogni volta, da 1 minuto a 1 ora, **Fino a stop o blocco del Mac**, **Fino al blocco manuale**, o un numero di minuti personalizzato. Si blocca quando il Mac va in stop o lo schermo si blocca, tranne con **Fino al blocco manuale**, che resta sbloccato finché non fai clic su Blocca. |
 | **Imposta password principale…** | La password che digiti prima di esportare o eliminare token (vedi [Sicurezza](#security)). Una volta impostata, il menu offre Modifica, Rimuovi, **Sblocca con la password invece di Touch ID** e **Password dimenticata…** per cancellare tutti i token e ricominciare. |
 | **Promemoria password ▸** | Richiedere di nuovo la password ogni 7, 30 o 90 giorni (o un numero personalizzato), per non dimenticarla. 30 giorni per impostazione predefinita. |
 | **Imposta abbreviazione globale…** | Apri il pannello da qualsiasi app con la combinazione di tasti che preferisci (con ⌘, ⌃ o ⌥). |
@@ -276,7 +275,7 @@ Fai clic su **Blocca** in fondo al pannello per bloccare subito.
 
 - I token sono salvati crittografati (**AES-256-GCM**) sul Mac, in un file leggibile solo dal tuo account utente.
 - La chiave di crittografia è una chiave casuale a 256 bit conservata nel **portachiavi di login**, mai accanto al file.
-- Con **Richiedi sblocco** attivo, la cassaforte viene decrittografata solo dopo Touch ID o la password del Mac, e i token
+- La cassaforte viene decrittografata solo dopo Touch ID o la password del Mac, e i token
   decrittografati vengono rimossi dalla memoria quando si blocca di nuovo.
 - **Esportare**, **eliminare un token** e **modificare la password principale** chiedono sempre di nuovo la tua password, anche se TrayOTP è sbloccato. Vedi [Password principale](#master-password).
 - Nulla lascia il tuo Mac, tranne un dominio che scegli di cercare con **Scarica icona dal sito web…**.

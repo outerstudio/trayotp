@@ -40,15 +40,9 @@ final class AppState {
     let iconSpinner = IconSpinner()
     let menuBarRing = MenuBarRing()
 
-    /// Require Touch ID / password before codes are shown.
-    var requireAuth: Bool {
-        didSet {
-            UserDefaults.standard.set(requireAuth, forKey: Keys.requireAuth)
-            updateMenuBarRing()
-        }
-    }
     /// Minutes the vault stays unlocked after last use. 0 = lock every time the panel opens,
-    /// `untilSleep` = no timeout (it still locks on sleep and screen lock).
+    /// `untilSleep` = no timeout (it still locks on sleep and screen lock),
+    /// `untilLocked` = no timeout and no lock on sleep: only the Lock button (or quitting) locks it.
     var graceMinutes: Int {
         didSet {
             UserDefaults.standard.set(graceMinutes, forKey: Keys.graceMinutes)
@@ -56,6 +50,7 @@ final class AppState {
         }
     }
     static let untilSleep = -1
+    static let untilLocked = -2
 
     /// Whether the Ungrouped section is open. Only matters once groups exist.
     var ungroupedExpanded: Bool {
@@ -123,9 +118,6 @@ final class AppState {
     /// Whether a password, the master or the export one, stands in front of exports and deletes.
     var hasPasswordGate: Bool { hasMasterPassword || exportVerifier != nil }
 
-    /// Whether the vault ever locks (Touch ID required, or a master password set).
-    var needsUnlock: Bool { requireAuth || hasMasterPassword }
-
     @ObservationIgnored private let store = VaultStore()
     @ObservationIgnored private var key: SymmetricKey?
     @ObservationIgnored private var lastActive: Date?
@@ -145,7 +137,7 @@ final class AppState {
     @ObservationIgnored private var closeTask: Task<Void, Never>?
 
     private enum Keys {
-        static let requireAuth = "requireAuth"
+        static let requireAuth = "requireAuth"  // legacy: migrated into graceMinutes
         static let graceMinutes = "graceMinutes"
         static let masterPassword = "masterPassword"
         static let exportPasswordSkipped = "exportPasswordSkipped"
@@ -165,10 +157,14 @@ final class AppState {
 
     init() {
         let defaults = UserDefaults.standard
-        defaults.register(defaults: [Keys.requireAuth: true, Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
+        defaults.register(defaults: [Keys.graceMinutes: 2, Keys.ungroupedExpanded: true,
                                      Keys.showsMenuBarIcon: true, Keys.clearsClipboard: true, Keys.backupReminderDays: 30, Keys.passwordReminderDays: 30])
         ungroupedExpanded = defaults.bool(forKey: Keys.ungroupedExpanded)
-        requireAuth = defaults.bool(forKey: Keys.requireAuth)
+        // The Require Unlock switch became the Until I Lock It option of Stay Unlocked.
+        if defaults.object(forKey: Keys.requireAuth) as? Bool == false {
+            defaults.set(Self.untilLocked, forKey: Keys.graceMinutes)
+        }
+        defaults.removeObject(forKey: Keys.requireAuth)
         graceMinutes = defaults.integer(forKey: Keys.graceMinutes)
         // A UI hint only: the Keychain item decides (openVault corrects it).
         hasMasterPassword = defaults.bool(forKey: Keys.masterPassword)
@@ -194,7 +190,7 @@ final class AppState {
     // MARK: Lock
 
     func panelDidOpen() {
-        if panelWasClosed, !isLocked, needsUnlock, graceMinutes != Self.untilSleep, let lastActive,
+        if panelWasClosed, !isLocked, graceMinutes >= 0, let lastActive,
            Date().timeIntervalSince(lastActive) > max(5, Double(graceMinutes * 60)) {
             lock()
         }
@@ -204,8 +200,6 @@ final class AppState {
         if isLocked {
             if hasMasterPassword {
                 // The lock screen asks for the password.
-            } else if !requireAuth {
-                openVault()
             } else if !authInProgress, Date() >= nextAutoPrompt {
                 Task { await unlock() }
             }
@@ -226,7 +220,6 @@ final class AppState {
     /// multi-screen Mac often not the panel's, so it's only used without Touch ID or with `alert`.
     func unlock(alert: Bool = false) async {
         guard isLocked, !hasMasterPassword else { return }
-        guard requireAuth else { openVault(); return }
         if authInProgress {
             // "Use Password…" while the inline prompt waits: cancel it, and its unlock call opens the alert.
             if alert, let touchIDView {
@@ -628,11 +621,12 @@ final class AppState {
 
     // MARK: Stay unlocked
 
-    static let gracePresets = [0, 1, 2, 5, 15, 30, 60, untilSleep]
+    static let gracePresets = [0, 1, 2, 5, 15, 30, 60, untilSleep, untilLocked]
 
     static func graceLabel(_ minutes: Int) -> String {
         switch minutes {
         case untilSleep: return String(localized: "Until Mac Sleeps or Locks")
+        case untilLocked: return String(localized: "Until I Lock It")
         case 0: return String(localized: "Lock Every Time")
         case 1: return String(localized: "1 Minute")
         case 60: return String(localized: "1 Hour")
@@ -715,7 +709,7 @@ final class AppState {
             return
         }
         var end: Date?
-        if menuBarCountdown == .untilGraceEnds, panelWasClosed, needsUnlock, graceMinutes != Self.untilSleep,
+        if menuBarCountdown == .untilGraceEnds, panelWasClosed, graceMinutes >= 0,
            let lastActive {
             end = lastActive.addingTimeInterval(max(5, Double(graceMinutes * 60)))
         }
@@ -726,7 +720,7 @@ final class AppState {
         // All observers are registered on the main queue.
         let lockIfNeeded: @Sendable (Notification) -> Void = { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let self, self.needsUnlock else { return }
+                guard let self, self.graceMinutes != Self.untilLocked else { return }
                 self.lock()
             }
         }

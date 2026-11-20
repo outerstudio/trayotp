@@ -250,8 +250,7 @@ Todo está en el menú **⋯**:
 
 | Ajuste | Qué hace |
 |---|---|
-| **Requerir desbloqueo** | Pedir Touch ID o la contraseña del Mac antes de mostrar los códigos (activado por defecto). |
-| **Seguir desbloqueado ▸** | Cuánto tiempo sigue desbloqueado TrayOTP tras su último uso: siempre bloquear, de 1 minuto a 1 hora, **Hasta que el Mac entre en reposo o se bloquee**, o un número de minutos personalizado. Siempre se bloquea cuando el Mac entra en reposo o se bloquea la pantalla. |
+| **Seguir desbloqueado ▸** | Cuánto tiempo sigue desbloqueado TrayOTP tras su último uso: siempre bloquear, de 1 minuto a 1 hora, **Hasta que el Mac entre en reposo o se bloquee**, **Hasta que lo bloquee**, o un número de minutos personalizado. Se bloquea cuando el Mac entra en reposo o se bloquea la pantalla, salvo con **Hasta que lo bloquee**, que sigue desbloqueado hasta que pulsas Bloquear. |
 | **Establecer contraseña maestra…** | La contraseña que escribes antes de exportar o eliminar tokens (consulta [Seguridad](#security)). Una vez establecida, el menú ofrece Cambiar, Eliminar, **Desbloquear con contraseña en lugar de Touch ID** y **Olvidé la contraseña…** para borrar todos los tokens y empezar de nuevo. |
 | **Recordatorio de contraseña ▸** | Volver a pedir la contraseña cada 7, 30 o 90 días (o un número personalizado), para que no se te olvide. 30 días por defecto. |
 | **Establecer atajo global…** | Abrir el panel desde cualquier app con la combinación de teclas que elijas (con ⌘, ⌃ u ⌥). |
@@ -276,7 +275,7 @@ Haz clic en **Bloquear** en la parte inferior del panel para bloquear al instant
 
 - Los tokens se guardan cifrados (**AES-256-GCM**) en tu Mac, en un archivo que solo tu cuenta de usuario puede leer.
 - La clave de cifrado es una clave aleatoria de 256 bits guardada en tu **llavero de inicio de sesión**, nunca junto al archivo.
-- Con **Requerir desbloqueo** activado, la bóveda solo se descifra tras Touch ID o la contraseña del Mac, y los tokens
+- La bóveda solo se descifra tras Touch ID o la contraseña del Mac, y los tokens
   descifrados se borran de la memoria cuando vuelve a bloquearse.
 - **Exportar**, **eliminar un token** y **cambiar la contraseña maestra** siempre vuelven a pedir tu contraseña, aunque TrayOTP esté desbloqueado. Consulta [Contraseña maestra](#master-password).
 - Nada sale de tu Mac, salvo un dominio que decidas consultar con **Obtener icono del sitio web…**.

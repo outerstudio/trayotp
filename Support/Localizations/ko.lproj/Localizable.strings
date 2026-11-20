@@ -254,7 +254,6 @@
 "Change…" = "변경…";
 "Remove…" = "제거…";
 "Set Master Password…" = "마스터 암호 설정…";
-"Require Unlock" = "잠금 해제 요구";
 "Stay Unlocked: %@" = "잠금 해제 유지: %@";
 "Custom: %@" = "사용자화: %@";
 "Custom…" = "사용자화…";
@@ -371,3 +370,4 @@
 "Backup failed" = "백업 실패";
 "back up all your secrets" = "모든 비밀 정보 백업";
 "Restore from Backup…" = "백업에서 복원…";
+"Until I Lock It" = "직접 잠글 때까지";

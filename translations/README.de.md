@@ -251,8 +251,7 @@ Alles im **⋯**-Menü:
 
 | Einstellung | Funktion |
 |---|---|
-| **Entsperren erforderlich** | Vor dem Anzeigen der Codes nach Touch ID oder dem Mac-Passwort fragen (standardmäßig an). |
-| **Entsperrt bleiben ▸** | Wie lange TrayOTP nach der letzten Verwendung entsperrt bleibt: jedes Mal sperren, 1 Minute bis 1 Stunde, **Bis der Mac schläft oder sperrt** oder eine eigene Anzahl Minuten. Es sperrt immer, wenn der Mac schläft oder der Bildschirm gesperrt wird. |
+| **Entsperrt bleiben ▸** | Wie lange TrayOTP nach der letzten Verwendung entsperrt bleibt: jedes Mal sperren, 1 Minute bis 1 Stunde, **Bis der Mac schläft oder sperrt**, **Bis ich sperre** oder eine eigene Anzahl Minuten. Es sperrt, wenn der Mac schläft oder der Bildschirm gesperrt wird, außer bei **Bis ich sperre**: Dann bleibt es entsperrt, bis du auf „Sperren“ klickst. |
 | **Master-Passwort festlegen …** | Das Passwort, das du vor dem Exportieren oder Löschen von Tokens eingibst (siehe [Sicherheit](#security)). Sobald es festgelegt ist, bietet das Menü Ändern, Entfernen, **Mit Passwort statt Touch ID entsperren** und **Passwort vergessen …**, um alle Tokens zu löschen und neu anzufangen. |
 | **Passworterinnerung ▸** | Alle 7, 30 oder 90 Tage (oder eine eigene Anzahl) erneut nach dem Passwort fragen, damit du es nicht vergisst. Standardmäßig 30 Tage. |
 | **Globales Tastenkürzel festlegen …** | Das Fenster aus jeder App mit einer Tastenkombination deiner Wahl öffnen (braucht ⌘, ⌃ oder ⌥). |
@@ -277,7 +276,7 @@ Klicke unten im Fenster auf **Sperren**, um sofort zu sperren.
 
 - Tokens werden verschlüsselt (**AES-256-GCM**) auf deinem Mac gespeichert, in einer Datei, die nur dein Benutzeraccount lesen kann.
 - Der Schlüssel ist ein zufälliger 256-Bit-Schlüssel in deinem **Anmeldeschlüsselbund**, nie neben der Datei.
-- Mit **Entsperren erforderlich** wird der Tresor erst nach Touch ID oder dem Mac-Passwort entschlüsselt, und die
+- Der Tresor wird erst nach Touch ID oder dem Mac-Passwort entschlüsselt, und die
   entschlüsselten Tokens werden beim erneuten Sperren aus dem Speicher entfernt.
 - **Exportieren**, **ein Token löschen** und **das Master-Passwort ändern** fragen immer erneut nach deinem Passwort, auch wenn
   TrayOTP entsperrt ist. Siehe [Master-Passwort](#master-password).

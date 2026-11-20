@@ -251,8 +251,7 @@ Tout se trouve dans le menu **⋯** :
 
 | Réglage | Effet |
 |---|---|
-| **Exiger le déverrouillage** | Demander Touch ID ou le mot de passe du Mac avant d’afficher les codes (activé par défaut). |
-| **Rester déverrouillé ▸** | Durée pendant laquelle TrayOTP reste déverrouillé après sa dernière utilisation : à chaque fois, de 1 minute à 1 heure, **Jusqu’à la veille ou au verrouillage du Mac**, ou un nombre de minutes personnalisé. Il se verrouille toujours quand le Mac se met en veille ou que l’écran se verrouille. |
+| **Rester déverrouillé ▸** | Durée pendant laquelle TrayOTP reste déverrouillé après sa dernière utilisation : à chaque fois, de 1 minute à 1 heure, **Jusqu’à la veille ou au verrouillage du Mac**, **Jusqu’à ce que je verrouille**, ou un nombre de minutes personnalisé. Il se verrouille quand le Mac se met en veille ou que l’écran se verrouille, sauf avec **Jusqu’à ce que je verrouille**, qui reste déverrouillé jusqu’à ce que vous cliquiez sur Verrouiller. |
 | **Définir un mot de passe principal…** | Le mot de passe que vous saisissez avant d’exporter ou de supprimer des jetons (voir [Sécurité](#security)). Une fois défini, le menu propose Modifier, Supprimer, **Déverrouiller avec le mot de passe au lieu de Touch ID** et **Mot de passe oublié…** pour effacer tous les jetons et repartir de zéro. |
 | **Rappel du mot de passe ▸** | Redemander le mot de passe tous les 7, 30 ou 90 jours (ou un nombre personnalisé), pour ne pas l’oublier. 30 jours par défaut. |
 | **Définir un raccourci global…** | Ouvrir le panneau depuis n’importe quelle app avec la combinaison de touches de votre choix (avec ⌘, ⌃ ou ⌥). |
@@ -277,7 +276,7 @@ Cliquez sur **Verrouiller** en bas du panneau pour verrouiller immédiatement.
 
 - Les jetons sont stockés chiffrés (**AES-256-GCM**) sur votre Mac, dans un fichier que seul votre compte utilisateur peut lire.
 - La clé de chiffrement est une clé aléatoire de 256 bits conservée dans votre **trousseau de session**, jamais à côté du fichier.
-- Avec **Exiger le déverrouillage**, le coffre n’est déchiffré qu’après Touch ID ou le mot de passe du Mac, et les jetons
+- Le coffre n’est déchiffré qu’après Touch ID ou le mot de passe du Mac, et les jetons
   déchiffrés sont retirés de la mémoire au verrouillage suivant.
 - **Exporter**, **supprimer un jeton** et **modifier le mot de passe principal** demandent toujours à nouveau votre mot de passe, même quand TrayOTP est déverrouillé. Voir [Mot de passe principal](#master-password).
 - Rien ne quitte votre Mac, sauf un domaine que vous choisissez de consulter avec **Récupérer l’icône du site web…**.

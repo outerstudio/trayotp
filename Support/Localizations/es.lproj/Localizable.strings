@@ -254,7 +254,6 @@
 "Change…" = "Cambiar…";
 "Remove…" = "Eliminar…";
 "Set Master Password…" = "Establecer contraseña maestra…";
-"Require Unlock" = "Requerir desbloqueo";
 "Stay Unlocked: %@" = "Seguir desbloqueado: %@";
 "Custom: %@" = "Personalizado: %@";
 "Custom…" = "Personalizado…";
@@ -371,3 +370,4 @@
 "Backup failed" = "Falló la copia";
 "back up all your secrets" = "hacer una copia de todos tus secretos";
 "Restore from Backup…" = "Restaurar desde copia…";
+"Until I Lock It" = "Hasta que lo bloquee";

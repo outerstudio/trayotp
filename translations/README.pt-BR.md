@@ -250,8 +250,7 @@ Tudo no menu **⋯**:
 
 | Ajuste | O que faz |
 |---|---|
-| **Exigir Desbloqueio** | Pedir o Touch ID ou a senha do Mac antes de mostrar os códigos (ativado por padrão). |
-| **Manter Desbloqueado ▸** | Quanto tempo o TrayOTP fica desbloqueado após o último uso: sempre bloquear, de 1 minuto a 1 hora, **Até o Mac repousar ou bloquear**, ou um número de minutos personalizado. Ele sempre bloqueia quando o Mac entra em repouso ou a tela é bloqueada. |
+| **Manter Desbloqueado ▸** | Quanto tempo o TrayOTP fica desbloqueado após o último uso: sempre bloquear, de 1 minuto a 1 hora, **Até o Mac repousar ou bloquear**, **Até eu bloquear**, ou um número de minutos personalizado. Ele bloqueia quando o Mac entra em repouso ou a tela é bloqueada, exceto com **Até eu bloquear**, que fica desbloqueado até você clicar em Bloquear. |
 | **Definir Senha Mestra…** | A senha que você digita antes de exportar ou apagar tokens (veja [Segurança](#security)). Depois de definida, o menu oferece Alterar, Remover, **Desbloquear com senha em vez do Touch ID** e **Esqueci a senha…** para apagar todos os tokens e começar de novo. |
 | **Lembrete de senha ▸** | Pedir a senha de novo a cada 7, 30 ou 90 dias (ou um número personalizado), para você não esquecê-la. 30 dias por padrão. |
 | **Definir Atalho Global…** | Abrir o painel de qualquer app com a combinação de teclas que você escolher (com ⌘, ⌃ ou ⌥). |
@@ -276,7 +275,7 @@ Clique em **Bloquear** na parte de baixo do painel para bloquear na hora.
 
 - Os tokens ficam criptografados (**AES-256-GCM**) no seu Mac, em um arquivo que só a sua conta de usuário pode ler.
 - A chave de criptografia é uma chave aleatória de 256 bits guardada nas suas **Chaves de início de sessão**, nunca ao lado do arquivo.
-- Com **Exigir Desbloqueio** ativado, o cofre só é descriptografado após o Touch ID ou a senha do Mac, e os tokens
+- O cofre só é descriptografado após o Touch ID ou a senha do Mac, e os tokens
   descriptografados são descartados da memória quando ele bloqueia de novo.
 - **Exportar**, **apagar um token** e **alterar a senha mestra** sempre pedem sua senha de novo, mesmo com o TrayOTP desbloqueado. Veja [Senha mestra](#master-password).
 - Nada sai do seu Mac, exceto um domínio que você decida consultar com **Buscar Ícone do Site…**.

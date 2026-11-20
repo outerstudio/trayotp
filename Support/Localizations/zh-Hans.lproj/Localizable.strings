@@ -254,7 +254,6 @@
 "Change…" = "更改…";
 "Remove…" = "移除…";
 "Set Master Password…" = "设置主密码…";
-"Require Unlock" = "要求解锁";
 "Stay Unlocked: %@" = "保持解锁：%@";
 "Custom: %@" = "自定：%@";
 "Custom…" = "自定…";
@@ -371,3 +370,4 @@
 "Backup failed" = "备份失败";
 "back up all your secrets" = "备份您的所有密钥";
 "Restore from Backup…" = "从备份恢复…";
+"Until I Lock It" = "直到我手动锁定";

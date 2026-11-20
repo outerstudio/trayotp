@@ -341,7 +341,6 @@ struct TokenListView: View {
                     state.lock()
                     PanelController.shared.close()
                 } label: { Label("Lock", systemImage: "lock") }
-                    .disabled(!state.needsUnlock)
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
             }
             if let release = state.updater.available {
@@ -466,9 +465,6 @@ struct SettingsMenu: View {
             } else {
                 Button("Set Master Password…") { afterMenu { state.setMasterPassword() } }
             }
-            if !state.hasMasterPassword {
-                Toggle("Require Unlock", isOn: $state.requireAuth)
-            }
             if state.hasPasswordGate {
                 Menu("Password Reminder: \(AppState.reminderLabel(state.passwordReminderDays))") {
                     Picker("Password Reminder", selection: $state.passwordReminderDays) {
@@ -500,7 +496,6 @@ struct SettingsMenu: View {
                 Divider()
                 Button("Custom…") { afterMenu { state.setCustomGrace() } }
             }
-            .disabled(!state.needsUnlock)
             Button(state.shortcut.map { String(localized: "Global Shortcut: \($0.display)…") } ?? String(localized: "Set Global Shortcut…")) {
                 afterMenu { state.editShortcut() }
             }

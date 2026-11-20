@@ -254,7 +254,6 @@
 "Change…" = "変更…";
 "Remove…" = "削除…";
 "Set Master Password…" = "マスターパスワードを設定…";
-"Require Unlock" = "ロック解除を要求";
 "Stay Unlocked: %@" = "ロック解除を保つ：%@";
 "Custom: %@" = "カスタム：%@";
 "Custom…" = "カスタム…";
@@ -371,3 +370,4 @@
 "Backup failed" = "バックアップに失敗しました";
 "back up all your secrets" = "すべてのシークレットをバックアップ";
 "Restore from Backup…" = "バックアップから復元…";
+"Until I Lock It" = "手動でロックするまで";
