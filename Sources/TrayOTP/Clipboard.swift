@@ -27,22 +27,24 @@ enum Clipboard {
         if let ourChangeCount, pb.changeCount == ourChangeCount { pb.clearContents() }
     }
 
-    static func readImage() -> NSImage? {
-        (NSPasteboard.general.readObjects(forClasses: [NSImage.self]) as? [NSImage])?.first
+    static func readImage(from pasteboard: NSPasteboard = .general) -> NSImage? {
+        (pasteboard.readObjects(forClasses: [NSImage.self]) as? [NSImage])?.first
     }
 
-    /// Text on the clipboard, or the content of a QR code in a copied image.
-    static func readOTPInput() -> String? {
-        let pb = NSPasteboard.general
-        if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-            return text
-        }
-        if let image = readImage() {
-            // "otpauth" also matches Google Authenticator's otpauth-migration:// transfer codes.
-            let messages = QRReader.messages(in: image)
-            return messages.first { $0.lowercased().hasPrefix("otpauth") } ?? messages.first
-        }
-        return nil
+    /// Prefer authenticator links when a copied image also carries text.
+    static func readOTPInput(from pasteboard: NSPasteboard = .general) -> String? {
+        let text = pasteboard.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let text, isOTPLink(text) { return text }
+
+        let messages = readImage(from: pasteboard).map(QRReader.messages(in:)) ?? []
+        if let link = messages.first(where: isOTPLink) { return link }
+        if let text, !text.isEmpty { return text }
+        return messages.first
+    }
+
+    private static func isOTPLink(_ text: String) -> Bool {
+        let lowercased = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return lowercased.hasPrefix("otpauth://") || lowercased.hasPrefix("otpauth-migration://")
     }
 }
 
