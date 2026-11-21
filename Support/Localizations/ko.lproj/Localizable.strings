@@ -364,6 +364,8 @@
 "Cancel to be reminded again tomorrow." = "취소하면 내일 다시 알려 드립니다.";
 "Backup saved" = "백업을 저장했습니다";
 "Backup failed" = "백업 실패";
+"Backup Folder Unavailable" = "백업 폴더를 사용할 수 없음";
+"The selected backup folder is unavailable. Choose a folder to continue backing up." = "선택한 백업 폴더를 사용할 수 없습니다. 백업을 계속하려면 폴더를 선택하세요.";
 "back up all your secrets" = "모든 비밀 정보 백업";
 "Restore from Backup…" = "백업에서 복원…";
 "Until I Lock It" = "직접 잠글 때까지";

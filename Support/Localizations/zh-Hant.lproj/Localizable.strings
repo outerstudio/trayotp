@@ -364,6 +364,8 @@
 "Cancel to be reminded again tomorrow." = "取消後將在明天再次提醒。";
 "Backup saved" = "備份已儲存";
 "Backup failed" = "備份失敗";
+"Backup Folder Unavailable" = "備份檔案夾無法使用";
+"The selected backup folder is unavailable. Choose a folder to continue backing up." = "所選的備份檔案夾無法使用。請選擇一個檔案夾以繼續備份。";
 "back up all your secrets" = "備份您的所有密鑰";
 "Restore from Backup…" = "從備份還原…";
 "Until I Lock It" = "直到我手動鎖定";

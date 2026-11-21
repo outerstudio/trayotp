@@ -364,6 +364,8 @@
 "Cancel to be reminded again tomorrow." = "Cancela para que te lo recordemos mañana.";
 "Backup saved" = "Copia guardada";
 "Backup failed" = "Falló la copia";
+"Backup Folder Unavailable" = "Carpeta de copias no disponible";
+"The selected backup folder is unavailable. Choose a folder to continue backing up." = "La carpeta de copias seleccionada no está disponible. Elige una carpeta para continuar con la copia.";
 "back up all your secrets" = "hacer una copia de todos tus secretos";
 "Restore from Backup…" = "Restaurar desde copia…";
 "Until I Lock It" = "Hasta que lo bloquee";

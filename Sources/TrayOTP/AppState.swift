@@ -1337,12 +1337,24 @@ final class AppState {
         if let url = Dialogs.chooseBackupFolder(current: backupFolder) { backupFolder = url }
     }
 
-    /// Writes an encrypted Aegis backup into the backup folder (asked for the first time).
+    /// Writes an encrypted Aegis backup, prompting for a folder if needed.
     func backUpNow() {
         Task {
             guard !tokens.isEmpty,
                   let auth = await authorize(String(localized: "back up all your secrets")) else { return }
-            if backupFolder == nil { chooseBackupFolder() }
+            if let folder = backupFolder {
+                var isDirectory: ObjCBool = false
+                if !FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory) || !isDirectory.boolValue {
+                    guard Dialogs.confirm(title: String(localized: "Backup Folder Unavailable"),
+                                          message: String(localized: "The selected backup folder is unavailable. Choose a folder to continue backing up."),
+                                          button: String(localized: "Choose Backup Folder…")),
+                          let replacement = Dialogs.chooseBackupFolder(current: nil)
+                    else { return }
+                    backupFolder = replacement
+                }
+            } else {
+                chooseBackupFolder()
+            }
             guard let folder = backupFolder, let password = backupPassword(for: .aegis, typedPassword: auth.password) else { return }
             let day = Date().formatted(.iso8601.year().month().day())
             let url = folder.appendingPathComponent("TrayOTP-backup-\(day).json")

@@ -364,6 +364,8 @@
 "Cancel to be reminded again tomorrow." = "Annulez pour être relancé demain.";
 "Backup saved" = "Sauvegarde enregistrée";
 "Backup failed" = "Échec de la sauvegarde";
+"Backup Folder Unavailable" = "Dossier de sauvegarde indisponible";
+"The selected backup folder is unavailable. Choose a folder to continue backing up." = "Le dossier de sauvegarde sélectionné est indisponible. Choisissez un dossier pour poursuivre la sauvegarde.";
 "back up all your secrets" = "sauvegarder tous vos secrets";
 "Restore from Backup…" = "Restaurer une sauvegarde…";
 "Until I Lock It" = "Jusqu’à ce que je verrouille";

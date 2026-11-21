@@ -364,6 +364,8 @@
 "Cancel to be reminded again tomorrow." = "キャンセルすると、明日もう一度お知らせします。";
 "Backup saved" = "バックアップを保存しました";
 "Backup failed" = "バックアップに失敗しました";
+"Backup Folder Unavailable" = "バックアップフォルダを使用できません";
+"The selected backup folder is unavailable. Choose a folder to continue backing up." = "選択したバックアップフォルダを使用できません。バックアップを続けるには、フォルダを選択してください。";
 "back up all your secrets" = "すべてのシークレットをバックアップ";
 "Restore from Backup…" = "バックアップから復元…";
 "Until I Lock It" = "手動でロックするまで";
