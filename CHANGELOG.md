@@ -2,6 +2,28 @@
 
 User-facing changes in each release. Pre-releases are listed on the [Releases](https://github.com/outerstudio/trayotp/releases) page.
 
+## [0.8.0](https://github.com/outerstudio/trayotp/compare/v0.7.0...v0.8.0) (2026-11-23)
+
+TrayOTP caches the catalog after the first lookup, so matching and search can work offline. New artwork downloads only when you approve it. To find icons for tokens you already have, choose ⋯ → Icon Pack → Review Service Icons….
+
+Back Up Now now includes the icon displayed on each token, whether it came from Simple Icons, an Aegis pack, a favicon, or a custom image. The icons come back when you restore the backup on another Mac.
+
+### Features
+
+* add on-demand Simple Icons downloads ([af75490](https://github.com/outerstudio/trayotp/commit/af754909cb168be3d5c66a2f8c3325c2e5d693e0))
+
+### Bug Fixes
+
+* **docs:** break gallery copy between sentences ([2b73b64](https://github.com/outerstudio/trayotp/commit/2b73b6440a64e058edf4f3e1f967dbfd2f09f867))
+* prefer QR image when pasting authenticator input ([06af2a6](https://github.com/outerstudio/trayotp/commit/06af2a683fdbfbee75b9ff8356c861ac9434c216))
+* recover when the backup folder is unavailable ([2bae7cc](https://github.com/outerstudio/trayotp/commit/2bae7ccbe9dfc6a56d8d01f7f50bde73a57ac239))
+
+Install
+
+Download TrayOTP.zip below, unzip it and move TrayOTP to Applications. It's a universal build for Apple silicon and Intel. Builds are ad-hoc signed, not notarized, so on first launch use System Settings → Privacy & Security → Open Anyway. Existing vaults carry over.
+
+**Full Changelog**: https://github.com/outerstudio/trayotp/compare/v0.7.0...v0.8.0
+
 ## [0.7.0](https://github.com/outerstudio/trayotp/compare/v0.6.0...v0.7.0) (2026-11-21)
 
 What's new
