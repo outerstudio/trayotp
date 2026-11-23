@@ -273,6 +273,7 @@
 "Other Apps" = "Otras apps";
 "otpauth Links (Plain Text)…" = "Enlaces otpauth (texto sin formato)…";
 "Update to %@…" = "Actualizar a %@…";
+"Skip This Version" = "Omitir esta versión";
 "Downloading…" = "Descargando…";
 "Release Notes" = "Notas de la versión";
 "Version %@" = "Versión %@";
@@ -390,3 +391,27 @@
 "Light" = "Claro";
 "Dark" = "Oscuro";
 "Deep Black" = "Negro profundo";
+
+/* Simple Icons */
+"Search Simple Icons…" = "Buscar en Simple Icons…";
+"Search Simple Icons" = "Buscar en Simple Icons";
+"Enter a brand name." = "Introduce el nombre de una marca.";
+"Brand Guidelines" = "Guía de marca";
+"Source" = "Fuente";
+"Could not download the icon. Try again." = "No se ha podido descargar el icono. Inténtalo de nuevo.";
+"Logo licenses and brand guidelines vary by service." = "Las licencias y guías de marca varían según el servicio.";
+"Simple Icons Disclaimer" = "Aviso legal de Simple Icons";
+"Download the %@ icon?" = "¿Descargar el icono de %@?";
+"Choose Service Icons to Download" = "Selecciona los iconos que quieras descargar";
+"Skip All" = "Omitir todos";
+"Download from jsDelivr" = "Descargar de jsDelivr";
+"1 token" = "1 token";
+"%lld tokens" = "%lld tokens";
+"Icon matching happens on this Mac." = "Los iconos se asocian en este Mac.";
+"Review Service Icons…" = "Revisar iconos de servicios…";
+"No service icons to download" = "No hay iconos de servicios para descargar";
+"Select All" = "Seleccionar todo";
+"%lld of %lld selected" = "%lld de %lld seleccionados";
+"Loading Simple Icons…" = "Cargando Simple Icons…";
+"Could not load the Simple Icons catalog." = "No se ha podido cargar el catálogo de Simple Icons.";
+"Try Again" = "Volver a intentar";

@@ -275,6 +275,7 @@
 "Other Apps" = "其他 App";
 "otpauth Links (Plain Text)…" = "otpauth 链接（纯文本）…";
 "Update to %@…" = "更新到 %@…";
+"Skip This Version" = "跳过此版本";
 "Downloading…" = "正在下载…";
 "Release Notes" = "发行说明";
 "Version %@" = "版本 %@";
@@ -390,3 +391,27 @@
 "Light" = "浅色";
 "Dark" = "深色";
 "Deep Black" = "深黑";
+
+/* Simple Icons */
+"Search Simple Icons…" = "搜索 Simple Icons…";
+"Search Simple Icons" = "搜索 Simple Icons";
+"Enter a brand name." = "输入品牌名称。";
+"Brand Guidelines" = "品牌指南";
+"Source" = "来源";
+"Could not download the icon. Try again." = "无法下载图标，请重试。";
+"Logo licenses and brand guidelines vary by service." = "图标许可条款和品牌指南因服务而异。";
+"Simple Icons Disclaimer" = "Simple Icons 免责声明";
+"Download the %@ icon?" = "下载 %@ 图标？";
+"Choose Service Icons to Download" = "选择要下载的服务图标";
+"Skip All" = "全部跳过";
+"Download from jsDelivr" = "从 jsDelivr 下载";
+"1 token" = "1 个令牌";
+"%lld tokens" = "%lld 个令牌";
+"Icon matching happens on this Mac." = "图标匹配在这台 Mac 上完成。";
+"Review Service Icons…" = "查看服务图标…";
+"No service icons to download" = "没有可下载的服务图标";
+"Select All" = "全选";
+"%lld of %lld selected" = "已选择 %1$lld 项，共 %2$lld 项";
+"Loading Simple Icons…" = "正在加载 Simple Icons…";
+"Could not load the Simple Icons catalog." = "无法加载 Simple Icons 目录。";
+"Try Again" = "重试";

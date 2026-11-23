@@ -39,6 +39,27 @@ struct PanelView: View {
                     } else {
                         TokenListView()
                     }
+                case .simpleIcons(let id):
+                    if let token = state.tokens.first(where: { $0.id == id }) {
+                        SimpleIconsPickerView(token: token)
+                    } else {
+                        TokenListView()
+                    }
+                case .serviceIconReview:
+                    if state.loadingServiceIconSuggestions {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 8) {
+                                ProgressView().controlSize(.small)
+                                Text("Loading Simple Icons…")
+                            }
+                            Button("Skip") { state.finishServiceIconReview() }
+                                .buttonStyle(PanelButtonStyle())
+                                .keyboardShortcut(.cancelAction)
+                        }
+                        .padding(14)
+                    } else {
+                        ServiceIconReviewView(suggestions: state.serviceIconSuggestions)
+                    }
                 case .favicon(let id):
                     if let token = state.tokens.first(where: { $0.id == id }) {
                         FaviconView(token: token)
@@ -63,7 +84,11 @@ struct PanelView: View {
             state.panelDidOpen()
         })
         .onExitCommand {
-            if state.screen == .list { PanelController.shared.close() } else { state.screen = .list }
+            switch state.screen {
+            case .list: PanelController.shared.close()
+            case .serviceIconReview: state.finishServiceIconReview()
+            default: state.screen = .list
+            }
         }
         .overlay(alignment: .bottom) {
             if let toast = state.toast {
@@ -304,13 +329,13 @@ struct TokenListView: View {
             Button("New Group…") { afterMenu { state.moveToNewGroup(token) } }
         }
         Divider()
-        // Only for a real icon (chosen, or matched from the pack), not colored initials.
-        if let image = token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token) {
+        if let image = state.displayIcon(for: token) {
             Button("Edit Icon…") { state.editIcon(token, image: image) }
         }
         if state.icons.pack != nil {
             Button("Choose Icon from Pack…") { open(.iconPicker(token.id), returningTo: token) }
         }
+        Button("Search Simple Icons…") { open(.simpleIcons(token.id), returningTo: token) }
         Button("Set Icon from File…") { afterMenu { state.chooseIconFile(token) } }
         Button("Paste Icon") { afterMenu { state.pasteIcon(token) } }
         Button("Fetch Icon from Website…") { open(.favicon(token.id), returningTo: token) }
@@ -351,18 +376,21 @@ struct TokenListView: View {
                 } label: { Label("Lock", systemImage: "lock") }
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
             }
-            if let release = state.updater.available {
-                Button {
-                    Task { await state.updater.offerAvailable() }
-                } label: {
-                    if state.updater.isInstalling {
-                        HStack(spacing: 6) {
-                            ProgressView().controlSize(.small)
-                            Text("Downloading…")
+            if let release = state.updater.automaticUpdate {
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await state.updater.offerAutomaticUpdate() }
+                    } label: {
+                        if state.updater.isInstalling {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.small)
+                                Text("Downloading…")
+                            }
+                        } else {
+                            Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
                         }
-                    } else {
-                        Label("Update to \(release.version?.description ?? release.tag)…", systemImage: "arrow.down.circle")
                     }
+                    Button("Skip This Version") { state.updater.skipAutomaticUpdate() }
                 }
                 .disabled(state.updater.isBusy)
             }
@@ -457,6 +485,8 @@ struct SettingsMenu: View {
                     Button("Install Aegis Icon Pack…") { afterMenu { state.installIconPack() } }
                 }
                 Divider()
+                Button("Review Service Icons…") { afterMenu { state.reviewExistingServiceIcons() } }
+                    .disabled(state.tokens.isEmpty)
                 Button("Import Icons from Folder…") {
                     afterMenu { if let url = Dialogs.openFolder() { state.importIcons(from: url) } }
                 }
@@ -618,7 +648,7 @@ struct SettingsMenu: View {
                 .frame(width: 30, height: 30)
                 .background(Color.primary.opacity(0.07), in: Circle())
                 .overlay(alignment: .topTrailing) {
-                    if state.updater.available != nil {
+                    if state.updater.automaticUpdate != nil {
                         Circle().fill(Color.accentColor).frame(width: 8, height: 8)
                     }
                 }

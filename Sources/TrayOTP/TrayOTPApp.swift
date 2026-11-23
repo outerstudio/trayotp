@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         NSApp.mainMenu = Self.editMenu()
         PanelController.shared.state = state
+        state.updater.startAutomaticChecks()
 
         // Opened by hand (Finder, Launchpad, Spotlight): show the panel. Not when started at login.
         // The delay lets MenuBarExtra put its status item in place first.

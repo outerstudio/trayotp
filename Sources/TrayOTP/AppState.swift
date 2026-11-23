@@ -9,7 +9,9 @@ import SwiftUI
 @MainActor
 @Observable
 final class AppState {
-    enum Screen: Equatable { case list, add, iconPicker(Token.ID), favicon(Token.ID), iconEditor(Token.ID) }
+    enum Screen: Equatable {
+        case list, add, iconPicker(Token.ID), simpleIcons(Token.ID), serviceIconReview, favicon(Token.ID), iconEditor(Token.ID)
+    }
 
     private(set) var tokens: [Token] = [] { didSet { updateMenuBarRing() } }
     private(set) var groups: [TokenGroup] = []
@@ -36,6 +38,12 @@ final class AppState {
     /// The shake is for the row's next-code area (a next code was copied) rather than the whole row.
     private(set) var shakesNext = false
     let icons = IconPackStore()
+    private(set) var serviceIconSuggestions: [SimpleIconsCatalog.Suggestion] = []
+    private(set) var loadingServiceIconSuggestions = false
+    private var serviceIcons: [String: Data] = [:]
+    private var matchedServiceIcons: [Token.ID: String] = [:]
+    @ObservationIgnored private var serviceIconReviewTask: Task<Void, Never>?
+    @ObservationIgnored private var serviceIconDownloads: [String: Task<Data?, Never>] = [:]
     let updater = Updater()
     let iconSpinner = IconSpinner()
     let menuBarRing = MenuBarRing()
@@ -230,6 +238,8 @@ final class AppState {
         static let showsMenuBarIcon = "showsMenuBarIcon"
         static let closesAfterCopy = "closesAfterCopy"
         static let clearsClipboard = "clearsClipboard"
+        static let legacyAutomaticServiceIcons = "automaticallyDownloadsServiceIcons"
+        static let sawServiceIconNotice = "sawServiceIconNotice"
         static let codeHiding = "codeHiding"
         static let hidesFromScreenSharing = "hidesFromScreenSharing"
         static let backupReminderDays = "backupReminderDays"
@@ -275,7 +285,6 @@ final class AppState {
         if shortcut == nil { showsMenuBarIcon = true }
         applyAppearance()
         observeSystemLock()
-        updater.checkIfDue()
     }
 
     // MARK: Lock
@@ -372,6 +381,7 @@ final class AppState {
     }
 
     func lock() {
+        clearServiceIcons()
         tokens = []
         groups = []
         key = nil
@@ -411,6 +421,22 @@ final class AppState {
             key = k
             tokens = vault.tokens
             groups = vault.groups
+            serviceIcons = vault.serviceIcons
+            matchedServiceIcons = vault.matchedServiceIcons ?? [:]
+            if vault.matchedServiceIcons == nil, !serviceIcons.isEmpty,
+               UserDefaults.standard.bool(forKey: Keys.legacyAutomaticServiceIcons) {
+                // Keep cached icons that were already in use before per-download approval.
+                let legacySlugs = ["codeberg": "codeberg", "codeberg.org": "codeberg",
+                                   "liberapay": "liberapay", "liberapay.com": "liberapay",
+                                   "sourcehut": "sourcehut", "sr.ht": "sourcehut"]
+                for token in tokens where token.icon == nil {
+                    let issuer = token.issuer?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    let name = issuer.isEmpty ? token.name.trimmingCharacters(in: .whitespacesAndNewlines) : issuer
+                    if let slug = legacySlugs[name.lowercased()], serviceIcons[slug] != nil {
+                        matchedServiceIcons[token.id] = slug
+                    }
+                }
+            }
             exportVerifier = vault.exportVerifier
             isLocked = false
             lockMessage = nil
@@ -494,7 +520,7 @@ final class AppState {
             } else {
                 item = raw
             }
-            try store.rekey(Vault(tokens: tokens, groups: groups, exportVerifier: exportVerifier), newKey: newKey, keyItem: item)
+            try store.rekey(currentVault, newKey: newKey, keyItem: item)
             key = newKey
             hasMasterPassword = password != nil
             return true
@@ -687,6 +713,7 @@ final class AppState {
             else { return }
             tokens = []
             groups = []
+            clearServiceIcons()
             exportVerifier = nil
             exportPasswordSkipped = false
             persist()
@@ -873,10 +900,12 @@ final class AppState {
         var token = token
         Self.stampIfLookalike(&token, existing: tokens)
         tokens.append(token)
-        persist()
-        screen = .list
-        showToast(String(localized: "Added \(token.name)"))
-        checkPasswordPrompts()
+        guard persist() else { return }
+        reviewServiceIcons(for: [token])
+        if screen == .list {
+            showToast(String(localized: "Added \(token.name)"))
+            checkPasswordPrompts()
+        }
     }
 
     func delete(_ token: Token) {
@@ -887,6 +916,7 @@ final class AppState {
         Task {
             guard await authorize(String(localized: "delete “\(token.name)”"), grace: .delete) != nil else { return }
             tokens.removeAll { $0.id == token.id }
+            matchedServiceIcons[token.id] = nil
             persist()
         }
     }
@@ -1036,6 +1066,150 @@ final class AppState {
 
     // MARK: Icons
 
+    func takeFirstServiceIconNotice() -> Bool {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Keys.sawServiceIconNotice) else { return false }
+        defaults.set(true, forKey: Keys.sawServiceIconNotice)
+        return true
+    }
+
+    func displayIcon(for token: Token) -> NSImage? {
+        if let image = token.icon.flatMap(IconImage.image(for:)) ?? icons.image(for: token) { return image }
+        guard let slug = matchedServiceIcons[token.id], let data = serviceIcons[slug]
+        else { return nil }
+        return IconImage.image(for: data)
+    }
+
+    private func reviewServiceIcons(for added: [Token], requested: Bool = false) {
+        let eligible = added.filter { $0.icon == nil && matchedServiceIcons[$0.id] == nil && icons.image(for: $0) == nil }
+        let ids = Set(eligible.map(\.id))
+        clearServiceIconReview()
+        guard !ids.isEmpty else {
+            screen = .list
+            if requested { showToast(String(localized: "No service icons to download")) }
+            return
+        }
+
+        loadingServiceIconSuggestions = true
+        screen = .serviceIconReview
+        serviceIconReviewTask = Task { [weak self] in
+            let catalog = await SimpleIconsCatalogStore.shared.load()
+            guard let self, !Task.isCancelled, !isLocked, screen == .serviceIconReview else { return }
+            serviceIconReviewTask = nil
+            loadingServiceIconSuggestions = false
+            if let catalog {
+                let suggestions = catalog.suggestions(for: tokens.filter { ids.contains($0.id) })
+                let cached = suggestions.filter { self.serviceIcons[$0.id] != nil }
+                for suggestion in cached { assignServiceIcon(suggestion) }
+                if !cached.isEmpty { persist() }
+                serviceIconSuggestions = suggestions.filter { self.serviceIcons[$0.id] == nil }
+            }
+            if serviceIconSuggestions.isEmpty {
+                screen = .list
+                if requested {
+                    showToast(catalog == nil ? String(localized: "Could not load the Simple Icons catalog.")
+                                             : String(localized: "No service icons to download"))
+                } else {
+                    checkPasswordPrompts()
+                }
+            }
+        }
+    }
+
+    func reviewExistingServiceIcons() {
+        guard !isLocked else { return }
+        reviewServiceIcons(for: tokens, requested: true)
+    }
+
+    func finishServiceIconReview(downloading slugs: Set<String> = []) {
+        guard screen == .serviceIconReview else { return }
+        let selected = serviceIconSuggestions.filter { slugs.contains($0.id) }
+        clearServiceIconReview()
+        screen = .list
+        checkPasswordPrompts()
+        guard !selected.isEmpty, !isLocked else { return }
+        let downloads = selected.map { ($0, startServiceIconDownload($0.icon)) }
+        Task {
+            var applied = false
+            for (suggestion, download) in downloads {
+                _ = await download?.value
+                guard !isLocked, serviceIcons[suggestion.id] != nil else { continue }
+                assignServiceIcon(suggestion)
+                applied = true
+            }
+            if applied { persist() }
+        }
+    }
+
+    private func assignServiceIcon(_ suggestion: SimpleIconsCatalog.Suggestion) {
+        let existing = Set(tokens.map(\.id))
+        for id in suggestion.tokenIDs where existing.contains(id) {
+            matchedServiceIcons[id] = suggestion.id
+        }
+    }
+
+    func fetchServiceIcon(_ icon: SimpleIconsCatalog.Icon) async -> NSImage? {
+        guard !isLocked else { return nil }
+        if let data = serviceIcons[icon.slug] { return IconImage.image(for: data) }
+        let data = await startServiceIconDownload(icon)?.value
+        return data.flatMap(IconImage.image(for:))
+    }
+
+    private func startServiceIconDownload(_ icon: SimpleIconsCatalog.Icon) -> Task<Data?, Never>? {
+        guard !isLocked, serviceIcons[icon.slug] == nil else { return nil }
+        if let running = serviceIconDownloads[icon.slug] { return running }
+        let download = Task { [weak self] in
+            let png = await Self.downloadServiceIcon(from: icon.downloadURL)
+            guard let self, !Task.isCancelled else { return nil as Data? }
+            self.serviceIconDownloads[icon.slug] = nil
+            if let png {
+                self.serviceIcons[icon.slug] = png
+                self.persist()
+            }
+            return png
+        }
+        serviceIconDownloads[icon.slug] = download
+        return download
+    }
+
+    private static let serviceIconSession = URLSession(configuration: .ephemeral)
+
+    private static func downloadServiceIcon(from url: URL) async -> Data? {
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+        request.httpShouldHandleCookies = false
+        guard let (bytes, response) = try? await serviceIconSession.bytes(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200,
+              http.url == url, http.mimeType == "image/svg+xml"
+        else { return nil }
+        var data = Data()
+        do {
+            for try await byte in bytes {
+                guard data.count < 64 * 1024 else { return nil }
+                data.append(byte)
+            }
+        } catch { return nil }
+        guard String(decoding: data.prefix(512), as: UTF8.self).hasPrefix("<svg"),
+              let png = IconImage.pngData(imported: data),
+              let image = IconImage.image(for: png), IconImage.hasVisiblePixels(image)
+        else { return nil }
+        return png
+    }
+
+    private func clearServiceIcons() {
+        serviceIconDownloads.values.forEach { $0.cancel() }
+        serviceIconDownloads.removeAll()
+        serviceIcons.removeAll()
+        matchedServiceIcons.removeAll()
+        clearServiceIconReview()
+    }
+
+    private func clearServiceIconReview() {
+        serviceIconReviewTask?.cancel()
+        serviceIconReviewTask = nil
+        loadingServiceIconSuggestions = false
+        serviceIconSuggestions.removeAll()
+    }
+
     /// Opens the icon editor on an image, to adjust zoom and background before using it.
     func editIcon(_ token: Token, image: NSImage) {
         iconDraft = IconDraft(image: image)
@@ -1144,12 +1318,20 @@ final class AppState {
         persist()
     }
 
-    private func persist() {
-        guard let key else { return }
+    private var currentVault: Vault {
+        Vault(tokens: tokens, groups: groups, exportVerifier: exportVerifier,
+              serviceIcons: serviceIcons, matchedServiceIcons: matchedServiceIcons)
+    }
+
+    @discardableResult
+    private func persist() -> Bool {
+        guard let key else { return false }
         do {
-            try store.save(Vault(tokens: tokens, groups: groups, exportVerifier: exportVerifier), key: key)
+            try store.save(currentVault, key: key)
+            return true
         } catch {
             Dialogs.error(error, title: String(localized: "Could not save"))
+            return false
         }
     }
 
@@ -1192,8 +1374,8 @@ final class AppState {
                     return
                 }
                 if GoogleAuthenticator.isMigrationLink(text) {
-                    importBackup(Data(text.utf8), name: String(localized: "the scanned QR code"))
                     screen = .list
+                    importBackup(Data(text.utf8), name: String(localized: "the scanned QR code"))
                 } else {
                     scannedInput = text
                     screen = .add
@@ -1207,8 +1389,8 @@ final class AppState {
 
     /// Imports pasted text, e.g. Google Authenticator `otpauth-migration://` links.
     func importText(_ text: String) {
-        importBackup(Data(text.utf8), name: String(localized: "the pasted link"))
         screen = .list
+        importBackup(Data(text.utf8), name: String(localized: "the pasted link"))
     }
 
     private func importBackup(_ data: Data, name: String) {
@@ -1238,7 +1420,7 @@ final class AppState {
                 if Self.stampIfLookalike(&fresh[i], existing: existing) { lookalikes.append(fresh[i]) }
             }
             tokens += Self.mergeGroups(backup.groups, into: &groups, tokens: fresh)
-            persist()
+            guard persist() else { return }
 
             let duplicates = backup.tokens.count - fresh.count
             var notes: [String] = []
@@ -1254,7 +1436,13 @@ final class AppState {
             Dialogs.info(title: count == 1 ? String(localized: "Imported 1 token from \(source)")
                                            : String(localized: "Imported \(count) tokens from \(source)"),
                          message: notes.joined(separator: "\n\n"))
-            checkPasswordPrompts()
+            guard !isLocked else { return }
+            reviewServiceIcons(for: fresh)
+            if screen == .serviceIconReview {
+                PanelController.shared.reopenWhenIdle()
+            } else {
+                checkPasswordPrompts()
+            }
         } catch {
             Dialogs.error(error, title: String(localized: "Import failed"))
         }
@@ -1356,10 +1544,11 @@ final class AppState {
                 chooseBackupFolder()
             }
             guard let folder = backupFolder, let password = backupPassword(for: .aegis, typedPassword: auth.password) else { return }
+            guard !isLocked, !tokens.isEmpty else { return }
             let day = Date().formatted(.iso8601.year().month().day())
             let url = folder.appendingPathComponent("TrayOTP-backup-\(day).json")
             do {
-                let data = try Exporter.encode(.init(tokens: tokens, groups: groups), as: .aegis, password: password)
+                let data = try Exporter.encode(backupWithDisplayedIcons, as: .aegis, password: password)
                 try data.write(to: url, options: .atomic)
                 try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
                 lastBackup = Date()
@@ -1368,6 +1557,17 @@ final class AppState {
                 Dialogs.error(error, title: String(localized: "Backup failed"))
             }
         }
+    }
+
+    /// Snapshot the displayed artwork into portable token icons without changing the vault.
+    private var backupWithDisplayedIcons: TwoFAS.Backup {
+        let backupTokens = tokens.map { token in
+            if let png = token.icon, IconImage.image(for: png) != nil { return token }
+            var copy = token
+            copy.icon = displayIcon(for: token).flatMap(IconImage.pngData(from:))
+            return copy
+        }
+        return TwoFAS.Backup(tokens: backupTokens, groups: groups)
     }
 
     /// Suggests a backup when `backupReminderDays` have passed since the last one (or since first seen).

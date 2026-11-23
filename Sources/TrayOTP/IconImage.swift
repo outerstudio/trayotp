@@ -87,6 +87,11 @@ enum IconImage {
         return stats.opaque == 0 || stats.flat
     }
 
+    /// Monochrome logos can be valid, so only test visibility when loading one.
+    static func hasVisiblePixels(_ image: NSImage) -> Bool {
+        colorStats(image).opaque > 0
+    }
+
     /// Number of opaque pixels in a 32×32 render, and whether they are all about the same color.
     private static func colorStats(_ image: NSImage) -> (opaque: Int, flat: Bool) {
         let side = 32

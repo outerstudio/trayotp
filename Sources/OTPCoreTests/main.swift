@@ -197,6 +197,72 @@ do {
     check(pack.bestMatch(name: "Gmail", issuer: nil) == nil, "no match inside a word (Gmail ≠ Mail)")
 }
 
+// MARK: Simple Icons
+
+do {
+    let metadata = """
+    [
+      {"title":"GitHub","slug":"github","source":"https://github.com/logos"},
+      {"title":"Google","slug":"google","source":"https://about.google/"},
+      {"title":"Discord","slug":"discord","source":"https://discord.com/"},
+      {"title":"Cloudflare","slug":"cloudflare","source":"https://cloudflare.com/"},
+      {"title":"Codeberg","slug":"codeberg","source":"https://codeberg.org/"},
+      {"title":"SourceHut","slug":"sourcehut","source":"https://sourcehut.org/"},
+      {"title":"Bluesky","slug":"bluesky","aliases":{"aka":["bsky"]}},
+      {"title":"X","slug":"x","aliases":{"aka":["Twitter"]}},
+      {"title":"Graphite","slug":"graphite"},
+      {"title":"Graphite Editor","slug":"graphite_editor","aliases":{"aka":["Graphite"]}}
+    ]
+    """
+    let catalog = try SimpleIconsCatalog(data: Data(metadata.utf8))
+    let github = catalog.search("Git Hub", limit: 1).first
+    equal(github?.slug, "github", "catalog search ranks exact normalized matches first")
+    equal(github?.downloadURL.lastPathComponent, "github.svg", "catalog produces a single SVG URL")
+    equal(SimpleIconsCatalog.catalogURL.deletingLastPathComponent().deletingLastPathComponent(),
+          github?.downloadURL.deletingLastPathComponent().deletingLastPathComponent(),
+          "metadata and SVGs use the same pinned package")
+    equal(catalog.search("bsky", limit: 1).first?.slug, "bluesky", "catalog search includes upstream aliases")
+    equal(catalog.search("", limit: 10).count, 0, "empty query shows no results")
+    let invalid = Data(#"[{"title":"Invalid","slug":"../icon"}]"#.utf8)
+    check((try? SimpleIconsCatalog(data: invalid)) == nil, "catalog rejects slugs outside the icon namespace")
+    equal(catalog.suggestedIcon(name: "Work", issuer: " Codeberg.org ")?.slug, "codeberg",
+          "automatic match accepts an exact issuer domain")
+    equal(catalog.suggestedIcon(name: "SourceHut", issuer: nil)?.slug, "sourcehut",
+          "automatic match uses the name if there is no issuer")
+    equal(catalog.suggestedIcon(name: "Codeberg", issuer: "Example Unknown Service")?.slug, "codeberg",
+          "automatic match falls back to the display name when the issuer is unknown")
+    equal(catalog.suggestedIcon(name: "GitHub", issuer: "Discord")?.slug, "discord",
+          "an identified issuer takes precedence over the display name")
+    check(catalog.suggestedIcon(name: "Codeberg clone", issuer: nil) == nil,
+          "automatic match rejects partial names")
+    check(catalog.suggestedIcon(name: "Graphite", issuer: nil) == nil,
+          "automatic match rejects a name shared by two logos")
+    equal(catalog.suggestedIcon(name: "GitHub", issuer: nil)?.slug, "github",
+          "ordinary brand names can appear as suggestions")
+    equal(catalog.suggestedIcon(name: "Work", issuer: "https://accounts.google.com")?.slug, "google",
+          "an issuer subdomain matches a known service domain")
+    equal(catalog.suggestedIcon(name: "Twitter", issuer: nil)?.slug, "x",
+          "an unambiguous upstream alias matches")
+
+    let codeberg = Token(name: "Codeberg", secret: "JBSWY3DPEHPK3PXP")
+    let codebergWork = Token(name: "Work", issuer: "codeberg.org", secret: "JBSWY3DPEHPK3PXP")
+    let sourcehut = Token(name: "SourceHut", secret: "JBSWY3DPEHPK3PXP")
+    let custom = Token(name: "Codeberg", secret: "JBSWY3DPEHPK3PXP", icon: Data([1]))
+    let suggestions = catalog.suggestions(for: [sourcehut, codeberg, codebergWork, custom])
+    equal(suggestions.map(\.id), ["codeberg", "sourcehut"], "batch suggestions contain one row per distinct logo")
+    equal(suggestions.first?.tokenIDs, [codeberg.id, codebergWork.id], "batch suggestions preserve matched IDs and skip custom artwork")
+
+    let services = [
+        Token(name: "Work account", issuer: "github.com", secret: "JBSWY3DPEHPK3PXP"),
+        Token(name: "Discord", secret: "JBSWY3DPEHPK3PXP"),
+        Token(name: "Cloudflare", issuer: "Uncatalogued SSO", secret: "JBSWY3DPEHPK3PXP"),
+    ]
+    let twoFAS = try TwoFAS.encode(.init(tokens: services))
+    let imported = try Importer.decode(twoFAS).1.tokens
+    equal(catalog.suggestions(for: imported).map(\.id), ["cloudflare", "discord", "github"],
+          "common 2FAS services appear in the batch icon review")
+}
+
 // MARK: SVG path normalization
 
 equal(SVGPathFixer.normalize(path: "M1 2a10 10 0 00-7.88 3.7"), "M 1 2 a 10 10 0 0 0 -7.88 3.7", "compact arc flags split")

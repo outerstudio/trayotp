@@ -9,17 +9,26 @@ struct Vault: Codable {
     var groups: [TokenGroup] = []
     /// Proves the master password (see `ExportPassword`); nil until one is set.
     var exportVerifier: Data?
+    /// Downloaded artwork keyed by public slug. Encrypt it to keep the user's icon choices private.
+    var serviceIcons: [String: Data] = [:]
+    /// The cached service icon assigned to each token. Older vaults have no assignments.
+    var matchedServiceIcons: [UUID: String]?
 
-    init(tokens: [Token] = [], groups: [TokenGroup] = [], exportVerifier: Data? = nil) {
+    init(tokens: [Token] = [], groups: [TokenGroup] = [], exportVerifier: Data? = nil,
+         serviceIcons: [String: Data] = [:], matchedServiceIcons: [UUID: String]? = nil) {
         self.tokens = tokens
         self.groups = groups
         self.exportVerifier = exportVerifier
+        self.serviceIcons = serviceIcons
+        self.matchedServiceIcons = matchedServiceIcons
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         tokens = try c.decode([Token].self, forKey: .tokens)
         exportVerifier = try c.decodeIfPresent(Data.self, forKey: .exportVerifier)
+        serviceIcons = try c.decodeIfPresent([String: Data].self, forKey: .serviceIcons) ?? [:]
+        matchedServiceIcons = try c.decodeIfPresent([UUID: String].self, forKey: .matchedServiceIcons)
         if let typed = try? c.decode([TokenGroup].self, forKey: .groups) {
             groups = typed
         } else {

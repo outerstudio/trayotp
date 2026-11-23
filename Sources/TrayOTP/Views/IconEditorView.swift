@@ -27,6 +27,9 @@ struct IconDraft {
 
 /// How an image sits in its icon: a bare square, or a circle when it has a background color.
 struct IconLayout: Equatable {
+    /// Dark artwork needs a light background to stay visible on the dark panel.
+    static let onWhiteCircle = IconLayout(scale: 0.66, background: HexColor(red: 255, green: 255, blue: 255))
+
     /// Size relative to the icon: 1 fits it exactly, larger values crop it.
     var scale: Double
     /// Shift from the center, as a fraction of the icon's width (right and down are positive).
@@ -61,8 +64,7 @@ struct IconAdjuster: View {
     ].compactMap(HexColor.init(parsing:))
 
     private var image: NSImage { draft.image }
-    /// The icon the row shows now: a chosen icon wins over the icon pack's automatic match.
-    private var currentIcon: NSImage? { token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token) }
+    private var currentIcon: NSImage? { state.displayIcon(for: token) }
     private var initial: IconLayout { draft.initial }
     private var layout: IconLayout {
         get { draft.layout }

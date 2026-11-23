@@ -9,9 +9,6 @@ struct FaviconView: View {
     let token: Token
     @State private var domain: String
     @State private var phase = Phase.idle
-    /// Favicons start on a white circle with a margin, like browsers show them: many are dark on
-    /// transparent (GitHub) and would vanish on the dark panel.
-    static let initialLayout = IconLayout(scale: 0.66, background: HexColor(red: 255, green: 255, blue: 255))
     @FocusState private var domainFocused: Bool
 
     /// A fetched favicon lives in `state.iconDraft`, so it survives the panel closing.
@@ -107,7 +104,7 @@ struct FaviconView: View {
         state.iconDraft = nil
         Task {
             if let image = await AppState.downloadFavicon(domain: normalized) {
-                state.iconDraft = IconDraft(image: image, layout: Self.initialLayout)
+                state.iconDraft = IconDraft(image: image, layout: .onWhiteCircle)
                 phase = .idle
             } else {
                 phase = .failed(String(localized: "No icon found for \(normalized). Check the domain, or use Set Icon from File…."))

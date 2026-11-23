@@ -19,8 +19,7 @@ struct TokenRow: View {
     }
 
     var body: some View {
-        // A chosen icon wins over the icon pack's automatic match.
-        let icon = token.icon.flatMap(IconImage.image(for:)) ?? state.icons.image(for: token)
+        let icon = state.displayIcon(for: token)
         let color = Theme.color(for: token, icon: icon)
 
         HStack(spacing: 12) {

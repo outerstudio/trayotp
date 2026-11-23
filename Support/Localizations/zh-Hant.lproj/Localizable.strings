@@ -275,6 +275,7 @@
 "Other Apps" = "其他 App";
 "otpauth Links (Plain Text)…" = "otpauth 連結（純文字）⋯";
 "Update to %@…" = "更新到 %@⋯";
+"Skip This Version" = "略過此版本";
 "Downloading…" = "正在下載…";
 "Release Notes" = "版本說明";
 "Version %@" = "版本 %@";
@@ -390,3 +391,27 @@
 "Light" = "淺色";
 "Dark" = "深色";
 "Deep Black" = "深黑";
+
+/* Simple Icons */
+"Search Simple Icons…" = "搜尋 Simple Icons…";
+"Search Simple Icons" = "搜尋 Simple Icons";
+"Enter a brand name." = "輸入品牌名稱。";
+"Brand Guidelines" = "品牌指南";
+"Source" = "來源";
+"Could not download the icon. Try again." = "無法下載圖示，請再試一次。";
+"Logo licenses and brand guidelines vary by service." = "圖示的授權條款和品牌指南因服務而異。";
+"Simple Icons Disclaimer" = "Simple Icons 免責聲明";
+"Download the %@ icon?" = "下載 %@ 圖示？";
+"Choose Service Icons to Download" = "選擇要下載的服務圖示";
+"Skip All" = "全部略過";
+"Download from jsDelivr" = "從 jsDelivr 下載";
+"1 token" = "1 個權杖";
+"%lld tokens" = "%lld 個權杖";
+"Icon matching happens on this Mac." = "圖示比對在這部 Mac 上進行。";
+"Review Service Icons…" = "檢視服務圖示…";
+"No service icons to download" = "沒有可下載的服務圖示";
+"Select All" = "全選";
+"%lld of %lld selected" = "已選取 %1$lld 項，共 %2$lld 項";
+"Loading Simple Icons…" = "正在載入 Simple Icons…";
+"Could not load the Simple Icons catalog." = "無法載入 Simple Icons 型錄。";
+"Try Again" = "再試一次";

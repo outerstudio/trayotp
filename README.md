@@ -3,7 +3,9 @@
 </p>
 
 <h1 align="center">TrayOTP</h1>
-
+<p align="center">
+  <a href="https://trayotp.outerstudio.com/">https://trayotp.outerstudio.com</a>
+</p>
 <p align="center">
   <b>English</b> · <a href="translations/README.zh-Hant.md">繁體中文</a> · <a href="translations/README.zh-Hans.md">简体中文</a> · <a href="translations/README.de.md">Deutsch</a> · <a href="translations/README.es.md">Español</a> · <a href="translations/README.fr.md">Français</a> ·
   <a href="translations/README.it.md">Italiano</a> · <a href="translations/README.ja.md">日本語</a> · <a href="translations/README.ko.md">한국어</a> ·
@@ -51,7 +53,7 @@
 - **Move in or out freely.** Import from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
   Stratum, andOTP, FreeOTP+, Raivo OTP and password manager CSVs. Export to 2FAS, Aegis, Ente Auth, Bitwarden and Google Authenticator.
 - **Groups.** Collapsible sections, drag and drop to sort and move tokens, kept in 2FAS, Aegis and Ente exports.
-- **Service icons.** Use any [Aegis icon pack](#service-icons), pick icons by hand, use your own images, or fetch a site's favicon.
+- **Service icons.** Search Simple Icons, use an [Aegis icon pack](#service-icons), use your own images, or fetch a site's favicon.
 - **Locked by default.** Touch ID (or your Mac password) before codes are shown, with an optional master password on top.
 - **Secure.** Tokens are encrypted with AES-256-GCM, with the key kept in your login keychain. See [Security](#security).
 - **Private.** Everything stays on your Mac. No account, no sync, no analytics.
@@ -151,8 +153,10 @@ A live preview shows the code before you save it, so you can compare it with the
 
 ### Service icons
 
-TrayOTP doesn't ship brand logos. Instead it reads icon packs in the
-[Aegis icon pack format](https://github.com/beemdevelopment/Aegis/blob/master/docs/iconpacks.md):
+TrayOTP supports on-demand downloads from Simple Icons and local packs in the
+[Aegis icon pack format](https://github.com/beemdevelopment/Aegis/blob/master/docs/iconpacks.md).
+
+To install an Aegis pack:
 
 1. Download `aegis-icons.zip` from [aegis-icons releases](https://github.com/aegis-icons/aegis-icons/releases)
    (or any other Aegis-compatible pack).
@@ -165,6 +169,7 @@ For anything else, right-click a token:
 |---|---|
 | **Edit Icon…** | Adjust the current icon (only when the token has one, not initials) |
 | **Choose Icon from Pack…** | Search the installed pack and pick an icon by hand |
+| **Search Simple Icons…** | Search brand names locally, then download one icon to preview and use |
 | **Set Icon from File…** | Use an image file (PNG, JPEG, SVG, HEIC, PDF…) |
 | **Paste Icon** | Use an image you copied |
 | **Fetch Icon from Website…** | Download the site's favicon (you confirm the domain first) |
@@ -172,6 +177,23 @@ For anything else, right-click a token:
 
 To set many at once, **⋯ → Icon Pack → Import Icons from Folder…** matches image file names to token names
 (`github.png` → GitHub). An icon you chose always wins over the pack's automatic match.
+
+When you add or import tokens, TrayOTP saves them and matches issuers locally. It uses existing
+custom icons and installed Aegis packs first. For unambiguous matches in the Simple Icons catalog,
+it reuses cached artwork or asks before downloading. Use **⋯ → Icon Pack → Review Service Icons…**
+to check tokens you previously added or imported.
+For one matching logo, choose **Download from jsDelivr** or **Skip**. For several logos, check the
+ones you want and choose **Download from jsDelivr**, or choose **Skip All**. TrayOTP downloads each
+selected logo once and caches it in the encrypted vault. The first review includes a link to the
+Simple Icons disclaimer. Skipped or failed downloads leave initials.
+
+TrayOTP fetches the public [Simple Icons](https://simpleicons.org/) catalog metadata from jsDelivr on
+first use and caches it on your Mac. Both the catalog and artwork use
+[v16.38.1](https://github.com/simple-icons/simple-icons/releases/tag/16.38.1).
+Without a connection or a cached catalog, you can still add and import tokens.
+Use **Review Service Icons…** once you’re back online.
+The picker shows available license and brand guideline links. Individual logos have their own terms.
+[Simple Icons licensing and trademark information](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md)
 
 > **Privacy note:** **Fetch Icon from Website…** downloads the favicon through DuckDuckGo's icon service, so
 > DuckDuckGo sees that domain. It only happens when you choose it, never automatically.
@@ -250,10 +272,10 @@ All in the **⋯** menu:
 | **Clear Clipboard After 30 Seconds** | Remove a copied code from the clipboard after 30 seconds, but only if the clipboard still holds that code. On by default. |
 | **Hide Codes ▸** | Mask codes as dots until you act: **Never** (default), **Until Hover** (the pointer or the keyboard selection reveals a row), or a click: **Click to Show for 5 Seconds** or **Click to Show for 10 Seconds** (clicking a row copies its code and shows it for that long). Copying a hidden code also shows it. |
 | **Hide Panel from Screen Sharing** | Keep the panel out of screen shares, screenshots and recordings (your own screenshots too). |
-| **Backup & Export ▸** | One-click encrypted backup (Aegis format, so **Import from File…** restores it) into a folder you choose once, plus a reminder when the last backup is older than 7, 30 (default) or 90 days. **Restore from Backup…** opens the same file picker as **Add → Import from File…**. |
+| **Backup & Export ▸** | One-click encrypted backup of your tokens and their displayed icons into a folder you choose once, plus a reminder when the last backup is older than 7, 30 (default) or 90 days. **Restore from Backup…** opens the same file picker as **Add → Import from File…** and reads the Aegis-format backup. |
 | **Theme ▸** | **Match System** (default) follows your Mac's light or dark appearance. Pick **Light** or **Dark** to fix it, or **Deep Black** for a pure black panel instead of the translucent material, for OLED screens. It also applies to TrayOTP's own windows and dialogs. |
 | **Launch at Login** | Start TrayOTP when you log in. |
-| **Check for Updates…** | Opens a window with the current version, **Check Now**, **Check Automatically** (once a day, on by default) and the **Update Channel**: **Stable**, **Beta** or **Alpha**. A newer release also shows an **Update to …** button under Add / Lock / Quit. |
+| **Check for Updates…** | Opens a window with the current version, **Check Now**, **Check Automatically** (on by default) and the **Update Channel**: **Stable**, **Beta** or **Alpha**. Automatic checks run at launch and daily while TrayOTP stays open. An update found automatically shows **Update to …** and **Skip This Version** under Add / Lock / Quit. **Check Now** shows its result in the Updates window, where you can install a skipped version. |
 | **Language ▸** | **System Default** follows your Mac's language (English if TrayOTP isn't translated into it), or pick one of the translations. TrayOTP restarts to switch. |
 
 Click **Lock** at the bottom of the panel to lock right away.
@@ -446,7 +468,7 @@ git tag v0.1.0 && git push origin v0.1.0
 ## Credits
 
 - Backup formats follow the open-source [2FAS](https://github.com/twofas) and [Aegis](https://github.com/beemdevelopment/Aegis) apps.
-- Service icons come from icon packs you install yourself, such as [aegis-icons](https://github.com/aegis-icons/aegis-icons).
+- Service icons can come from [Simple Icons](https://simpleicons.org/) or installed packs such as [aegis-icons](https://github.com/aegis-icons/aegis-icons).
 - Favicons are fetched through [DuckDuckGo](https://duckduckgo.com)'s icon service.
 
 TrayOTP is not affiliated with 2FAS, Aegis, Ente, Google, Bitwarden, Proton or any other app it imports from, nor

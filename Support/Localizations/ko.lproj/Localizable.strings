@@ -275,6 +275,7 @@
 "Other Apps" = "기타 앱";
 "otpauth Links (Plain Text)…" = "otpauth 링크(일반 텍스트)…";
 "Update to %@…" = "%@(으)로 업데이트…";
+"Skip This Version" = "이 버전 건너뛰기";
 "Downloading…" = "다운로드 중…";
 "Release Notes" = "릴리스 노트";
 "Version %@" = "버전 %@";
@@ -390,3 +391,27 @@
 "Light" = "라이트";
 "Dark" = "다크";
 "Deep Black" = "딥 블랙";
+
+/* Simple Icons */
+"Search Simple Icons…" = "Simple Icons 검색…";
+"Search Simple Icons" = "Simple Icons 검색";
+"Enter a brand name." = "브랜드 이름을 입력하세요.";
+"Brand Guidelines" = "브랜드 가이드라인";
+"Source" = "출처";
+"Could not download the icon. Try again." = "아이콘을 다운로드할 수 없습니다. 다시 시도하세요.";
+"Logo licenses and brand guidelines vary by service." = "로고의 라이선스와 브랜드 가이드라인은 서비스마다 다릅니다.";
+"Simple Icons Disclaimer" = "Simple Icons 법적 고지";
+"Download the %@ icon?" = "%@ 아이콘을 다운로드할까요?";
+"Choose Service Icons to Download" = "다운로드할 서비스 아이콘 선택";
+"Skip All" = "모두 건너뛰기";
+"Download from jsDelivr" = "jsDelivr에서 다운로드";
+"1 token" = "토큰 1개";
+"%lld tokens" = "토큰 %lld개";
+"Icon matching happens on this Mac." = "아이콘은 이 Mac에서 매칭됩니다.";
+"Review Service Icons…" = "서비스 아이콘 검토…";
+"No service icons to download" = "다운로드할 서비스 아이콘이 없습니다";
+"Select All" = "모두 선택";
+"%lld of %lld selected" = "%2$lld개 중 %1$lld개 선택됨";
+"Loading Simple Icons…" = "Simple Icons 불러오는 중…";
+"Could not load the Simple Icons catalog." = "Simple Icons 카탈로그를 불러올 수 없습니다.";
+"Try Again" = "다시 시도";
