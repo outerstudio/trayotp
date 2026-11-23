@@ -48,7 +48,7 @@
 - **Aperçu du code suivant.** Le prochain code s’affiche à droite de chaque ligne, et un remplissage translucide derrière la ligne indique le temps restant pour le code actuel.
 - **Tout au clavier ou tout à la souris, à vous de choisir.** Raccourci global, saisie pour rechercher, ↩ pour copier, ⌘↑/↓ pour réordonner, Échap pour fermer.
   Voir [Copier des codes](#copying-codes) et [Groupes](#groups).
-- **Tous les types de jetons courants.** TOTP (SHA-1, SHA-256, SHA-512, 6 à 8 chiffres, toute période), HOTP (basé sur un compteur) et Steam Guard.
+- **TOTP et HOTP.** TOTP prend en charge SHA-1, SHA-256 ou SHA-512, de 6 à 8 chiffres et les périodes personnalisées ; HOTP utilise un compteur.
 - **Ajoutez des jetons sans téléphone.** Collez un lien `otpauth://`, un secret Base32 ou une image contenant un code QR.
 - **Entrez et sortez librement.** Importez depuis Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
   Stratum, andOTP, FreeOTP+, Raivo OTP et les CSV de gestionnaires de mots de passe. Exportez vers 2FAS, Aegis, Ente Auth, Bitwarden et Google Authenticator.

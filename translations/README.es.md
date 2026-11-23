@@ -48,7 +48,7 @@
 - **Vista previa del siguiente código.** El próximo código aparece a la derecha de cada fila, y un relleno translúcido detrás de la fila muestra el tiempo que le queda al actual.
 - **Solo teclado o solo clics, tú decides.** Atajo global, escribe para buscar, ↩ para copiar, ⌘↑/↓ para reordenar, Esc para cerrar.
   Consulta [Copiar códigos](#copying-codes) y [Grupos](#groups).
-- **Todos los tipos de token habituales.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 dígitos, cualquier periodo), HOTP (basado en contador) y Steam Guard.
+- **TOTP y HOTP.** TOTP admite SHA-1, SHA-256 o SHA-512, de 6 a 8 dígitos y periodos configurables; HOTP usa un contador.
 - **Añade tokens sin teléfono.** Pega un enlace `otpauth://`, un secreto Base32 o una imagen con un código QR.
 - **Entra y sal con libertad.** Importa desde Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
   Stratum, andOTP, FreeOTP+, Raivo OTP y CSV de gestores de contraseñas. Exporta a 2FAS, Aegis, Ente Auth, Bitwarden y Google Authenticator.

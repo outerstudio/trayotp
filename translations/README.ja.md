@@ -48,7 +48,7 @@
 - **次のコードをプレビュー。** 各行の右側に次のコードが表示され、行の背景の半透明の塗りが現在のコードの残り時間を示します。
 - **キーボードだけでも、クリックだけでも。** グローバルショートカット、入力して検索、↩でコピー、⌘↑/↓で並べ替え、Escで閉じる。
   [コードのコピー](#copying-codes)と[グループ](#groups)を参照してください。
-- **一般的なトークンにすべて対応。** TOTP（SHA-1、SHA-256、SHA-512、6〜8桁、任意の周期）、HOTP（カウンタベース）、Steam Guard。
+- **TOTP と HOTP に対応。** TOTP は SHA-1、SHA-256、SHA-512、6〜8桁、任意の周期を選べます。HOTP はカウンタ方式です。
 - **スマートフォンなしでトークンを追加。** `otpauth://`リンク、Base32シークレット、QRコードを含む画像をペーストするだけ。
 - **自由に移行。** Google Authenticator、2FAS、Aegis、Ente Auth、Bitwarden、Proton Authenticator、
   Stratum、andOTP、FreeOTP+、Raivo OTP、パスワードマネージャのCSVから読み込み。2FAS、Aegis、Ente Auth、Bitwarden、Google Authenticatorへ書き出し。

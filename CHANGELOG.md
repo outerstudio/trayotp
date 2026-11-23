@@ -76,7 +76,7 @@ What's new
 - Stays unlocked briefly. Deleting stays unlocked for 2 minutes after you enter the password. Single-token export stays unlocked for 3 minutes.
 - Password reminder and "Forgot Password". TrayOTP reminds you of the password every 30 days by default. If you forget it, Forgot Password erases all tokens and lets you start over.
 - Unlock with the password instead of Touch ID. This is an optional toggle on the same password.
-- Export one token as a QR code. Right-click a token and choose Export… to show its otpauth:// link as a QR code, so you can add it to another authenticator app. There is also a Copy Link button. For Steam tokens, TrayOTP warns that many apps show wrong Steam codes.
+- Export one token as a QR code. Right-click a token and choose Export… to show its otpauth:// link as a QR code, so you can add it to another authenticator app. There is also a Copy Link button.
 - Deep Black theme. A pure black panel for OLED screens.
 - Copy feedback. The copied row (or just its next code) shakes. With Close After Copying on, the panel closes 0.7 s later so you can see it.
 - Support TrayOTP menu and About window. The ⋯ menu has a Support TrayOTP submenu with the sponsor links and an About item that shows the version. Update is now below Add, Lock and Quit. The update dialog links to the release page instead of showing the notes.

@@ -48,7 +48,7 @@
 - **다음 코드 미리 보기.** 각 행 오른쪽에 다음 코드가 표시되고, 행 뒤의 반투명 채우기가 현재 코드의 남은 시간을 보여줍니다.
 - **키보드만, 또는 클릭만. 원하는 대로.** 전역 단축키, 입력해서 검색, ↩로 복사, ⌘↑/↓로 순서 변경, Esc로 닫기.
   [코드 복사하기](#copying-codes)와 [그룹](#groups)을 참조하십시오.
-- **일반적인 토큰 유형 모두 지원.** TOTP(SHA-1, SHA-256, SHA-512, 6–8자리, 모든 주기), HOTP(카운터 기반), Steam Guard.
+- **TOTP와 HOTP 지원.** TOTP는 SHA-1, SHA-256 또는 SHA-512, 6–8자리, 사용자 지정 주기를 지원하며 HOTP는 카운터를 사용합니다.
 - **휴대폰 없이 토큰 추가.** `otpauth://` 링크, Base32 비밀 키 또는 QR 코드가 담긴 이미지를 붙여넣기만 하면 됩니다.
 - **자유롭게 옮기기.** Google OTP, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
   Stratum, andOTP, FreeOTP+, Raivo OTP, 암호 관리자 CSV에서 가져오기. 2FAS, Aegis, Ente Auth, Bitwarden, Google OTP로 내보내기.

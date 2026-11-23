@@ -48,7 +48,7 @@
 - **Next code preview.** The upcoming code is shown on the right of each row, and a translucent fill behind the row shows the time left on the current one.
 - **Keyboard only or just click, your call.** Global shortcut, type to search, ↩ to copy, ⌘↑/↓ to reorder, Esc to close.
   See [Copying codes](#copying-codes) and [Reorder](#groups).
-- **Every common token type.** TOTP (SHA-1, SHA-256, SHA-512, 6–8 digits, any period), HOTP (counter-based) and Steam Guard.
+- **TOTP and HOTP.** TOTP supports SHA-1, SHA-256 or SHA-512, 6–8 digits and configurable periods; HOTP uses a counter.
 - **Add tokens without a phone.** Paste an `otpauth://` link, a Base32 secret, or an image containing a QR code.
 - **Move in or out freely.** Import from Google Authenticator, 2FAS, Aegis, Ente Auth, Bitwarden, Proton Authenticator,
   Stratum, andOTP, FreeOTP+, Raivo OTP and password manager CSVs. Export to 2FAS, Aegis, Ente Auth, Bitwarden and Google Authenticator.
@@ -391,7 +391,7 @@ build and 0.1 s in an optimized one.
 
 ```
 Sources/OTPCore/          pure logic, no UI, fully tested
-  OTP.swift               HOTP / TOTP / Steam codes (CryptoKit)
+  OTP.swift               OTP code generation (CryptoKit)
   Base32.swift            lenient Base32
   OTPAuthURI.swift        otpauth:// parsing and building
   TwoFAS.swift            2FAS import/export (PBKDF2-SHA256 + AES-256-GCM)

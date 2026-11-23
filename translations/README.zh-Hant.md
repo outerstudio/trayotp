@@ -48,7 +48,7 @@
 - **預覽下一個驗證碼。** 每列右側顯示即將生效的驗證碼，列背後的半透明填色顯示目前驗證碼的剩餘時間。
 - **純鍵盤或純滑鼠，隨你選擇。** 全域快速鍵、輸入即搜尋、↩ 拷貝、⌘↑/↓ 調整順序、Esc 關閉。
   請參閱[拷貝驗證碼](#copying-codes)和[群組](#groups)。
-- **支援所有常見的代符類型。** TOTP（SHA-1、SHA-256、SHA-512，6–8 位數，任意週期）、HOTP（以計數器為基礎）和 Steam Guard。
+- **支援 TOTP 和 HOTP。** TOTP 支援 SHA-1、SHA-256 或 SHA-512、6–8 位數及自訂週期；HOTP 使用計數器。
 - **不需要手機就能加入代符。** 貼上 `otpauth://` 連結、Base32 密鑰或包含 QR 碼的影像即可。
 - **自由移入移出。** 可從 Google 驗證器、2FAS、Aegis、Ente Auth、Bitwarden、Proton Authenticator、
   Stratum、andOTP、FreeOTP+、Raivo OTP 和密碼管理工具 CSV 輸入；可輸出到 2FAS、Aegis、Ente Auth、Bitwarden 和 Google 驗證器。

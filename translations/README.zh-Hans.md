@@ -48,7 +48,7 @@
 - **预览下一个验证码。** 每行右侧显示即将生效的验证码，行背后的半透明填充显示当前验证码的剩余时间。
 - **纯键盘或纯鼠标，随你选择。** 全局快捷键，输入即搜索，↩ 拷贝，⌘↑/↓ 调整顺序，Esc 关闭。
   请参阅[拷贝验证码](#copying-codes)和[分组](#groups)。
-- **支持所有常见令牌类型。** TOTP（SHA-1、SHA-256、SHA-512，6–8 位，任意周期）、HOTP（基于计数器）和 Steam Guard。
+- **支持 TOTP 和 HOTP。** TOTP 支持 SHA-1、SHA-256 或 SHA-512、6–8 位数字及自定义周期；HOTP 使用计数器。
 - **无需手机即可添加令牌。** 粘贴 `otpauth://` 链接、Base32 密钥或包含二维码的图像即可。
 - **自由迁入迁出。** 可从 Google 身份验证器、2FAS、Aegis、Ente Auth、Bitwarden、Proton Authenticator、
   Stratum、andOTP、FreeOTP+、Raivo OTP 和密码管理器 CSV 导入；可导出到 2FAS、Aegis、Ente Auth、Bitwarden 和 Google 身份验证器。
