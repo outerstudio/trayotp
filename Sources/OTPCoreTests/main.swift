@@ -465,7 +465,6 @@ if let reference = fixture("plain.txt").flatMap({ try? Importer.decode($0).1 }) 
     let expected = Set(reference.tokens.map(tokenKey))
     let cases: [(file: String, format: BackupFormat, password: String?)] = [
         ("andotp_plain.json", .andOTP, nil), ("andotp_encrypted.bin", .andOTP, "test"),
-        ("andotp_encrypted_old.bin", .andOTP, "test"),
         ("bitwarden.json", .bitwarden, nil), ("bitwarden.csv", .passwordCSV, nil),
         ("freeotp_plus.json", .freeOTPPlus, nil),
         ("proton_authenticator.json", .proton, nil), ("proton_authenticator_encrypted.json", .proton, "test"),
@@ -498,6 +497,12 @@ if let reference = fixture("plain.txt").flatMap({ try? Importer.decode($0).1 }) 
         } catch {
             check(false, "\(c.file) threw \(error)")
         }
+    }
+    if let legacy = fixture("andotp_encrypted_old.bin") {
+        equal(Result { try Importer.decode(legacy, password: "test") }.twoFASError, .wrongPassword,
+              "legacy andOTP backup is rejected even with the correct password")
+    } else {
+        skippedSuites.append("andotp_encrypted_old.bin")
     }
     if let bw = fixture("bitwarden.json"), let b = try? Importer.decode(bw).1 {
         check(b.tokens.contains { $0.kind == .steam }, "Bitwarden steam:// imported")

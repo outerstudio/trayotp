@@ -214,7 +214,7 @@ the file is encrypted. Anything that can't be imported is listed afterwards.
 | **Bitwarden** and **Bitwarden Authenticator** (`.json`, `.csv`) | Unencrypted | Unencrypted JSON (no HOTP) | ✓ (folders) |
 | **Proton Authenticator** (`.json`) | Plain or encrypted | — | — |
 | **Stratum** / Authenticator Pro | Plain or encrypted | — | ✓ (categories) |
-| **andOTP** (`.json`, `.json.aes`) | Plain or encrypted | — | ✓ (first tag) |
+| **andOTP** (`.json`, `.json.aes`) | Plain JSON or PBKDF2-encrypted (andOTP 0.6.3+) | — | ✓ (first tag) |
 | **FreeOTP+** (`.json`) | ✓ | — | — |
 | **Raivo OTP** (`.zip`, untested, [please report](https://github.com/outerstudio/trayotp/issues)) | Password-protected ZIP | — | — |
 | **Apple Passwords** (`.csv`) | Verification codes (`OTPAuth` column) | — | — |
@@ -454,7 +454,7 @@ They're GPL-licensed, so they aren't committed; without them those checks are sk
 - **Proton Authenticator:** Argon2id (t=2, m=19 MiB, p=1) + AES-256-GCM, associated data `proton.authenticator.export.v1`.
 - **Stratum:** `AUTHENTICATORPRO` header, Argon2id (t=3, m=64 MiB, p=4) + AES-256-GCM; the legacy `AuthenticatorPro`
   header uses PBKDF2-SHA1 (64,000 iterations) + AES-256-CBC.
-- **andOTP:** PBKDF2-SHA1 (iterations stored in the file) + AES-256-GCM; older files use SHA-256(password) as the key.
+- **andOTP:** PBKDF2-SHA1 (iterations stored in the file) + AES-256-GCM. To import an older encrypted backup, restore it in andOTP and re-export it as plain JSON or in the PBKDF2-encrypted format.
 - **Raivo OTP:** a WinZip AES ZIP (PBKDF2-SHA1, AES-CTR, HMAC-SHA1) containing `raivo-otp-export.json`.
 
 ### Releasing

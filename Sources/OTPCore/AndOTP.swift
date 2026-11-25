@@ -5,7 +5,6 @@ import Foundation
 ///
 /// Encrypted (andOTP 0.6.3+): iterations (UInt32 big-endian) ‖ salt (12) ‖ nonce (12) ‖ ciphertext ‖ tag (16).
 /// Key = PBKDF2-HMAC-SHA1(password, salt, iterations, 32 bytes), cipher = AES-256-GCM.
-/// Older versions used key = SHA-256(password) and the file starts directly with the nonce.
 public enum AndOTP {
     static func entries(_ data: Data) -> [JSONValue]? {
         guard let array = (try? JSONDecoder().decode(JSONValue.self, from: data))?.array else { return nil }
@@ -42,15 +41,14 @@ public enum AndOTP {
         guard mayBeEncrypted(data) else { throw ImportError.invalidFile }
         guard let password, !password.isEmpty else { throw ImportError.passwordRequired }
         let bytes = [UInt8](data)
-        let pw = Array(password.utf8)
-
-        let iterations = UInt32(bytes[0]) << 24 | UInt32(bytes[1]) << 16 | UInt32(bytes[2]) << 8 | UInt32(bytes[3])
-        if (1...10_000_000).contains(iterations), bytes.count >= 4 + 12 + 12 + 16 {
-            let key = CryptoUtil.pbkdf2SHA1(password: pw, salt: Array(bytes[4..<16]), iterations: iterations, length: 32)
-            if let entries = open(Data(bytes[16...]), key: key) { return parse(entries) }
+        let iterations = bytes.prefix(4).reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        guard (1...10_000_000).contains(iterations), bytes.count >= 4 + 12 + 12 + 16 else {
+            throw ImportError.wrongPassword
         }
-        if let entries = open(data, key: Array(SHA256.hash(data: pw))) { return parse(entries) }
-        throw ImportError.wrongPassword
+        let key = CryptoUtil.pbkdf2SHA1(password: Array(password.utf8), salt: Array(bytes[4..<16]),
+                                       iterations: iterations, length: 32)
+        guard let entries = open(Data(bytes[16...]), key: key) else { throw ImportError.wrongPassword }
+        return parse(entries)
     }
 
     private static func open(_ combined: Data, key: [UInt8]) -> [JSONValue]? {
