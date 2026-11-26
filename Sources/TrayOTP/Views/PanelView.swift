@@ -39,9 +39,9 @@ struct PanelView: View {
                     } else {
                         TokenListView()
                     }
-                case .simpleIcons(let id):
+                case .simpleIcons(let id, let query):
                     if let token = state.tokens.first(where: { $0.id == id }) {
-                        SimpleIconsPickerView(token: token)
+                        SimpleIconsPickerView(token: token, initialQuery: query)
                     } else {
                         TokenListView()
                     }

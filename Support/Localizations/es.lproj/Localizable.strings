@@ -404,6 +404,7 @@
 "Download the %@ icon?" = "¿Descargar el icono de %@?";
 "Choose Service Icons to Download" = "Selecciona los iconos que quieras descargar";
 "Skip All" = "Omitir todos";
+"Preview" = "Vista previa";
 "Download from jsDelivr" = "Descargar de jsDelivr";
 "1 token" = "1 token";
 "%lld tokens" = "%lld tokens";

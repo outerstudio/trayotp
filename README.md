@@ -180,8 +180,10 @@ To set many at once, **⋯ → Icon Pack → Import Icons from Folder…** match
 
 When you add or import tokens, TrayOTP saves them and matches issuers locally. It uses existing
 custom icons and installed Aegis packs first. For unambiguous matches in the Simple Icons catalog,
-it reuses cached artwork or asks before downloading. Use **⋯ → Icon Pack → Review Service Icons…**
-to check tokens you previously added or imported.
+it reuses cached artwork or asks before downloading. When you add one token and there are icons to
+choose from, TrayOTP opens Simple Icons search with the service name filled in. Choose a result to
+preview it before applying. Use **⋯ → Icon Pack → Review Service Icons…** to check tokens you
+previously added or imported for automatic matches.
 For one matching logo, choose **Download from jsDelivr** or **Skip**. For several logos, check the
 ones you want and choose **Download from jsDelivr**, or choose **Skip All**. TrayOTP downloads each
 selected logo once and caches it in the encrypted vault. The first review includes a link to the
@@ -304,7 +306,7 @@ Touch ID would let someone use your finger while you sleep, so TrayOTP asks for 
 After your first token is added or imported, TrayOTP asks you to set a **master password**. It stands in front of:
 
 - exporting your tokens (the password also encrypts the backup file by default; you can pick another one for each export),
-- deleting a token (after you type it once, further deletes within 2 minutes don't ask again),
+- deleting a token (each deletion asks for the password),
 - showing a single token as a QR code (right-click → **Export…**, for adding it to another authenticator app;
   after you type the password once, further QR codes within 3 minutes don't ask again),
 - changing or removing the password.

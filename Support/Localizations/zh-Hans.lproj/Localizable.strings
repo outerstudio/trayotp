@@ -404,6 +404,7 @@
 "Download the %@ icon?" = "下载 %@ 图标？";
 "Choose Service Icons to Download" = "选择要下载的服务图标";
 "Skip All" = "全部跳过";
+"Preview" = "预览";
 "Download from jsDelivr" = "从 jsDelivr 下载";
 "1 token" = "1 个令牌";
 "%lld tokens" = "%lld 个令牌";

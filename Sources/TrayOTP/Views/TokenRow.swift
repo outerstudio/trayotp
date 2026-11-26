@@ -241,9 +241,11 @@ struct ServiceAvatar: View {
             // The bare logo, no circle behind it (like 2FAS), a little inset so it doesn't
             // look larger than the initials badges.
             Image(nsImage: image)
+                .renderingMode(IconImage.usesThemeTint(image) ? .template : .original)
                 .resizable()
                 .interpolation(.high)
                 .scaledToFit()
+                .foregroundStyle(Color.primary)
                 .frame(width: 30, height: 30)
                 .frame(width: 36, height: 36)
         } else {

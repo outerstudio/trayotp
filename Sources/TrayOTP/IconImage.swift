@@ -92,13 +92,22 @@ enum IconImage {
         colorStats(image).opaque > 0
     }
 
-    /// Number of opaque pixels in a 32×32 render, and whether they are all about the same color.
-    private static func colorStats(_ image: NSImage) -> (opaque: Int, flat: Bool) {
+    private static let themeTintCache = NSMapTable<NSImage, NSNumber>.weakToStrongObjects()
+
+    /// Only tint flat black or white artwork with transparency. Keep colored and two-tone logos intact.
+    static func usesThemeTint(_ image: NSImage) -> Bool {
+        if let cached = themeTintCache.object(forKey: image) { return cached.boolValue }
+        let tint = colorStats(image).themeTint
+        themeTintCache.setObject(NSNumber(value: tint), forKey: image)
+        return tint
+    }
+
+    private static func colorStats(_ image: NSImage) -> (opaque: Int, flat: Bool, themeTint: Bool) {
         let side = 32
         guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side,
                                          bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
                                          colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
-        else { return (1, false) }
+        else { return (1, false, false) }
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
         image.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
@@ -106,9 +115,12 @@ enum IconImage {
 
         // Per-channel range, so a white logo on yellow (similar brightness, different color) still counts.
         var low = [1.0, 1.0, 1.0], high = [0.0, 0.0, 0.0], opaque = 0
+        var hasTransparency = false
         for y in 0..<side {
             for x in 0..<side {
-                guard let c = rep.colorAt(x: x, y: y), c.alphaComponent > 0.5 else { continue }
+                guard let c = rep.colorAt(x: x, y: y) else { continue }
+                if c.alphaComponent < 0.1 { hasTransparency = true }
+                guard c.alphaComponent > 0.5 else { continue }
                 for (i, v) in [c.redComponent, c.greenComponent, c.blueComponent].enumerated() {
                     low[i] = min(low[i], v)
                     high[i] = max(high[i], v)
@@ -116,7 +128,9 @@ enum IconImage {
                 opaque += 1
             }
         }
-        return (opaque, (0..<3).allSatisfy { high[$0] - low[$0] < 0.1 })
+        let flat = (0..<3).allSatisfy { high[$0] - low[$0] < 0.1 }
+        let blackOrWhite = high.allSatisfy { $0 < 0.1 } || low.allSatisfy { $0 > 0.9 }
+        return (opaque, flat, opaque > 0 && hasTransparency && flat && blackOrWhite)
     }
 
     /// Main colors by image, holding the image so its identifier can't be reused.

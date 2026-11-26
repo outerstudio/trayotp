@@ -12,10 +12,12 @@ struct SimpleIconsPickerView: View {
     @State private var catalogUnavailable = false
     @State private var loadAttempt = 0
     let token: Token
+    let initialQuery: String?
 
-    init(token: Token) {
+    init(token: Token, initialQuery: String?) {
         self.token = token
-        _search = State(initialValue: token.issuer ?? token.name)
+        self.initialQuery = initialQuery
+        _search = State(initialValue: initialQuery ?? token.issuer ?? token.name)
     }
 
     var body: some View {
@@ -68,10 +70,7 @@ struct SimpleIconsPickerView: View {
                         LazyVStack(alignment: .leading, spacing: 0) {
                             ForEach(results) { icon in
                                 HStack(alignment: .firstTextBaseline) {
-                                    Button {
-                                        downloadFailed = false
-                                        selection = icon
-                                    } label: {
+                                    Button { preview(icon) } label: {
                                         Text(icon.title).frame(maxWidth: .infinity, alignment: .leading)
                                             .contentShape(Rectangle())
                                     }
@@ -89,6 +88,11 @@ struct SimpleIconsPickerView: View {
                                         Link(String(localized: "Source"), destination: url)
                                             .font(.caption)
                                     }
+                                    Button("Preview") { preview(icon) }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .help("Download from jsDelivr")
+                                        .disabled(selection != nil)
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
@@ -127,7 +131,7 @@ struct SimpleIconsPickerView: View {
         .task(id: selection?.id) {
             guard let selection else { return }
             let image = await state.fetchServiceIcon(selection)
-            guard !Task.isCancelled, state.screen == .simpleIcons(token.id), !state.isLocked else { return }
+            guard !Task.isCancelled, state.screen == .simpleIcons(token.id, query: initialQuery), !state.isLocked else { return }
             if let image {
                 state.editIcon(token, image: image)
             } else {
@@ -135,5 +139,10 @@ struct SimpleIconsPickerView: View {
                 self.selection = nil
             }
         }
+    }
+
+    private func preview(_ icon: SimpleIconsCatalog.Icon) {
+        downloadFailed = false
+        selection = icon
     }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 @Observable
 final class AppState {
     enum Screen: Equatable {
-        case list, add, iconPicker(Token.ID), simpleIcons(Token.ID), serviceIconReview, favicon(Token.ID), iconEditor(Token.ID)
+        case list, add, iconPicker(Token.ID), simpleIcons(Token.ID, query: String? = nil), serviceIconReview, favicon(Token.ID), iconEditor(Token.ID)
     }
 
     private(set) var tokens: [Token] = [] { didSet { updateMenuBarRing() } }
@@ -19,7 +19,17 @@ final class AppState {
     private(set) var authInProgress = false
     /// The Touch ID prompt inside the lock screen, while it waits for a finger.
     private(set) var touchIDView: LAAuthenticationView?
-    var screen: Screen = .list
+    var screen: Screen = .list {
+        didSet {
+            if oldValue == .list, screen != .list, serviceIconReviewTask != nil {
+                clearServiceIconReview()
+            }
+            if screen == .list, choosingIconForNewToken {
+                choosingIconForNewToken = false
+                if !isLocked { checkPasswordPrompts() }
+            }
+        }
+    }
     /// The token whose icon screen is open, to select it again back in the list.
     var listReturn: Token.ID?
     /// The image shown in the icon editor screen.
@@ -43,6 +53,7 @@ final class AppState {
     private var serviceIcons: [String: Data] = [:]
     private var matchedServiceIcons: [Token.ID: String] = [:]
     @ObservationIgnored private var serviceIconReviewTask: Task<Void, Never>?
+    @ObservationIgnored private var choosingIconForNewToken = false
     @ObservationIgnored private var serviceIconDownloads: [String: Task<Data?, Never>] = [:]
     let updater = Updater()
     let iconSpinner = IconSpinner()
@@ -533,10 +544,9 @@ final class AppState {
     /// What `authorize` learned: the password the user typed, or nil when Touch ID or the Mac password was used.
     struct Authorization { var password: String? }
 
-    /// Actions that skip the password prompt for a while after it was last passed, in seconds:
-    /// deleting for 2 minutes, showing token QR codes for 3.
+    /// Showing token QR codes skips the password prompt for 3 minutes after it was last passed.
     private enum Grace: TimeInterval {
-        case delete = 120, qr = 180
+        case qr = 180
     }
 
     private func extendGrace(_ grace: Grace) {
@@ -564,13 +574,18 @@ final class AppState {
     /// Asks for the password before an action that exposes or destroys secrets. A Touch ID prompt
     /// would let someone use a sleeper's finger, so the password is typed. Without one (the user
     /// skipped it), it falls back to `confirmOwner`. `grace` skips the prompt for a while after
-    /// the last time it was passed, for deleting or showing several tokens in a row.
+    /// the last time it was passed, for showing several token QR codes in a row.
     private func authorize(_ reason: String, grace: Grace? = nil) async -> Authorization? {
         if let grace, let until = graceUntil[grace], Date() < until {
             extendGrace(grace)
             return Authorization(password: nil)
         }
         guard let verifier = gateVerifier() else {
+            guard !hasPasswordGate else {
+                Dialogs.info(title: String(localized: "Can't confirm it's you"),
+                             message: VaultError.keyMissing.localizedDescription)
+                return nil
+            }
             return await confirmOwner(reason) ? Authorization(password: nil) : nil
         }
         var info = String(localized: "Enter your \(gateName) to \(reason).")
@@ -901,8 +916,7 @@ final class AppState {
         Self.stampIfLookalike(&token, existing: tokens)
         tokens.append(token)
         guard persist() else { return }
-        reviewServiceIcons(for: [token])
-        if screen == .list {
+        if !reviewServiceIcons(for: [token], singleAdd: true) {
             showToast(String(localized: "Added \(token.name)"))
             checkPasswordPrompts()
         }
@@ -914,7 +928,8 @@ final class AppState {
                               button: String(localized: "Delete"))
         else { return }
         Task {
-            guard await authorize(String(localized: "delete “\(token.name)”"), grace: .delete) != nil else { return }
+            guard !isLocked, await authorize(String(localized: "delete “\(token.name)”")) != nil,
+                  !isLocked else { return }
             tokens.removeAll { $0.id == token.id }
             matchedServiceIcons[token.id] = nil
             persist()
@@ -1080,31 +1095,50 @@ final class AppState {
         return IconImage.image(for: data)
     }
 
-    private func reviewServiceIcons(for added: [Token], requested: Bool = false) {
+    @discardableResult
+    private func reviewServiceIcons(for added: [Token], requested: Bool = false, singleAdd: Bool = false) -> Bool {
         let eligible = added.filter { $0.icon == nil && matchedServiceIcons[$0.id] == nil && icons.image(for: $0) == nil }
         let ids = Set(eligible.map(\.id))
         clearServiceIconReview()
         guard !ids.isEmpty else {
             screen = .list
             if requested { showToast(String(localized: "No service icons to download")) }
-            return
+            return false
         }
 
-        loadingServiceIconSuggestions = true
-        screen = .serviceIconReview
+        // A single add may have no suggestion or reuse a cached icon. Keep the list visible
+        // until there is a suggestion to review so the panel does not flash between screens.
+        let waitingScreen: Screen = singleAdd ? .list : .serviceIconReview
+        loadingServiceIconSuggestions = !singleAdd
+        screen = waitingScreen
         serviceIconReviewTask = Task { [weak self] in
             let catalog = await SimpleIconsCatalogStore.shared.load()
-            guard let self, !Task.isCancelled, !isLocked, screen == .serviceIconReview else { return }
+            guard let self, !Task.isCancelled, !isLocked else { return }
             serviceIconReviewTask = nil
             loadingServiceIconSuggestions = false
+            guard screen == waitingScreen else { return }
             if let catalog {
-                let suggestions = catalog.suggestions(for: tokens.filter { ids.contains($0.id) })
+                let candidates = tokens.filter { ids.contains($0.id) }
+                let suggestions = catalog.suggestions(for: candidates)
                 let cached = suggestions.filter { self.serviceIcons[$0.id] != nil }
                 for suggestion in cached { assignServiceIcon(suggestion) }
                 if !cached.isEmpty { persist() }
+
+                if singleAdd, cached.isEmpty, let token = candidates.first {
+                    // A domain match may not appear in text search, so try the exact logo title too.
+                    let queries = [token.issuer, token.name, suggestions.first?.icon.title].compactMap { $0 }
+                    if let query = queries.first(where: { !catalog.search($0, limit: 1).isEmpty }) {
+                        choosingIconForNewToken = true
+                        listReturn = token.id
+                        screen = .simpleIcons(token.id, query: query)
+                        return
+                    }
+                }
                 serviceIconSuggestions = suggestions.filter { self.serviceIcons[$0.id] == nil }
             }
-            if serviceIconSuggestions.isEmpty {
+            if !serviceIconSuggestions.isEmpty {
+                screen = .serviceIconReview
+            } else {
                 screen = .list
                 if requested {
                     showToast(catalog == nil ? String(localized: "Could not load the Simple Icons catalog.")
@@ -1114,6 +1148,7 @@ final class AppState {
                 }
             }
         }
+        return true
     }
 
     func reviewExistingServiceIcons() {
