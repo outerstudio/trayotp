@@ -2,6 +2,27 @@
 
 User-facing changes in each release. Pre-releases are listed on the [Releases](https://github.com/outerstudio/trayotp/releases) page.
 
+## [1.0.0](https://github.com/outerstudio/trayotp/compare/v0.8.0...v1.0.0) (2026-11-26)
+
+- Monochrome logos follow your theme. Black and white logos appear light on dark themes and dark on the light theme. Full-color logos keep their original colors.
+- Confirm every token deletion. Each deletion requires fresh authorization. If you’ve set a master password, TrayOTP asks for it every time.
+
+Encrypted backups from andOTP versions before 0.8.0 are no longer supported. Plain JSON exports and encrypted backups from andOTP 0.8.0 or later can still be imported.
+
+### Features
+
+* improve icon selection and require fresh auth for deletion ([222c8f8](https://github.com/outerstudio/trayotp/commit/222c8f8d51ae3c1a2d03fdc14b22129789ce7ef2))
+
+### Bug Fixes
+
+* drop legacy andOTP SHA-256 decryption ([75e4583](https://github.com/outerstudio/trayotp/commit/75e4583213e413f19cc75631f914c641e74e9676))
+
+Install
+
+Download TrayOTP.zip below, unzip it and move TrayOTP to Applications. It's a universal build for Apple silicon and Intel. Builds are ad-hoc signed, not notarized, so on first launch use System Settings → Privacy & Security → Open Anyway. Existing vaults carry over.
+
+**Full Changelog**: https://github.com/outerstudio/trayotp/compare/v0.8.0...v1.0.0
+
 ## [0.8.0](https://github.com/outerstudio/trayotp/compare/v0.7.0...v0.8.0) (2026-11-23)
 
 TrayOTP caches the catalog after the first lookup, so matching and search can work offline. New artwork downloads only when you approve it. To find icons for tokens you already have, choose ⋯ → Icon Pack → Review Service Icons….
@@ -76,7 +97,7 @@ What's new
 - Stays unlocked briefly. Deleting stays unlocked for 2 minutes after you enter the password. Single-token export stays unlocked for 3 minutes.
 - Password reminder and "Forgot Password". TrayOTP reminds you of the password every 30 days by default. If you forget it, Forgot Password erases all tokens and lets you start over.
 - Unlock with the password instead of Touch ID. This is an optional toggle on the same password.
-- Export one token as a QR code. Right-click a token and choose Export… to show its otpauth:// link as a QR code, so you can add it to another authenticator app. There is also a Copy Link button.
+- Export one token as a QR code. Right-click a token and choose Export… to show its otpauth:// link as a QR code, so you can add it to another authenticator app. There is also a Copy Link button. For Steam tokens, TrayOTP warns that many apps show wrong Steam codes.
 - Deep Black theme. A pure black panel for OLED screens.
 - Copy feedback. The copied row (or just its next code) shakes. With Close After Copying on, the panel closes 0.7 s later so you can see it.
 - Support TrayOTP menu and About window. The ⋯ menu has a Support TrayOTP submenu with the sponsor links and an About item that shows the version. Update is now below Add, Lock and Quit. The update dialog links to the release page instead of showing the notes.
